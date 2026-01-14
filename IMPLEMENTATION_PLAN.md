@@ -30,16 +30,16 @@ Test API credentials available in `.env` (Radarr at thor:7878, Sonarr at thor:89
 |-------|--------|------------|
 | Phase 1: Project Foundation | Complete | 100% |
 | Phase 2: Server Configuration | Complete | 100% |
-| Phase 3: Content Detection | Not Started | 0% |
+| Phase 3: Content Detection | Complete | 100% |
 | Phase 4: Search Triggering | Not Started | 0% |
 | Phase 5: Activity Logging | Not Started | 0% |
 | Phase 6: Automatic Scheduling | Not Started | 0% |
 | Phase 7: User Interface | Not Started | 0% |
 
 ### Immediate Next Steps
-Execute Phase 3 in order:
-1. **Create `src/services/detector.ts`** - Missing and cutoff content detection
-2. **Test detection against real Radarr/Sonarr servers**
+Execute Phase 4 in order:
+1. **Create `src/services/search-trigger.ts`** - Search triggering with limits
+2. **Test triggering against real Radarr/Sonarr servers**
 
 ---
 
@@ -264,46 +264,46 @@ Missing Content Detection    Quality Cutoff Detection
 ### 3.1 Missing Content Detection (`src/services/detector.ts`) - specs/missing-content-detection.md
 
 **Story: Detect Missing Episodes (Sonarr)**
-- [ ] Query each Sonarr server for monitored episodes marked as missing
-- [ ] Use API endpoint that filters server-side (not client-side filtering)
-- [ ] Handle API pagination for large libraries
-- [ ] Count total missing episodes across all Sonarr servers
-- [ ] Only count monitored items
-- [ ] Respect series/season monitoring settings
+- [x] Query each Sonarr server for monitored episodes marked as missing
+- [x] Use API endpoint that filters server-side (not client-side filtering)
+- [x] Handle API pagination for large libraries
+- [x] Count total missing episodes across all Sonarr servers
+- [x] Only count monitored items
+- [x] Respect series/season monitoring settings
 
 **Story: Detect Missing Movies (Radarr)**
-- [ ] Query each Radarr server for monitored movies marked as missing
-- [ ] Use API endpoint that filters server-side
-- [ ] Handle API pagination for large libraries
-- [ ] Count total missing movies across all Radarr servers
-- [ ] Only count monitored items
+- [x] Query each Radarr server for monitored movies marked as missing
+- [x] Use API endpoint that filters server-side
+- [x] Handle API pagination for large libraries
+- [x] Count total missing movies across all Radarr servers
+- [x] Only count monitored items
 
 **Story: Handle Detection Failures**
-- [ ] Continue checking other servers if one fails
-- [ ] Log failures with timestamp, server name, and reason
-- [ ] Return partial results from successful queries
+- [x] Continue checking other servers if one fails
+- [x] Log failures with timestamp, server name, and reason
+- [x] Return partial results from successful queries
 
 ### 3.2 Quality Cutoff Detection (`src/services/detector.ts`) - specs/quality-cutoff-detection.md
 
 **Story: Detect Episodes Below Quality Cutoff (Sonarr)**
-- [ ] Query each Sonarr server for episodes below quality cutoff
-- [ ] Use API endpoint that filters for cutoff-not-met server-side
-- [ ] Handle API pagination
-- [ ] Count total upgradeable episodes across all Sonarr servers
-- [ ] Only count monitored items
-- [ ] Respect quality profile cutoff settings
+- [x] Query each Sonarr server for episodes below quality cutoff
+- [x] Use API endpoint that filters for cutoff-not-met server-side
+- [x] Handle API pagination
+- [x] Count total upgradeable episodes across all Sonarr servers
+- [x] Only count monitored items
+- [x] Respect quality profile cutoff settings
 
 **Story: Detect Movies Below Quality Cutoff (Radarr)**
-- [ ] Query each Radarr server for movies below quality cutoff
-- [ ] Use API endpoint that filters for cutoff-not-met server-side
-- [ ] Handle API pagination
-- [ ] Count total upgradeable movies across all Radarr servers
-- [ ] Only count monitored items
+- [x] Query each Radarr server for movies below quality cutoff
+- [x] Use API endpoint that filters for cutoff-not-met server-side
+- [x] Handle API pagination
+- [x] Count total upgradeable movies across all Radarr servers
+- [x] Only count monitored items
 
 **Story: Handle Detection Failures**
-- [ ] Continue checking other servers if one fails
-- [ ] Log failures with timestamp, server name, and reason
-- [ ] Return partial results from successful queries
+- [x] Continue checking other servers if one fails
+- [x] Log failures with timestamp, server name, and reason
+- [x] Return partial results from successful queries
 
 ---
 
@@ -561,8 +561,8 @@ All technology decisions have been finalized. Implementation can proceed.
 ### Current State
 | Category | Status |
 |----------|--------|
-| Source code | Phase 2 complete (types, API client, database, server manager) |
-| Test code | 52 tests passing (unit + integration) |
+| Source code | Phase 3 complete (types, API client, database, server manager, detector) |
+| Test code | 61 tests passing (unit + integration) |
 | Build config | Complete (`package.json`, `tsconfig.json`, `.eslintrc.json`) |
 | Specifications | Complete (6 spec files) |
 | Implementation plan | Complete - all specs mapped to phases |
@@ -577,7 +577,8 @@ janitarr/
 │   ├── lib/
 │   │   └── api-client.ts       # ✅ Phase 2.1 - Radarr/Sonarr API client
 │   ├── services/
-│   │   └── server-manager.ts   # ✅ Phase 2.3 - Server CRUD operations
+│   │   ├── server-manager.ts   # ✅ Phase 2.3 - Server CRUD operations
+│   │   └── detector.ts         # ✅ Phase 3 - Missing/cutoff detection
 │   ├── storage/
 │   │   └── database.ts         # ✅ Phase 2.2 - SQLite persistence
 │   ├── types.ts                # ✅ Phase 1.2 - Core type definitions
@@ -586,7 +587,8 @@ janitarr/
 │   ├── lib/
 │   │   └── api-client.test.ts  # ✅ URL normalization/validation tests
 │   ├── services/
-│   │   └── server-manager.test.ts  # ✅ Server manager tests
+│   │   ├── server-manager.test.ts  # ✅ Server manager tests
+│   │   └── detector.test.ts    # ✅ Detection tests
 │   ├── storage/
 │   │   └── database.test.ts    # ✅ Database operations tests
 │   └── integration/
@@ -658,4 +660,4 @@ tests/
 ```
 
 ### Ready to Begin
-Phase 2 complete. Begin with Phase 3 (Content Detection).
+Phase 3 complete. Begin with Phase 4 (Search Triggering).

@@ -35,7 +35,8 @@ export interface RadarrWantedRecord {
 /** Wanted/missing response item from Sonarr */
 export interface SonarrWantedRecord {
   id: number;
-  series: { title: string };
+  series?: { title: string };
+  seriesTitle?: string;
   title: string;
   monitored: boolean;
   episodeNumber: number;
@@ -330,9 +331,10 @@ export class SonarrClient extends ApiClient {
 
       const records = result.data.records as SonarrWantedRecord[];
       for (const record of records) {
+        const seriesTitle = record.series?.title ?? record.seriesTitle ?? "Unknown Series";
         items.push({
           id: record.id,
-          title: `${record.series.title} - S${record.seasonNumber.toString().padStart(2, "0")}E${record.episodeNumber.toString().padStart(2, "0")} - ${record.title}`,
+          title: `${seriesTitle} - S${record.seasonNumber.toString().padStart(2, "0")}E${record.episodeNumber.toString().padStart(2, "0")} - ${record.title}`,
           type: "episode",
         });
       }
@@ -360,9 +362,10 @@ export class SonarrClient extends ApiClient {
 
       const records = result.data.records as SonarrWantedRecord[];
       for (const record of records) {
+        const seriesTitle = record.series?.title ?? record.seriesTitle ?? "Unknown Series";
         items.push({
           id: record.id,
-          title: `${record.series.title} - S${record.seasonNumber.toString().padStart(2, "0")}E${record.episodeNumber.toString().padStart(2, "0")} - ${record.title}`,
+          title: `${seriesTitle} - S${record.seasonNumber.toString().padStart(2, "0")}E${record.episodeNumber.toString().padStart(2, "0")} - ${record.title}`,
           type: "episode",
         });
       }
