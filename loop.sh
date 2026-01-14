@@ -46,17 +46,9 @@ while true; do
     break
   fi
 
-  # Run Ralph iteration with selected prompt
-  # -p: Headless mode (non-interactive, reads from stdin)
-  # --dangerously-skip-permissions: Auto-approve all tool calls (YOLO mode)
-  # --output-format=stream-json: Structured output for logging/monitoring
-  # --model opus: Primary agent uses Opus for complex reasoning (task selection, prioritization)
-  #               Can use 'sonnet' in build mode for speed if plan is clear and tasks well-defined
-  # --verbose: Detailed execution logging
   cat "$PROMPT_FILE" | claude -p \
     --dangerously-skip-permissions \
     --output-format=stream-json \
-    --model opus \
     --verbose
 
   # Push changes after each iteration
