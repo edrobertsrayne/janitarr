@@ -31,15 +31,15 @@ Test API credentials available in `.env` (Radarr at thor:7878, Sonarr at thor:89
 | Phase 1: Project Foundation | Complete | 100% |
 | Phase 2: Server Configuration | Complete | 100% |
 | Phase 3: Content Detection | Complete | 100% |
-| Phase 4: Search Triggering | Not Started | 0% |
+| Phase 4: Search Triggering | Complete | 100% |
 | Phase 5: Activity Logging | Not Started | 0% |
 | Phase 6: Automatic Scheduling | Not Started | 0% |
 | Phase 7: User Interface | Not Started | 0% |
 
 ### Immediate Next Steps
-Execute Phase 4 in order:
-1. **Create `src/services/search-trigger.ts`** - Search triggering with limits
-2. **Test triggering against real Radarr/Sonarr servers**
+Execute Phase 5 in order:
+1. **Create `src/lib/logger.ts`** - Activity logging system
+2. **Integrate logging into detector and search-trigger services**
 
 ---
 
@@ -312,32 +312,32 @@ Missing Content Detection    Quality Cutoff Detection
 **Dependency:** Phase 3 complete (Content Detection)
 
 ### 4.1 Search Limits Configuration
-- [ ] Allow user to set numeric limit for missing content searches (0 or greater)
-- [ ] Allow user to set separate numeric limit for cutoff searches (0 or greater)
-- [ ] Persist limits across application restarts
-- [ ] Setting limit to 0 disables that category
+- [x] Allow user to set numeric limit for missing content searches (0 or greater)
+- [x] Allow user to set separate numeric limit for cutoff searches (0 or greater)
+- [x] Persist limits across application restarts
+- [x] Setting limit to 0 disables that category
 
 ### 4.2 Search Trigger Service (`src/services/search-trigger.ts`)
 
 **Story: Trigger Missing Content Searches**
-- [ ] Trigger searches up to user-configured missing limit
-- [ ] Use Radarr/Sonarr CommandController API (MoviesSearch, EpisodeSearch)
-- [ ] Distribute searches fairly across all configured servers
-- [ ] Log each triggered search with timestamp, server, item type
-- [ ] If fewer items than limit, search all available
+- [x] Trigger searches up to user-configured missing limit
+- [x] Use Radarr/Sonarr CommandController API (MoviesSearch, EpisodeSearch)
+- [x] Distribute searches fairly across all configured servers
+- [x] Log each triggered search with timestamp, server, item type
+- [x] If fewer items than limit, search all available
 
 **Story: Trigger Quality Upgrade Searches**
-- [ ] Trigger searches up to user-configured cutoff limit
-- [ ] Use Radarr/Sonarr CommandController API
-- [ ] Distribute searches fairly across all configured servers
-- [ ] Log each triggered search with timestamp, server, item type
-- [ ] If fewer items than limit, search all available
+- [x] Trigger searches up to user-configured cutoff limit
+- [x] Use Radarr/Sonarr CommandController API
+- [x] Distribute searches fairly across all configured servers
+- [x] Log each triggered search with timestamp, server, item type
+- [x] If fewer items than limit, search all available
 
 **Story: Handle Search Failures**
-- [ ] Log failures with timestamp, server name, and reason
-- [ ] Failed searches do not count against limit
-- [ ] Continue triggering remaining searches after failure
-- [ ] Implement brief delays between commands if needed for rate limiting
+- [x] Log failures with timestamp, server name, and reason
+- [x] Failed searches do not count against limit
+- [x] Continue triggering remaining searches after failure
+- [x] Implement brief delays between commands if needed for rate limiting
 
 ---
 
@@ -561,8 +561,8 @@ All technology decisions have been finalized. Implementation can proceed.
 ### Current State
 | Category | Status |
 |----------|--------|
-| Source code | Phase 3 complete (types, API client, database, server manager, detector) |
-| Test code | 61 tests passing (unit + integration) |
+| Source code | Phase 4 complete (types, API client, database, server manager, detector, search-trigger) |
+| Test code | 71 tests passing (unit + integration) |
 | Build config | Complete (`package.json`, `tsconfig.json`, `.eslintrc.json`) |
 | Specifications | Complete (6 spec files) |
 | Implementation plan | Complete - all specs mapped to phases |
@@ -578,7 +578,8 @@ janitarr/
 │   │   └── api-client.ts       # ✅ Phase 2.1 - Radarr/Sonarr API client
 │   ├── services/
 │   │   ├── server-manager.ts   # ✅ Phase 2.3 - Server CRUD operations
-│   │   └── detector.ts         # ✅ Phase 3 - Missing/cutoff detection
+│   │   ├── detector.ts         # ✅ Phase 3 - Missing/cutoff detection
+│   │   └── search-trigger.ts   # ✅ Phase 4 - Search triggering
 │   ├── storage/
 │   │   └── database.ts         # ✅ Phase 2.2 - SQLite persistence
 │   ├── types.ts                # ✅ Phase 1.2 - Core type definitions
@@ -588,7 +589,8 @@ janitarr/
 │   │   └── api-client.test.ts  # ✅ URL normalization/validation tests
 │   ├── services/
 │   │   ├── server-manager.test.ts  # ✅ Server manager tests
-│   │   └── detector.test.ts    # ✅ Detection tests
+│   │   ├── detector.test.ts    # ✅ Detection tests
+│   │   └── search-trigger.test.ts  # ✅ Search trigger tests
 │   ├── storage/
 │   │   └── database.test.ts    # ✅ Database operations tests
 │   └── integration/
@@ -660,4 +662,4 @@ tests/
 ```
 
 ### Ready to Begin
-Phase 3 complete. Begin with Phase 4 (Search Triggering).
+Phase 4 complete. Begin with Phase 5 (Activity Logging).
