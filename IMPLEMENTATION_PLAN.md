@@ -32,14 +32,14 @@ Test API credentials available in `.env` (Radarr at thor:7878, Sonarr at thor:89
 | Phase 2: Server Configuration | Complete | 100% |
 | Phase 3: Content Detection | Complete | 100% |
 | Phase 4: Search Triggering | Complete | 100% |
-| Phase 5: Activity Logging | Not Started | 0% |
+| Phase 5: Activity Logging | Complete | 100% |
 | Phase 6: Automatic Scheduling | Not Started | 0% |
 | Phase 7: User Interface | Not Started | 0% |
 
 ### Immediate Next Steps
-Execute Phase 5 in order:
-1. **Create `src/lib/logger.ts`** - Activity logging system
-2. **Integrate logging into detector and search-trigger services**
+Execute Phase 6 in order:
+1. **Create `src/lib/scheduler.ts`** - Scheduling utilities
+2. **Create `src/services/automation.ts`** - Automation cycle orchestration
 
 ---
 
@@ -346,33 +346,33 @@ Missing Content Detection    Quality Cutoff Detection
 **Dependency:** Can be implemented alongside Phase 3-4, integrated throughout
 
 ### 5.1 Log Storage (`src/lib/logger.ts`)
-- [ ] Implement persistent log storage (survives restarts)
-- [ ] Write entries immediately (no buffering)
-- [ ] Retain logs for at least 30 days
-- [ ] Auto-purge logs older than 30 days
-- [ ] Consider max log size (10MB) with rotation
-- [ ] Never log API keys or credentials
+- [x] Implement persistent log storage (survives restarts)
+- [x] Write entries immediately (no buffering)
+- [x] Retain logs for at least 30 days
+- [x] Auto-purge logs older than 30 days
+- [x] Consider max log size (10MB) with rotation
+- [x] Never log API keys or credentials
 
 ### 5.2 Log Entry Types
-- [ ] Log triggered searches: timestamp, server name, server type, category (missing/cutoff), count
-- [ ] Log automation cycle start: timestamp
-- [ ] Log automation cycle completion: timestamp, summary (total searches)
-- [ ] Log server connection failures: timestamp, server name, reason
-- [ ] Log search trigger failures: timestamp, server name, reason
-- [ ] Mark manual triggers vs scheduled triggers
-- [ ] Group related operations where sensible (e.g., "Triggered 5 missing searches on Server1" vs 5 entries)
+- [x] Log triggered searches: timestamp, server name, server type, category (missing/cutoff), count
+- [x] Log automation cycle start: timestamp
+- [x] Log automation cycle completion: timestamp, summary (total searches)
+- [x] Log server connection failures: timestamp, server name, reason
+- [x] Log search trigger failures: timestamp, server name, reason
+- [x] Mark manual triggers vs scheduled triggers
+- [x] Group related operations where sensible (e.g., "Triggered 5 missing searches on Server1" vs 5 entries)
 
 ### 5.3 Log Display
-- [ ] Display logs in reverse chronological order (newest first)
-- [ ] Show date and time in readable format
-- [ ] Show at least 100 most recent entries
-- [ ] Visually distinguish: cycle events, successful searches, failures
-- [ ] Consider pagination for large logs
+- [x] Display logs in reverse chronological order (newest first)
+- [x] Show date and time in readable format
+- [x] Show at least 100 most recent entries
+- [x] Visually distinguish: cycle events, successful searches, failures
+- [x] Consider pagination for large logs
 
 ### 5.4 Log Management
-- [ ] Allow user to manually clear all logs
-- [ ] Require confirmation before clearing
-- [ ] Display summary view: "Last cycle: N searches triggered, M failures"
+- [x] Allow user to manually clear all logs
+- [x] Require confirmation before clearing
+- [x] Display summary view: "Last cycle: N searches triggered, M failures"
 
 ---
 
@@ -561,8 +561,8 @@ All technology decisions have been finalized. Implementation can proceed.
 ### Current State
 | Category | Status |
 |----------|--------|
-| Source code | Phase 4 complete (types, API client, database, server manager, detector, search-trigger) |
-| Test code | 71 tests passing (unit + integration) |
+| Source code | Phase 5 complete (types, API client, database, server manager, detector, search-trigger, logger) |
+| Test code | 92 tests passing (unit + integration) |
 | Build config | Complete (`package.json`, `tsconfig.json`, `.eslintrc.json`) |
 | Specifications | Complete (6 spec files) |
 | Implementation plan | Complete - all specs mapped to phases |
@@ -575,7 +575,8 @@ All technology decisions have been finalized. Implementation can proceed.
 janitarr/
 ├── src/
 │   ├── lib/
-│   │   └── api-client.ts       # ✅ Phase 2.1 - Radarr/Sonarr API client
+│   │   ├── api-client.ts       # ✅ Phase 2.1 - Radarr/Sonarr API client
+│   │   └── logger.ts           # ✅ Phase 5 - Activity logging
 │   ├── services/
 │   │   ├── server-manager.ts   # ✅ Phase 2.3 - Server CRUD operations
 │   │   ├── detector.ts         # ✅ Phase 3 - Missing/cutoff detection
@@ -586,7 +587,8 @@ janitarr/
 │   └── index.ts                # ✅ Phase 1.1 - Entry point stub
 ├── tests/
 │   ├── lib/
-│   │   └── api-client.test.ts  # ✅ URL normalization/validation tests
+│   │   ├── api-client.test.ts  # ✅ URL normalization/validation tests
+│   │   └── logger.test.ts      # ✅ Logger tests
 │   ├── services/
 │   │   ├── server-manager.test.ts  # ✅ Server manager tests
 │   │   ├── detector.test.ts    # ✅ Detection tests
@@ -662,4 +664,4 @@ tests/
 ```
 
 ### Ready to Begin
-Phase 4 complete. Begin with Phase 5 (Activity Logging).
+Phase 5 complete. Begin with Phase 6 (Automatic Scheduling).
