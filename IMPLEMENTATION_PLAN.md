@@ -29,7 +29,7 @@ Test API credentials available in `.env` (Radarr at thor:7878, Sonarr at thor:89
 | Phase | Status | Completion |
 |-------|--------|------------|
 | Phase 1: Project Foundation | Complete | 100% |
-| Phase 2: Server Configuration | Not Started | 0% |
+| Phase 2: Server Configuration | Complete | 100% |
 | Phase 3: Content Detection | Not Started | 0% |
 | Phase 4: Search Triggering | Not Started | 0% |
 | Phase 5: Activity Logging | Not Started | 0% |
@@ -37,10 +37,9 @@ Test API credentials available in `.env` (Radarr at thor:7878, Sonarr at thor:89
 | Phase 7: User Interface | Not Started | 0% |
 
 ### Immediate Next Steps
-Execute Phase 2 in order:
-1. **Create `src/lib/api-client.ts`** - HTTP client for Radarr/Sonarr APIs
-2. **Create `src/storage/database.ts`** - SQLite persistence layer
-3. **Create `src/services/server-manager.ts`** - Server CRUD operations
+Execute Phase 3 in order:
+1. **Create `src/services/detector.ts`** - Missing and cutoff content detection
+2. **Test detection against real Radarr/Sonarr servers**
 
 ---
 
@@ -217,44 +216,44 @@ Missing Content Detection    Quality Cutoff Detection
 **Dependency:** Phase 1 complete
 
 ### 2.1 API Client Library (`src/lib/api-client.ts`)
-- [ ] Implement base HTTP client with timeout handling (10-15 second timeout)
-- [ ] Implement URL normalization (trailing slashes, protocol validation)
-- [ ] Create `RadarrClient` class with authentication header injection
-- [ ] Create `SonarrClient` class with authentication header injection
-- [ ] Implement connection validation using minimal API call (system/status endpoint)
-- [ ] Handle API response codes: 200 (success), 401 (unauthorized), 404 (not found)
-- [ ] Return specific error messages for different failure modes
+- [x] Implement base HTTP client with timeout handling (10-15 second timeout)
+- [x] Implement URL normalization (trailing slashes, protocol validation)
+- [x] Create `RadarrClient` class with authentication header injection
+- [x] Create `SonarrClient` class with authentication header injection
+- [x] Implement connection validation using minimal API call (system/status endpoint)
+- [x] Handle API response codes: 200 (success), 401 (unauthorized), 404 (not found)
+- [x] Return specific error messages for different failure modes
 
 ### 2.2 Server Storage (`src/storage/database.ts`)
-- [ ] Implement persistent storage for server configurations
-- [ ] Store API keys securely (encryption at rest if possible)
-- [ ] Prevent duplicate server entries (same URL + type)
-- [ ] Support CRUD operations for server records
+- [x] Implement persistent storage for server configurations
+- [x] Store API keys securely (encryption at rest if possible)
+- [x] Prevent duplicate server entries (same URL + type)
+- [x] Support CRUD operations for server records
 
 ### 2.3 Server Manager Service (`src/services/server-manager.ts`)
 
 **Story: Add New Media Server**
-- [ ] Accept server URL and API key input
-- [ ] Accept server type (Radarr/Sonarr)
-- [ ] Validate URL format (http:// or https:// protocol required)
-- [ ] Test API connectivity before saving
-- [ ] Only save if connection test passes
-- [ ] Return clear error messages on failure
+- [x] Accept server URL and API key input
+- [x] Accept server type (Radarr/Sonarr)
+- [x] Validate URL format (http:// or https:// protocol required)
+- [x] Test API connectivity before saving
+- [x] Only save if connection test passes
+- [x] Return clear error messages on failure
 
 **Story: View Configured Servers**
-- [ ] Return list of all configured servers
-- [ ] Include: server type, URL, masked API key (first/last chars only)
-- [ ] Distinguish between Radarr and Sonarr servers
+- [x] Return list of all configured servers
+- [x] Include: server type, URL, masked API key (first/last chars only)
+- [x] Distinguish between Radarr and Sonarr servers
 
 **Story: Edit Existing Server**
-- [ ] Allow modification of URL and/or API key
-- [ ] Re-validate connectivity before saving changes
-- [ ] Only apply changes if new connection test passes
+- [x] Allow modification of URL and/or API key
+- [x] Re-validate connectivity before saving changes
+- [x] Only apply changes if new connection test passes
 
 **Story: Remove Server**
-- [ ] Remove server from configuration
-- [ ] Require confirmation before deletion
-- [ ] Server immediately excluded from automation
+- [x] Remove server from configuration
+- [x] Require confirmation before deletion
+- [x] Server immediately excluded from automation
 
 ---
 
@@ -562,8 +561,8 @@ All technology decisions have been finalized. Implementation can proceed.
 ### Current State
 | Category | Status |
 |----------|--------|
-| Source code | Phase 1 complete (`src/types.ts`, `src/index.ts`) |
-| Test code | None |
+| Source code | Phase 2 complete (types, API client, database, server manager) |
+| Test code | 52 tests passing (unit + integration) |
 | Build config | Complete (`package.json`, `tsconfig.json`, `.eslintrc.json`) |
 | Specifications | Complete (6 spec files) |
 | Implementation plan | Complete - all specs mapped to phases |
@@ -575,8 +574,23 @@ All technology decisions have been finalized. Implementation can proceed.
 ```
 janitarr/
 ├── src/
+│   ├── lib/
+│   │   └── api-client.ts       # ✅ Phase 2.1 - Radarr/Sonarr API client
+│   ├── services/
+│   │   └── server-manager.ts   # ✅ Phase 2.3 - Server CRUD operations
+│   ├── storage/
+│   │   └── database.ts         # ✅ Phase 2.2 - SQLite persistence
 │   ├── types.ts                # ✅ Phase 1.2 - Core type definitions
 │   └── index.ts                # ✅ Phase 1.1 - Entry point stub
+├── tests/
+│   ├── lib/
+│   │   └── api-client.test.ts  # ✅ URL normalization/validation tests
+│   ├── services/
+│   │   └── server-manager.test.ts  # ✅ Server manager tests
+│   ├── storage/
+│   │   └── database.test.ts    # ✅ Database operations tests
+│   └── integration/
+│       └── api-client.integration.test.ts  # ✅ Live API tests
 ├── specs/                      # ✅ Complete - 6 specification files
 ├── package.json                # ✅ Phase 1.1 - Bun runtime config
 ├── tsconfig.json               # ✅ Phase 1.1 - TypeScript config
@@ -644,4 +658,4 @@ tests/
 ```
 
 ### Ready to Begin
-Phase 1 complete. Begin with Phase 2.1 (API client library).
+Phase 2 complete. Begin with Phase 3 (Content Detection).
