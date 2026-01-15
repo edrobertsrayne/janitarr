@@ -33,13 +33,11 @@ Test API credentials available in `.env` (Radarr at thor:7878, Sonarr at thor:89
 | Phase 3: Content Detection | Complete | 100% |
 | Phase 4: Search Triggering | Complete | 100% |
 | Phase 5: Activity Logging | Complete | 100% |
-| Phase 6: Automatic Scheduling | Not Started | 0% |
+| Phase 6: Automatic Scheduling | Complete | 100% |
 | Phase 7: User Interface | Not Started | 0% |
 
 ### Immediate Next Steps
-Execute Phase 6 in order:
-1. **Create `src/lib/scheduler.ts`** - Scheduling utilities
-2. **Create `src/services/automation.ts`** - Automation cycle orchestration
+Execute Phase 7: User Interface (CLI)
 
 ---
 
@@ -383,35 +381,35 @@ Missing Content Detection    Quality Cutoff Detection
 ### 6.1 Scheduler (`src/lib/scheduler.ts`)
 
 **Story: Configure Schedule Frequency**
-- [ ] Allow user to set time interval (e.g., 1 hour, 6 hours, daily)
-- [ ] Enforce minimum interval of 1 hour
-- [ ] Allow "manual only" mode (disable scheduled automation)
-- [ ] Persist schedule configuration across restarts
-- [ ] Changes take effect on next scheduled run
+- [x] Allow user to set time interval (e.g., 1 hour, 6 hours, daily)
+- [x] Enforce minimum interval of 1 hour
+- [x] Allow "manual only" mode (disable scheduled automation)
+- [x] Persist schedule configuration across restarts
+- [x] Changes take effect on next scheduled run
 
 **Story: Execute Automation Cycle**
-- [ ] Execute complete cycle: detect missing, detect cutoff, trigger searches
-- [ ] Prevent concurrent cycles (if cycle takes longer than interval, wait)
-- [ ] Continue running indefinitely until stopped
-- [ ] Log cycle start and completion
+- [x] Execute complete cycle: detect missing, detect cutoff, trigger searches
+- [x] Prevent concurrent cycles (if cycle takes longer than interval, wait)
+- [x] Continue running indefinitely until stopped
+- [x] Log cycle start and completion
 
 **Story: Manual Trigger**
-- [ ] Allow user to manually initiate cycle through interface
-- [ ] Execute same cycle as scheduled automation
-- [ ] Manual trigger does not affect regular schedule
-- [ ] Provide feedback when cycle completes
+- [x] Allow user to manually initiate cycle through interface
+- [x] Execute same cycle as scheduled automation
+- [x] Manual trigger does not affect regular schedule
+- [x] Provide feedback when cycle completes
 
 **Story: View Schedule Status**
-- [ ] Display current schedule configuration
-- [ ] Show time until next scheduled run
-- [ ] Update status in real-time or on refresh
+- [x] Display current schedule configuration
+- [x] Show time until next scheduled run
+- [x] Update status in real-time or on refresh
 
 ### 6.2 Automation Orchestrator (`src/services/automation.ts`)
-- [ ] Coordinate detection and search triggering
-- [ ] Handle partial failures gracefully
-- [ ] Run first cycle immediately on application startup
-- [ ] Resume regular schedule after restart
-- [ ] Keep UI responsive during automation (non-blocking)
+- [x] Coordinate detection and search triggering
+- [x] Handle partial failures gracefully
+- [x] Run first cycle immediately on application startup
+- [x] Resume regular schedule after restart
+- [x] Keep UI responsive during automation (non-blocking)
 
 ---
 
@@ -556,13 +554,13 @@ All technology decisions have been finalized. Implementation can proceed.
 
 ---
 
-## Gap Analysis (2026-01-14, Updated)
+## Gap Analysis (2026-01-15, Updated)
 
 ### Current State
 | Category | Status |
 |----------|--------|
-| Source code | Phase 5 complete (types, API client, database, server manager, detector, search-trigger, logger) |
-| Test code | 92 tests passing (unit + integration) |
+| Source code | Phase 6 complete (types, API client, database, server manager, detector, search-trigger, logger, scheduler, automation) |
+| Test code | 134 tests passing (unit + integration) |
 | Build config | Complete (`package.json`, `tsconfig.json`, `.eslintrc.json`) |
 | Specifications | Complete (6 spec files) |
 | Implementation plan | Complete - all specs mapped to phases |
@@ -576,11 +574,13 @@ janitarr/
 ├── src/
 │   ├── lib/
 │   │   ├── api-client.ts       # ✅ Phase 2.1 - Radarr/Sonarr API client
-│   │   └── logger.ts           # ✅ Phase 5 - Activity logging
+│   │   ├── logger.ts           # ✅ Phase 5 - Activity logging
+│   │   └── scheduler.ts        # ✅ Phase 6.1 - Scheduling utilities
 │   ├── services/
 │   │   ├── server-manager.ts   # ✅ Phase 2.3 - Server CRUD operations
 │   │   ├── detector.ts         # ✅ Phase 3 - Missing/cutoff detection
-│   │   └── search-trigger.ts   # ✅ Phase 4 - Search triggering
+│   │   ├── search-trigger.ts   # ✅ Phase 4 - Search triggering
+│   │   └── automation.ts       # ✅ Phase 6.2 - Automation cycle orchestration
 │   ├── storage/
 │   │   └── database.ts         # ✅ Phase 2.2 - SQLite persistence
 │   ├── types.ts                # ✅ Phase 1.2 - Core type definitions
@@ -588,11 +588,13 @@ janitarr/
 ├── tests/
 │   ├── lib/
 │   │   ├── api-client.test.ts  # ✅ URL normalization/validation tests
-│   │   └── logger.test.ts      # ✅ Logger tests
+│   │   ├── logger.test.ts      # ✅ Logger tests
+│   │   └── scheduler.test.ts   # ✅ Scheduler tests
 │   ├── services/
 │   │   ├── server-manager.test.ts  # ✅ Server manager tests
 │   │   ├── detector.test.ts    # ✅ Detection tests
-│   │   └── search-trigger.test.ts  # ✅ Search trigger tests
+│   │   ├── search-trigger.test.ts  # ✅ Search trigger tests
+│   │   └── automation.test.ts  # ✅ Automation orchestration tests
 │   ├── storage/
 │   │   └── database.test.ts    # ✅ Database operations tests
 │   └── integration/
@@ -610,31 +612,12 @@ janitarr/
 **Files to create:**
 ```
 janitarr/
-├── package.json                # Phase 1.1
-├── tsconfig.json               # Phase 1.1
-├── data/                       # Created at runtime for SQLite DB
 ├── src/
-│   ├── index.ts                # Phase 1.1 - Entry point & CLI router
-│   ├── types.ts                # Phase 1.2 - Core type definitions
-│   ├── lib/
-│   │   ├── api-client.ts       # Phase 2.1 - HTTP client for Radarr/Sonarr
-│   │   ├── config.ts           # Phase 2 - App configuration loading
-│   │   ├── logger.ts           # Phase 5.1 - Activity logging
-│   │   └── scheduler.ts        # Phase 6.1 - Scheduling utilities
-│   ├── services/
-│   │   ├── server-manager.ts   # Phase 2.3 - Server CRUD
-│   │   ├── detector.ts         # Phase 3 - Missing/cutoff detection
-│   │   ├── search-trigger.ts   # Phase 4.2 - Search triggering
-│   │   └── automation.ts       # Phase 6.2 - Cycle orchestration
-│   ├── storage/
-│   │   └── database.ts         # Phase 2.2 - SQLite persistence
 │   └── cli/
 │       ├── commands.ts         # Phase 7 - CLI command definitions
 │       └── formatters.ts       # Phase 7 - Output formatting
-└── tests/                      # Mirror src/ structure
-    ├── lib/
-    ├── services/
-    └── storage/
+└── tests/
+    └── cli/                    # Tests for CLI commands
 ```
 
 ### Specification → Phase Mapping
@@ -664,4 +647,4 @@ tests/
 ```
 
 ### Ready to Begin
-Phase 5 complete. Begin with Phase 6 (Automatic Scheduling).
+Phase 6 complete. Begin with Phase 7 (User Interface - CLI).
