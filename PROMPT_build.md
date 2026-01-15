@@ -3,8 +3,8 @@
 ## Phase 1: Preparation
 
 - Study `specs/*` to understand application specifications
-- Review @IMPLEMENTATION_PLAN.md for current priorities
-- Reference application source in `src/*`
+- Study @IMPLEMENTATION_PLAN.md for current priorities
+- Study application source in `src/*`
 
 ## Phase 2: Implementation
 
