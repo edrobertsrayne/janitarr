@@ -26,8 +26,6 @@ After successful tests:
 - `git add -A`
 - `git commit` with descriptive message
 - `git push`
-- If no build/test errors remain, create git tag (start at 0.0.0, increment
-  patch)
 
 ## Critical Practices
 
