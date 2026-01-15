@@ -106,11 +106,16 @@ export class DatabaseManager {
       CREATE INDEX IF NOT EXISTS idx_logs_timestamp ON logs(timestamp DESC);
     `);
 
+    // Migrate old limit keys to new granular keys (backward compatibility)
+    this.migrateLimitKeys();
+
     // Set default config values if not present
     this.setConfigDefault("schedule.intervalHours", "6");
     this.setConfigDefault("schedule.enabled", "true");
-    this.setConfigDefault("limits.missing", "10");
-    this.setConfigDefault("limits.cutoff", "5");
+    this.setConfigDefault("limits.missing.movies", "10");
+    this.setConfigDefault("limits.missing.episodes", "10");
+    this.setConfigDefault("limits.cutoff.movies", "5");
+    this.setConfigDefault("limits.cutoff.episodes", "5");
   }
 
   /**
@@ -123,6 +128,48 @@ export class DatabaseManager {
 
     if (!existing) {
       this.db.run("INSERT INTO config (key, value) VALUES (?, ?)", [key, value]);
+    }
+  }
+
+  /**
+   * Migrate old limit keys to new granular limit keys
+   */
+  private migrateLimitKeys(): void {
+    // Check if old keys exist
+    const oldMissingLimit = this.db.query<ConfigRow, [string]>(
+      "SELECT value FROM config WHERE key = ?"
+    ).get("limits.missing");
+
+    const oldCutoffLimit = this.db.query<ConfigRow, [string]>(
+      "SELECT value FROM config WHERE key = ?"
+    ).get("limits.cutoff");
+
+    // Migrate old missing limit to both movies and episodes
+    if (oldMissingLimit) {
+      this.db.run(
+        "INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)",
+        ["limits.missing.movies", oldMissingLimit.value]
+      );
+      this.db.run(
+        "INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)",
+        ["limits.missing.episodes", oldMissingLimit.value]
+      );
+      // Remove old key
+      this.db.run("DELETE FROM config WHERE key = ?", ["limits.missing"]);
+    }
+
+    // Migrate old cutoff limit to both movies and episodes
+    if (oldCutoffLimit) {
+      this.db.run(
+        "INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)",
+        ["limits.cutoff.movies", oldCutoffLimit.value]
+      );
+      this.db.run(
+        "INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)",
+        ["limits.cutoff.episodes", oldCutoffLimit.value]
+      );
+      // Remove old key
+      this.db.run("DELETE FROM config WHERE key = ?", ["limits.cutoff"]);
     }
   }
 
@@ -329,8 +376,10 @@ export class DatabaseManager {
         enabled: this.getConfig("schedule.enabled") === "true",
       },
       searchLimits: {
-        missingLimit: parseInt(this.getConfig("limits.missing") ?? "10", 10),
-        cutoffLimit: parseInt(this.getConfig("limits.cutoff") ?? "5", 10),
+        missingMoviesLimit: parseInt(this.getConfig("limits.missing.movies") ?? "10", 10),
+        missingEpisodesLimit: parseInt(this.getConfig("limits.missing.episodes") ?? "10", 10),
+        cutoffMoviesLimit: parseInt(this.getConfig("limits.cutoff.movies") ?? "5", 10),
+        cutoffEpisodesLimit: parseInt(this.getConfig("limits.cutoff.episodes") ?? "5", 10),
       },
     };
   }
@@ -352,11 +401,17 @@ export class DatabaseManager {
     }
 
     if (config.searchLimits) {
-      if (config.searchLimits.missingLimit !== undefined) {
-        this.setConfig("limits.missing", config.searchLimits.missingLimit.toString());
+      if (config.searchLimits.missingMoviesLimit !== undefined) {
+        this.setConfig("limits.missing.movies", config.searchLimits.missingMoviesLimit.toString());
       }
-      if (config.searchLimits.cutoffLimit !== undefined) {
-        this.setConfig("limits.cutoff", config.searchLimits.cutoffLimit.toString());
+      if (config.searchLimits.missingEpisodesLimit !== undefined) {
+        this.setConfig("limits.missing.episodes", config.searchLimits.missingEpisodesLimit.toString());
+      }
+      if (config.searchLimits.cutoffMoviesLimit !== undefined) {
+        this.setConfig("limits.cutoff.movies", config.searchLimits.cutoffMoviesLimit.toString());
+      }
+      if (config.searchLimits.cutoffEpisodesLimit !== undefined) {
+        this.setConfig("limits.cutoff.episodes", config.searchLimits.cutoffEpisodesLimit.toString());
       }
     }
   }

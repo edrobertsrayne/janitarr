@@ -194,18 +194,34 @@ export function formatConfig(config: AppConfig): string {
   lines.push(chalk.bold("Search Limits:"));
   lines.push(
     keyValue(
-      "  Missing content",
-      config.searchLimits.missingLimit === 0
+      "  Missing movies",
+      config.searchLimits.missingMoviesLimit === 0
         ? chalk.gray("Disabled")
-        : `${config.searchLimits.missingLimit} items`
+        : `${config.searchLimits.missingMoviesLimit} items`
     )
   );
   lines.push(
     keyValue(
-      "  Quality cutoff",
-      config.searchLimits.cutoffLimit === 0
+      "  Missing episodes",
+      config.searchLimits.missingEpisodesLimit === 0
         ? chalk.gray("Disabled")
-        : `${config.searchLimits.cutoffLimit} items`
+        : `${config.searchLimits.missingEpisodesLimit} items`
+    )
+  );
+  lines.push(
+    keyValue(
+      "  Cutoff movies",
+      config.searchLimits.cutoffMoviesLimit === 0
+        ? chalk.gray("Disabled")
+        : `${config.searchLimits.cutoffMoviesLimit} items`
+    )
+  );
+  lines.push(
+    keyValue(
+      "  Cutoff episodes",
+      config.searchLimits.cutoffEpisodesLimit === 0
+        ? chalk.gray("Disabled")
+        : `${config.searchLimits.cutoffEpisodesLimit} items`
     )
   );
 

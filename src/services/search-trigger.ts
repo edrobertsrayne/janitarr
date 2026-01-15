@@ -36,6 +36,7 @@ export interface TriggerResults {
 function distributeItems(
   detectionResults: DetectionResult[],
   category: "missing" | "cutoff",
+  itemType: "movie" | "episode",
   limit: number
 ): Map<string, MediaItem[]> {
   const serverItems = new Map<string, MediaItem[]>();
@@ -47,13 +48,16 @@ function distributeItems(
     }
   }
 
-  // Get all items with their server IDs
+  // Get all items with their server IDs, filtered by type
   const allItems: Array<{ serverId: string; item: MediaItem }> = [];
   for (const result of detectionResults) {
     if (result.error) continue;
     const items = category === "missing" ? result.missingItems : result.cutoffItems;
     for (const item of items) {
-      allItems.push({ serverId: result.serverId, item });
+      // Filter by item type
+      if (item.type === itemType) {
+        allItems.push({ serverId: result.serverId, item });
+      }
     }
   }
 
@@ -165,15 +169,16 @@ export async function triggerSearches(
   let successCount = 0;
   let failureCount = 0;
 
-  // Handle missing items
-  if (config.searchLimits.missingLimit > 0) {
-    const missingDistribution = distributeItems(
+  // Handle missing movies
+  if (config.searchLimits.missingMoviesLimit > 0) {
+    const missingMoviesDistribution = distributeItems(
       detectionResults.results,
       "missing",
-      config.searchLimits.missingLimit
+      "movie",
+      config.searchLimits.missingMoviesLimit
     );
 
-    for (const [serverId, items] of missingDistribution) {
+    for (const [serverId, items] of missingMoviesDistribution) {
       const server = serverMap.get(serverId);
       if (!server) continue;
 
@@ -198,15 +203,84 @@ export async function triggerSearches(
     }
   }
 
-  // Handle cutoff items
-  if (config.searchLimits.cutoffLimit > 0) {
-    const cutoffDistribution = distributeItems(
+  // Handle missing episodes
+  if (config.searchLimits.missingEpisodesLimit > 0) {
+    const missingEpisodesDistribution = distributeItems(
       detectionResults.results,
-      "cutoff",
-      config.searchLimits.cutoffLimit
+      "missing",
+      "episode",
+      config.searchLimits.missingEpisodesLimit
     );
 
-    for (const [serverId, items] of cutoffDistribution) {
+    for (const [serverId, items] of missingEpisodesDistribution) {
+      const server = serverMap.get(serverId);
+      if (!server) continue;
+
+      const result = await triggerServerSearch(
+        serverId,
+        server.name,
+        server.type,
+        server.url,
+        server.apiKey,
+        items,
+        "missing"
+      );
+
+      results.push(result);
+
+      if (result.success) {
+        successCount++;
+        missingTriggered += result.itemIds.length;
+      } else {
+        failureCount++;
+      }
+    }
+  }
+
+  // Handle cutoff movies
+  if (config.searchLimits.cutoffMoviesLimit > 0) {
+    const cutoffMoviesDistribution = distributeItems(
+      detectionResults.results,
+      "cutoff",
+      "movie",
+      config.searchLimits.cutoffMoviesLimit
+    );
+
+    for (const [serverId, items] of cutoffMoviesDistribution) {
+      const server = serverMap.get(serverId);
+      if (!server) continue;
+
+      const result = await triggerServerSearch(
+        serverId,
+        server.name,
+        server.type,
+        server.url,
+        server.apiKey,
+        items,
+        "cutoff"
+      );
+
+      results.push(result);
+
+      if (result.success) {
+        successCount++;
+        cutoffTriggered += result.itemIds.length;
+      } else {
+        failureCount++;
+      }
+    }
+  }
+
+  // Handle cutoff episodes
+  if (config.searchLimits.cutoffEpisodesLimit > 0) {
+    const cutoffEpisodesDistribution = distributeItems(
+      detectionResults.results,
+      "cutoff",
+      "episode",
+      config.searchLimits.cutoffEpisodesLimit
+    );
+
+    for (const [serverId, items] of cutoffEpisodesDistribution) {
       const server = serverMap.get(serverId);
       if (!server) continue;
 
@@ -243,7 +317,12 @@ export async function triggerSearches(
 /**
  * Get current search limits from configuration
  */
-export function getSearchLimits(): { missingLimit: number; cutoffLimit: number } {
+export function getSearchLimits(): {
+  missingMoviesLimit: number;
+  missingEpisodesLimit: number;
+  cutoffMoviesLimit: number;
+  cutoffEpisodesLimit: number;
+} {
   const db = getDatabase();
   const config = db.getAppConfig();
   return config.searchLimits;
@@ -253,14 +332,18 @@ export function getSearchLimits(): { missingLimit: number; cutoffLimit: number }
  * Update search limits
  */
 export function setSearchLimits(
-  missingLimit?: number,
-  cutoffLimit?: number
+  missingMoviesLimit?: number,
+  missingEpisodesLimit?: number,
+  cutoffMoviesLimit?: number,
+  cutoffEpisodesLimit?: number
 ): void {
   const db = getDatabase();
   db.setAppConfig({
     searchLimits: {
-      missingLimit,
-      cutoffLimit,
+      missingMoviesLimit,
+      missingEpisodesLimit,
+      cutoffMoviesLimit,
+      cutoffEpisodesLimit,
     },
   });
 }

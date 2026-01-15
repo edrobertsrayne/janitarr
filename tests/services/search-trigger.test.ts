@@ -37,36 +37,64 @@ describe("Search Trigger Service", () => {
   describe("Search Limits", () => {
     test("returns default limits", () => {
       const limits = getSearchLimits();
-      expect(limits.missingLimit).toBe(10);
-      expect(limits.cutoffLimit).toBe(5);
+      expect(limits.missingMoviesLimit).toBe(10);
+      expect(limits.missingEpisodesLimit).toBe(10);
+      expect(limits.cutoffMoviesLimit).toBe(5);
+      expect(limits.cutoffEpisodesLimit).toBe(5);
     });
 
-    test("updates missing limit", () => {
-      setSearchLimits(20, undefined);
+    test("updates missing movies limit", () => {
+      setSearchLimits(20, undefined, undefined, undefined);
       const limits = getSearchLimits();
-      expect(limits.missingLimit).toBe(20);
-      expect(limits.cutoffLimit).toBe(5); // Unchanged
+      expect(limits.missingMoviesLimit).toBe(20);
+      expect(limits.missingEpisodesLimit).toBe(10); // Unchanged
+      expect(limits.cutoffMoviesLimit).toBe(5); // Unchanged
+      expect(limits.cutoffEpisodesLimit).toBe(5); // Unchanged
     });
 
-    test("updates cutoff limit", () => {
-      setSearchLimits(undefined, 15);
+    test("updates missing episodes limit", () => {
+      setSearchLimits(undefined, 15, undefined, undefined);
       const limits = getSearchLimits();
-      expect(limits.missingLimit).toBe(10); // Unchanged
-      expect(limits.cutoffLimit).toBe(15);
+      expect(limits.missingMoviesLimit).toBe(10); // Unchanged
+      expect(limits.missingEpisodesLimit).toBe(15);
+      expect(limits.cutoffMoviesLimit).toBe(5); // Unchanged
+      expect(limits.cutoffEpisodesLimit).toBe(5); // Unchanged
     });
 
-    test("updates both limits", () => {
-      setSearchLimits(25, 12);
+    test("updates cutoff movies limit", () => {
+      setSearchLimits(undefined, undefined, 12, undefined);
       const limits = getSearchLimits();
-      expect(limits.missingLimit).toBe(25);
-      expect(limits.cutoffLimit).toBe(12);
+      expect(limits.missingMoviesLimit).toBe(10); // Unchanged
+      expect(limits.missingEpisodesLimit).toBe(10); // Unchanged
+      expect(limits.cutoffMoviesLimit).toBe(12);
+      expect(limits.cutoffEpisodesLimit).toBe(5); // Unchanged
+    });
+
+    test("updates cutoff episodes limit", () => {
+      setSearchLimits(undefined, undefined, undefined, 8);
+      const limits = getSearchLimits();
+      expect(limits.missingMoviesLimit).toBe(10); // Unchanged
+      expect(limits.missingEpisodesLimit).toBe(10); // Unchanged
+      expect(limits.cutoffMoviesLimit).toBe(5); // Unchanged
+      expect(limits.cutoffEpisodesLimit).toBe(8);
+    });
+
+    test("updates all limits", () => {
+      setSearchLimits(25, 30, 12, 15);
+      const limits = getSearchLimits();
+      expect(limits.missingMoviesLimit).toBe(25);
+      expect(limits.missingEpisodesLimit).toBe(30);
+      expect(limits.cutoffMoviesLimit).toBe(12);
+      expect(limits.cutoffEpisodesLimit).toBe(15);
     });
 
     test("allows setting limits to zero", () => {
-      setSearchLimits(0, 0);
+      setSearchLimits(0, 0, 0, 0);
       const limits = getSearchLimits();
-      expect(limits.missingLimit).toBe(0);
-      expect(limits.cutoffLimit).toBe(0);
+      expect(limits.missingMoviesLimit).toBe(0);
+      expect(limits.missingEpisodesLimit).toBe(0);
+      expect(limits.cutoffMoviesLimit).toBe(0);
+      expect(limits.cutoffEpisodesLimit).toBe(0);
     });
   });
 
@@ -90,7 +118,7 @@ describe("Search Trigger Service", () => {
     });
 
     test("respects missing limit of zero", async () => {
-      setSearchLimits(0, 5);
+      setSearchLimits(0, 0, 5, 5);
 
       // Add a server
       await testDb.addServer({
@@ -129,7 +157,7 @@ describe("Search Trigger Service", () => {
     });
 
     test("respects cutoff limit of zero", async () => {
-      setSearchLimits(5, 0);
+      setSearchLimits(5, 5, 0, 0);
 
       await testDb.addServer({
         id: "server-1",
@@ -239,7 +267,7 @@ describe("Search Trigger Integration", () => {
         type: "radarr",
       });
 
-      setSearchLimits(5, 3);
+      setSearchLimits(5, 5, 3, 3);
 
       const detectionResults: AggregatedResults = {
         results: [

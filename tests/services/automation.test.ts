@@ -23,8 +23,10 @@ describe("Automation Orchestrator", () => {
     // Set reasonable search limits
     testDb.setAppConfig({
       searchLimits: {
-        missingLimit: 10,
-        cutoffLimit: 5,
+        missingMoviesLimit: 10,
+        missingEpisodesLimit: 10,
+        cutoffMoviesLimit: 5,
+        cutoffEpisodesLimit: 5,
       },
     });
   });
@@ -301,8 +303,10 @@ describe("Automation Orchestrator", () => {
     test("respects disabled search limits", async () => {
       testDb.setAppConfig({
         searchLimits: {
-          missingLimit: 0,
-          cutoffLimit: 0,
+          missingMoviesLimit: 0,
+          missingEpisodesLimit: 0,
+          cutoffMoviesLimit: 0,
+          cutoffEpisodesLimit: 0,
         },
       });
 
@@ -315,8 +319,10 @@ describe("Automation Orchestrator", () => {
     test("uses configured search limits", async () => {
       testDb.setAppConfig({
         searchLimits: {
-          missingLimit: 5,
-          cutoffLimit: 3,
+          missingMoviesLimit: 5,
+          missingEpisodesLimit: 5,
+          cutoffMoviesLimit: 3,
+          cutoffEpisodesLimit: 3,
         },
       });
 

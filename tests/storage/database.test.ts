@@ -240,8 +240,10 @@ describe("DatabaseManager", () => {
 
       expect(config.schedule.intervalHours).toBe(6);
       expect(config.schedule.enabled).toBe(true);
-      expect(config.searchLimits.missingLimit).toBe(10);
-      expect(config.searchLimits.cutoffLimit).toBe(5);
+      expect(config.searchLimits.missingMoviesLimit).toBe(10);
+      expect(config.searchLimits.missingEpisodesLimit).toBe(10);
+      expect(config.searchLimits.cutoffMoviesLimit).toBe(5);
+      expect(config.searchLimits.cutoffEpisodesLimit).toBe(5);
     });
 
     test("sets and retrieves config values", () => {
@@ -261,12 +263,48 @@ describe("DatabaseManager", () => {
 
     test("updates search limits", () => {
       db.setAppConfig({
-        searchLimits: { missingLimit: 20, cutoffLimit: 10 },
+        searchLimits: { missingMoviesLimit: 20, missingEpisodesLimit: 25, cutoffMoviesLimit: 10, cutoffEpisodesLimit: 12 },
       });
 
       const config = db.getAppConfig();
-      expect(config.searchLimits.missingLimit).toBe(20);
-      expect(config.searchLimits.cutoffLimit).toBe(10);
+      expect(config.searchLimits.missingMoviesLimit).toBe(20);
+      expect(config.searchLimits.missingEpisodesLimit).toBe(25);
+      expect(config.searchLimits.cutoffMoviesLimit).toBe(10);
+      expect(config.searchLimits.cutoffEpisodesLimit).toBe(12);
+    });
+
+    test("migrates old limit keys to new granular keys", async () => {
+      // First, set up old keys using the current db instance
+      // We need to bypass the normal initialization to set old keys
+      const { Database } = await import("bun:sqlite");
+      const rawDb = new Database(TEST_DB_PATH);
+
+      // Delete the new keys if they exist and insert old keys
+      rawDb.run("DELETE FROM config WHERE key IN (?, ?, ?, ?)",
+        ["limits.missing.movies", "limits.missing.episodes", "limits.cutoff.movies", "limits.cutoff.episodes"]);
+      rawDb.run("INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)", ["limits.missing", "15"]);
+      rawDb.run("INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)", ["limits.cutoff", "8"]);
+      rawDb.close();
+
+      // Close the current db
+      db.close();
+
+      // Now create a new DatabaseManager which will trigger migration in constructor
+      const newDb = new DatabaseManager(TEST_DB_PATH);
+
+      const config = newDb.getAppConfig();
+      // Old keys should be migrated to new granular keys
+      expect(config.searchLimits.missingMoviesLimit).toBe(15);
+      expect(config.searchLimits.missingEpisodesLimit).toBe(15);
+      expect(config.searchLimits.cutoffMoviesLimit).toBe(8);
+      expect(config.searchLimits.cutoffEpisodesLimit).toBe(8);
+
+      // Old keys should be removed
+      expect(newDb.getConfig("limits.missing")).toBeNull();
+      expect(newDb.getConfig("limits.cutoff")).toBeNull();
+
+      // Reassign to db so afterEach doesn't try to close already-closed db
+      db = newDb;
     });
   });
 

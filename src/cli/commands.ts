@@ -456,35 +456,69 @@ export function createProgram(): Command {
             break;
           }
 
-          case "limits.missing": {
+          case "limits.missing.movies": {
             const limit = parseInt(value, 10);
             if (isNaN(limit) || limit < 0) {
               console.log(fmt.error("Limit must be a number >= 0"));
               return;
             }
-            db.setAppConfig({ searchLimits: { missingLimit: limit } });
+            db.setAppConfig({ searchLimits: { missingMoviesLimit: limit } });
             console.log(
               fmt.success(
                 limit === 0
-                  ? "Missing content searches disabled"
-                  : `Missing content limit set to ${limit}`
+                  ? "Missing movies searches disabled"
+                  : `Missing movies limit set to ${limit}`
               )
             );
             break;
           }
 
-          case "limits.cutoff": {
+          case "limits.missing.episodes": {
             const limit = parseInt(value, 10);
             if (isNaN(limit) || limit < 0) {
               console.log(fmt.error("Limit must be a number >= 0"));
               return;
             }
-            db.setAppConfig({ searchLimits: { cutoffLimit: limit } });
+            db.setAppConfig({ searchLimits: { missingEpisodesLimit: limit } });
             console.log(
               fmt.success(
                 limit === 0
-                  ? "Cutoff searches disabled"
-                  : `Cutoff limit set to ${limit}`
+                  ? "Missing episodes searches disabled"
+                  : `Missing episodes limit set to ${limit}`
+              )
+            );
+            break;
+          }
+
+          case "limits.cutoff.movies": {
+            const limit = parseInt(value, 10);
+            if (isNaN(limit) || limit < 0) {
+              console.log(fmt.error("Limit must be a number >= 0"));
+              return;
+            }
+            db.setAppConfig({ searchLimits: { cutoffMoviesLimit: limit } });
+            console.log(
+              fmt.success(
+                limit === 0
+                  ? "Cutoff movies searches disabled"
+                  : `Cutoff movies limit set to ${limit}`
+              )
+            );
+            break;
+          }
+
+          case "limits.cutoff.episodes": {
+            const limit = parseInt(value, 10);
+            if (isNaN(limit) || limit < 0) {
+              console.log(fmt.error("Limit must be a number >= 0"));
+              return;
+            }
+            db.setAppConfig({ searchLimits: { cutoffEpisodesLimit: limit } });
+            console.log(
+              fmt.success(
+                limit === 0
+                  ? "Cutoff episodes searches disabled"
+                  : `Cutoff episodes limit set to ${limit}`
               )
             );
             break;
@@ -494,7 +528,7 @@ export function createProgram(): Command {
             console.log(fmt.error(`Unknown configuration key: ${key}`));
             console.log(
               fmt.info(
-                "Valid keys: schedule.interval, schedule.enabled, limits.missing, limits.cutoff"
+                "Valid keys: schedule.interval, schedule.enabled, limits.missing.movies, limits.missing.episodes, limits.cutoff.movies, limits.cutoff.episodes"
               )
             );
         }

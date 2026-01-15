@@ -65,8 +65,10 @@ export interface ScheduleConfig {
 
 /** Search limit configuration */
 export interface SearchLimits {
-  missingLimit: number;
-  cutoffLimit: number;
+  missingMoviesLimit: number;
+  missingEpisodesLimit: number;
+  cutoffMoviesLimit: number;
+  cutoffEpisodesLimit: number;
 }
 
 /** Application configuration */
