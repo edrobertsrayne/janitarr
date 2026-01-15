@@ -22,10 +22,14 @@ system actually tells Radarr/Sonarr to search for content.
 
 #### Acceptance Criteria
 
-- [ ] User can set a numeric limit for missing content searches (0 or greater)
-- [ ] User can set a separate numeric limit for cutoff-not-met content searches
+- [ ] User can set a numeric limit for missing movies searches (0 or greater)
+- [ ] User can set a numeric limit for missing episodes searches (0 or greater)
+- [ ] User can set a separate numeric limit for cutoff-not-met movies searches
       (0 or greater)
-- [ ] Limits apply globally across all configured servers
+- [ ] User can set a separate numeric limit for cutoff-not-met episodes searches
+      (0 or greater)
+- [ ] Limits apply globally across all configured servers but separately per
+      content type (movies vs episodes)
 - [ ] Setting a limit to 0 disables that category of searches
 - [ ] Limits are persisted and apply to all future automation runs until changed
 
@@ -85,15 +89,21 @@ system actually tells Radarr/Sonarr to search for content.
 
 ### Search Distribution
 
-- When triggering searches across multiple servers, distribute fairly (don't
-  exhaust one server's quota before touching others)
-- Missing and cutoff-not-met limits are separate - triggering 5 missing searches
-  does not reduce the cutoff-not-met budget
+- When triggering searches across multiple servers, distribute fairly based on
+  each server's proportion of total items (don't exhaust one server's quota
+  before touching others)
+- Limits are separate by category AND content type:
+  - Missing movies limit is independent from missing episodes limit
+  - Cutoff-not-met movies limit is independent from cutoff-not-met episodes limit
+  - Example: With missing movies limit of 10 and missing episodes limit of 10,
+    the system can trigger up to 20 total searches (10 + 10)
 
 ### API Commands
 
 - Use Radarr/Sonarr's "CommandController" API to trigger searches (e.g.,
-  "MoviesSearch", "EpisodeSearch")
+  "MoviesSearch", "SeriesSearch")
+- Use batch commands where possible (send arrays of IDs in a single request for
+  efficiency)
 - Triggered searches are queued in Radarr/Sonarr - actual search execution is
   their responsibility
 - The system only triggers searches; it doesn't track whether searches succeed
@@ -120,11 +130,30 @@ system actually tells Radarr/Sonarr to search for content.
 - User should be able to set high limits if they want aggressive searching
 - No arbitrary maximum limit (user controls their own risk)
 
+### Dry-Run Mode
+
+- Users can preview what would be searched without actually triggering searches
+- Dry-run mode is useful for:
+  - Testing configuration changes before applying them
+  - Understanding what the automation will do before enabling it
+  - Validating search limits are set appropriately
+  - Previewing which items would be searched in the next cycle
+- Dry-run execution:
+  - Performs full detection (queries Radarr/Sonarr for missing and cutoff items)
+  - Applies configured limits and distribution logic
+  - Logs or displays what _would_ be searched
+  - Does NOT trigger actual searches in Radarr/Sonarr
+  - Does NOT create log entries for searches (since none occurred)
+- Available via CLI: `janitarr run --dry-run` or `janitarr scan` command
+- Should clearly indicate in output that this is a preview/dry-run
+
 ### Known Behavior
 
-- Setting both limits to 0 effectively disables all search automation
+- Setting all limits to 0 effectively disables all search automation
 - Searches are triggered "fire and forget" - the system does not wait for
   Radarr/Sonarr to complete searches
 - If detection finds 100 missing items but limit is 5, the same 5 items may be
-  searched repeatedly in subsequent runs until they're found (Radarr/Sonarr
-  deduplicates)
+  searched repeatedly in subsequent runs until they're found
+- Janitarr does not perform search deduplication - it relies on Radarr/Sonarr to
+  handle duplicate search requests intelligently and not re-download existing
+  content

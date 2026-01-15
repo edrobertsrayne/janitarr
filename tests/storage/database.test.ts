@@ -27,8 +27,8 @@ describe("DatabaseManager", () => {
   });
 
   describe("Server Operations", () => {
-    test("adds a new server", () => {
-      const server = db.addServer({
+    test("adds a new server", async () => {
+      const server = await db.addServer({
         id: "test-id-1",
         name: "Test Radarr",
         url: "http://localhost:7878",
@@ -44,15 +44,15 @@ describe("DatabaseManager", () => {
       expect(server.updatedAt).toBeInstanceOf(Date);
     });
 
-    test("retrieves all servers", () => {
-      db.addServer({
+    test("retrieves all servers", async () => {
+      await db.addServer({
         id: "test-id-1",
         name: "Radarr",
         url: "http://localhost:7878",
         apiKey: "key1",
         type: "radarr",
       });
-      db.addServer({
+      await db.addServer({
         id: "test-id-2",
         name: "Sonarr",
         url: "http://localhost:8989",
@@ -60,12 +60,12 @@ describe("DatabaseManager", () => {
         type: "sonarr",
       });
 
-      const servers = db.getAllServers();
+      const servers = await db.getAllServers();
       expect(servers.length).toBe(2);
     });
 
-    test("retrieves server by ID", () => {
-      db.addServer({
+    test("retrieves server by ID", async () => {
+      await db.addServer({
         id: "test-id-1",
         name: "Test Server",
         url: "http://localhost:7878",
@@ -73,13 +73,13 @@ describe("DatabaseManager", () => {
         type: "radarr",
       });
 
-      const server = db.getServer("test-id-1");
+      const server = await db.getServer("test-id-1");
       expect(server).not.toBeNull();
       expect(server?.name).toBe("Test Server");
     });
 
-    test("retrieves server by name", () => {
-      db.addServer({
+    test("retrieves server by name", async () => {
+      await db.addServer({
         id: "test-id-1",
         name: "My Radarr",
         url: "http://localhost:7878",
@@ -87,27 +87,27 @@ describe("DatabaseManager", () => {
         type: "radarr",
       });
 
-      const server = db.getServerByName("My Radarr");
+      const server = await db.getServerByName("My Radarr");
       expect(server).not.toBeNull();
       expect(server?.id).toBe("test-id-1");
     });
 
-    test("retrieves servers by type", () => {
-      db.addServer({
+    test("retrieves servers by type", async () => {
+      await db.addServer({
         id: "id1",
         name: "Radarr 1",
         url: "http://host1:7878",
         apiKey: "key1",
         type: "radarr",
       });
-      db.addServer({
+      await db.addServer({
         id: "id2",
         name: "Radarr 2",
         url: "http://host2:7878",
         apiKey: "key2",
         type: "radarr",
       });
-      db.addServer({
+      await db.addServer({
         id: "id3",
         name: "Sonarr",
         url: "http://host1:8989",
@@ -115,15 +115,15 @@ describe("DatabaseManager", () => {
         type: "sonarr",
       });
 
-      const radarrs = db.getServersByType("radarr");
+      const radarrs = await db.getServersByType("radarr");
       expect(radarrs.length).toBe(2);
 
-      const sonarrs = db.getServersByType("sonarr");
+      const sonarrs = await db.getServersByType("sonarr");
       expect(sonarrs.length).toBe(1);
     });
 
-    test("checks for duplicate servers", () => {
-      db.addServer({
+    test("checks for duplicate servers", async () => {
+      await db.addServer({
         id: "id1",
         name: "Radarr",
         url: "http://localhost:7878",
@@ -136,8 +136,8 @@ describe("DatabaseManager", () => {
       expect(db.serverExists("http://other:7878", "radarr")).toBe(false);
     });
 
-    test("excludes ID when checking duplicates", () => {
-      db.addServer({
+    test("excludes ID when checking duplicates", async () => {
+      await db.addServer({
         id: "id1",
         name: "Radarr",
         url: "http://localhost:7878",
@@ -149,8 +149,8 @@ describe("DatabaseManager", () => {
       expect(db.serverExists("http://localhost:7878", "radarr", "other-id")).toBe(true);
     });
 
-    test("updates server name", () => {
-      db.addServer({
+    test("updates server name", async () => {
+      await db.addServer({
         id: "id1",
         name: "Old Name",
         url: "http://localhost:7878",
@@ -158,13 +158,13 @@ describe("DatabaseManager", () => {
         type: "radarr",
       });
 
-      const updated = db.updateServer("id1", { name: "New Name" });
+      const updated = await db.updateServer("id1", { name: "New Name" });
       expect(updated?.name).toBe("New Name");
       expect(updated?.url).toBe("http://localhost:7878");
     });
 
-    test("updates server URL", () => {
-      db.addServer({
+    test("updates server URL", async () => {
+      await db.addServer({
         id: "id1",
         name: "Server",
         url: "http://localhost:7878",
@@ -172,12 +172,12 @@ describe("DatabaseManager", () => {
         type: "radarr",
       });
 
-      const updated = db.updateServer("id1", { url: "http://newhost:7878" });
+      const updated = await db.updateServer("id1", { url: "http://newhost:7878" });
       expect(updated?.url).toBe("http://newhost:7878");
     });
 
-    test("updates server API key", () => {
-      db.addServer({
+    test("updates server API key", async () => {
+      await db.addServer({
         id: "id1",
         name: "Server",
         url: "http://localhost:7878",
@@ -185,12 +185,12 @@ describe("DatabaseManager", () => {
         type: "radarr",
       });
 
-      const updated = db.updateServer("id1", { apiKey: "new-key" });
+      const updated = await db.updateServer("id1", { apiKey: "new-key" });
       expect(updated?.apiKey).toBe("new-key");
     });
 
-    test("deletes a server", () => {
-      db.addServer({
+    test("deletes a server", async () => {
+      await db.addServer({
         id: "id1",
         name: "Server",
         url: "http://localhost:7878",
@@ -199,11 +199,38 @@ describe("DatabaseManager", () => {
       });
 
       expect(db.deleteServer("id1")).toBe(true);
-      expect(db.getServer("id1")).toBeNull();
+      expect(await db.getServer("id1")).toBeNull();
     });
 
     test("returns false when deleting non-existent server", () => {
       expect(db.deleteServer("non-existent")).toBe(false);
+    });
+
+    test("encrypts API keys at rest", async () => {
+      const plainApiKey = "my-secret-api-key-12345";
+      await db.addServer({
+        id: "id1",
+        name: "Test Server",
+        url: "http://localhost:7878",
+        apiKey: plainApiKey,
+        type: "radarr",
+      });
+
+      // Read the raw database value to verify encryption
+      const Database = (await import("bun:sqlite")).Database;
+      const rawDb = new Database(TEST_DB_PATH);
+      const row = rawDb.query<{ api_key: string }, [string]>(
+        "SELECT api_key FROM servers WHERE id = ?"
+      ).get("id1");
+      rawDb.close();
+
+      // The stored API key should be encrypted (not plaintext)
+      expect(row?.api_key).not.toBe(plainApiKey);
+      expect(row?.api_key).toContain(":"); // Encrypted format: iv:ciphertext
+
+      // But when retrieved through the API, it should be decrypted
+      const server = await db.getServer("id1");
+      expect(server?.apiKey).toBe(plainApiKey);
     });
   });
 
@@ -242,6 +269,7 @@ describe("DatabaseManager", () => {
       expect(config.searchLimits.cutoffLimit).toBe(10);
     });
   });
+
 
   describe("Log Operations", () => {
     test("adds log entries", () => {
@@ -327,3 +355,4 @@ describe("DatabaseManager", () => {
     });
   });
 });
+

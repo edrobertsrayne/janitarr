@@ -83,21 +83,36 @@ automation can occur.
 
 ### Data Integrity
 
+- Each server is assigned a UUID (universally unique identifier) as its primary
+  identifier
+- Server names must be unique across all configured servers (enforced on
+  add/edit)
 - Prevent duplicate server entries (same URL and type)
 - Handle trailing slashes in URLs consistently
-- Validate that URL uses http:// or https:// protocol
+- Validate that URL uses http:// or https:// protocol for connecting to Radarr/Sonarr servers
+- Support multiple URL formats for Radarr/Sonarr connections: http://, https://, custom ports
+  (e.g., http://localhost:7878, https://radarr.example.com)
 
 ### Security
 
 - Never display full API keys in the interface (show only first/last few
   characters or fully mask)
-- Store API keys securely (encryption at rest if possible)
+- API keys MUST be encrypted at rest using AES-256 encryption
+- Encryption key is derived from machine ID (using crypto.randomUUID() or
+  similar platform-specific identifier)
+- Database is not portable across machines due to machine-specific encryption
+  key
 - Do not log API keys in activity logs
 
 ### User Experience
 
 - Connection tests should provide specific failure reasons (network error, wrong
   credentials, invalid API endpoint)
+- Duplicate server name attempts return HTTP 400 Bad Request with clear error
+  message: "Server name already exists"
+- Connection test failures prevent server from being saved (reject and don't
+  save invalid configurations)
 - If a server is temporarily unreachable during automated runs, log the failure
   but don't disable the server configuration
 - Support both local network URLs (192.168.x.x) and remote URLs (domain names)
+- No hard limit on number of servers (support as many as user needs)

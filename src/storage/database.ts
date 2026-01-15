@@ -6,7 +6,7 @@
  */
 
 import { Database } from "bun:sqlite";
-import type {
+import {
   ServerConfig,
   ServerType,
   LogEntry,
@@ -16,6 +16,8 @@ import type {
   ScheduleConfig,
   SearchLimits,
 } from "../types";
+
+
 
 /** Default database path */
 const DEFAULT_DB_PATH = "./data/janitarr.db";
@@ -136,13 +138,17 @@ export class DatabaseManager {
   /**
    * Add a new server
    */
-  addServer(server: Omit<ServerConfig, "createdAt" | "updatedAt">): ServerConfig {
+  async addServer(server: Omit<ServerConfig, "createdAt" | "updatedAt">): Promise<ServerConfig> {
+    const { getEncryptionKey, encryptApiKey } = await import('../lib/crypto');
     const now = new Date().toISOString();
     const fullServer: ServerConfig = {
       ...server,
       createdAt: new Date(now),
       updatedAt: new Date(now),
     };
+
+    const encryptionKey = await getEncryptionKey();
+    const encryptedApiKey = await encryptApiKey(fullServer.apiKey, encryptionKey);
 
     this.db.run(
       `INSERT INTO servers (id, name, url, api_key, type, created_at, updated_at)
@@ -151,7 +157,7 @@ export class DatabaseManager {
         fullServer.id,
         fullServer.name,
         fullServer.url,
-        fullServer.apiKey,
+        encryptedApiKey,
         fullServer.type,
         now,
         now,
@@ -164,42 +170,42 @@ export class DatabaseManager {
   /**
    * Get all servers
    */
-  getAllServers(): ServerConfig[] {
+  async getAllServers(): Promise<ServerConfig[]> {
     const rows = this.db.query<ServerRow, []>("SELECT * FROM servers ORDER BY name").all();
-    return rows.map(this.rowToServer);
+    return Promise.all(rows.map(row => this.rowToServer(row)));
   }
 
   /**
    * Get a server by ID
    */
-  getServer(id: string): ServerConfig | null {
+  async getServer(id: string): Promise<ServerConfig | null> {
     const row = this.db.query<ServerRow, [string]>(
       "SELECT * FROM servers WHERE id = ?"
     ).get(id);
 
-    return row ? this.rowToServer(row) : null;
+    return row ? await this.rowToServer(row) : null;
   }
 
   /**
    * Get a server by name
    */
-  getServerByName(name: string): ServerConfig | null {
+  async getServerByName(name: string): Promise<ServerConfig | null> {
     const row = this.db.query<ServerRow, [string]>(
       "SELECT * FROM servers WHERE name = ?"
     ).get(name);
 
-    return row ? this.rowToServer(row) : null;
+    return row ? await this.rowToServer(row) : null;
   }
 
   /**
    * Get servers by type
    */
-  getServersByType(type: ServerType): ServerConfig[] {
+  async getServersByType(type: ServerType): Promise<ServerConfig[]> {
     const rows = this.db.query<ServerRow, [string]>(
       "SELECT * FROM servers WHERE type = ? ORDER BY name"
     ).all(type);
 
-    return rows.map(this.rowToServer);
+    return Promise.all(rows.map(row => this.rowToServer(row)));
   }
 
   /**
@@ -219,14 +225,16 @@ export class DatabaseManager {
   /**
    * Update a server
    */
-  updateServer(
+  async updateServer(
     id: string,
     updates: Partial<Pick<ServerConfig, "name" | "url" | "apiKey">>
-  ): ServerConfig | null {
-    const existing = this.getServer(id);
+  ): Promise<ServerConfig | null> {
+    const { getEncryptionKey, encryptApiKey } = await import('../lib/crypto');
+    const existing = await this.getServer(id); // Now async
     if (!existing) return null;
 
     const now = new Date().toISOString();
+    let changesMade = false;
 
     if (updates.name !== undefined) {
       this.db.run("UPDATE servers SET name = ?, updated_at = ? WHERE id = ?", [
@@ -234,6 +242,7 @@ export class DatabaseManager {
         now,
         id,
       ]);
+      changesMade = true;
     }
 
     if (updates.url !== undefined) {
@@ -242,17 +251,23 @@ export class DatabaseManager {
         now,
         id,
       ]);
+      changesMade = true;
     }
 
     if (updates.apiKey !== undefined) {
+      const encryptionKey = await getEncryptionKey();
+      const encryptedApiKey = await encryptApiKey(updates.apiKey, encryptionKey);
       this.db.run("UPDATE servers SET api_key = ?, updated_at = ? WHERE id = ?", [
-        updates.apiKey,
+        encryptedApiKey,
         now,
         id,
       ]);
+      changesMade = true;
     }
 
-    return this.getServer(id);
+    if (!changesMade) return existing; // No actual updates to trigger a fetch
+
+    return this.getServer(id); // Now async
   }
 
   /**
@@ -266,12 +281,15 @@ export class DatabaseManager {
   /**
    * Convert database row to ServerConfig
    */
-  private rowToServer(row: ServerRow): ServerConfig {
+  private async rowToServer(row: ServerRow): Promise<ServerConfig> {
+    const { getEncryptionKey, decryptApiKey } = await import('../lib/crypto');
+    const encryptionKey = await getEncryptionKey();
+    const decryptedApiKey = await decryptApiKey(row.api_key, encryptionKey);
     return {
       id: row.id,
       name: row.name,
       url: row.url,
-      apiKey: row.api_key,
+      apiKey: decryptedApiKey,
       type: row.type as ServerType,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),

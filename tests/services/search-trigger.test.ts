@@ -93,7 +93,7 @@ describe("Search Trigger Service", () => {
       setSearchLimits(0, 5);
 
       // Add a server
-      testDb.addServer({
+      await testDb.addServer({
         id: "server-1",
         name: "Test Server",
         url: "http://localhost:59999",
@@ -131,7 +131,7 @@ describe("Search Trigger Service", () => {
     test("respects cutoff limit of zero", async () => {
       setSearchLimits(5, 0);
 
-      testDb.addServer({
+      await testDb.addServer({
         id: "server-1",
         name: "Test Server",
         url: "http://localhost:59999",
@@ -167,7 +167,7 @@ describe("Search Trigger Service", () => {
     });
 
     test("skips failed detection results", async () => {
-      testDb.addServer({
+      await testDb.addServer({
         id: "server-1",
         name: "Test Server",
         url: "http://localhost:59999",
@@ -231,7 +231,7 @@ describe("Search Trigger Integration", () => {
   test.skipIf(!hasRadarr)(
     "can configure limits and process empty detection results",
     async () => {
-      testDb.addServer({
+      await testDb.addServer({
         id: "radarr-test",
         name: "Test Radarr",
         url: RADARR_URL,

@@ -26,6 +26,8 @@ After successful tests:
 - `git add -A`
 - `git commit` with descriptive message
 - `git push`
+- If no build/test errors remain, create git tag (start at 0.0.0, increment
+  patch)
 
 ## Critical Practices
 
@@ -34,9 +36,9 @@ After successful tests:
 - Capture the _why_ in documentation and tests, not just the _what_
 - Keep @IMPLEMENTATION_PLAN.md current - update immediately when discovering
   issues or completing work
-- Update @AGENTS.md with operational learnings only (correct commands, run
+- Update @CLAUDE.md with operational learnings only (correct commands, run
   procedures)
-- **Do NOT** put status updates or progress notes in @AGENTS.md - those belong
+- **Do NOT** put status updates or progress notes in @CLAUDE.md - those belong
   in @IMPLEMENTATION_PLAN.md
 - Periodically clean completed items from @IMPLEMENTATION_PLAN.md
 

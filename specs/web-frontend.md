@@ -889,6 +889,7 @@ LOG_RETENTION_DAYS=30               # Log retention period
 - **Internal Network**: Suitable for home networks with trusted users
 - **No API Keys**: No authentication required for initial version
 - **Warning**: Display warning in UI if accessed from non-localhost origin
+- **HTTP Only**: Web interface uses HTTP protocol only
 
 ### Future Authentication (Out of Scope for v1)
 
@@ -896,7 +897,6 @@ LOG_RETENTION_DAYS=30               # Log retention period
 - Session management with secure cookies
 - CSRF protection
 - Rate limiting on API endpoints
-- HTTPS/TLS support with Let's Encrypt integration
 - API key generation for programmatic access
 
 ---

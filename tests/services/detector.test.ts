@@ -44,7 +44,7 @@ describe("Detector Service", () => {
 
     test("handles unreachable servers gracefully", async () => {
       // Add a server that won't be reachable
-      testDb.addServer({
+      await testDb.addServer({
         id: "test-1",
         name: "Unreachable",
         url: "http://localhost:59999",
@@ -64,14 +64,14 @@ describe("Detector Service", () => {
   describe("detectByType", () => {
     test("only detects servers of specified type", async () => {
       // Add servers of both types (neither reachable)
-      testDb.addServer({
+      await testDb.addServer({
         id: "radarr-1",
         name: "Radarr",
         url: "http://localhost:59997",
         apiKey: "fake-key",
         type: "radarr",
       });
-      testDb.addServer({
+      await testDb.addServer({
         id: "sonarr-1",
         name: "Sonarr",
         url: "http://localhost:59998",
@@ -96,7 +96,7 @@ describe("Detector Service", () => {
     });
 
     test("finds server by ID", async () => {
-      testDb.addServer({
+      await testDb.addServer({
         id: "test-id-123",
         name: "Test Server",
         url: "http://localhost:59996",
@@ -110,7 +110,7 @@ describe("Detector Service", () => {
     });
 
     test("finds server by name", async () => {
-      testDb.addServer({
+      await testDb.addServer({
         id: "some-id",
         name: "My Radarr Server",
         url: "http://localhost:59995",
@@ -153,7 +153,7 @@ describe("Detector Integration", () => {
   });
 
   test.skipIf(!hasRadarr)("detects missing movies from Radarr", async () => {
-    testDb.addServer({
+    await testDb.addServer({
       id: "radarr-test",
       name: "Test Radarr",
       url: RADARR_URL,
@@ -171,7 +171,7 @@ describe("Detector Integration", () => {
   });
 
   test.skipIf(!hasSonarr)("detects missing episodes from Sonarr", async () => {
-    testDb.addServer({
+    await testDb.addServer({
       id: "sonarr-test",
       name: "Test Sonarr",
       url: SONARR_URL,
@@ -191,14 +191,14 @@ describe("Detector Integration", () => {
   test.skipIf(!hasRadarr || !hasSonarr)(
     "detects from multiple servers",
     async () => {
-      testDb.addServer({
+      await testDb.addServer({
         id: "radarr-multi",
         name: "Multi Radarr",
         url: RADARR_URL,
         apiKey: RADARR_API_KEY,
         type: "radarr",
       });
-      testDb.addServer({
+      await testDb.addServer({
         id: "sonarr-multi",
         name: "Multi Sonarr",
         url: SONARR_URL,

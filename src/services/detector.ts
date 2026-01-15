@@ -70,7 +70,7 @@ async function detectOnServer(server: ServerConfig): Promise<DetectionResult> {
  */
 export async function detectAll(): Promise<AggregatedResults> {
   const db = getDatabase();
-  const servers = db.getAllServers();
+  const servers = await db.getAllServers();
 
   const results: DetectionResult[] = [];
   let totalMissing = 0;
@@ -110,7 +110,7 @@ export async function detectByType(
   type: "radarr" | "sonarr"
 ): Promise<AggregatedResults> {
   const db = getDatabase();
-  const servers = db.getServersByType(type);
+  const servers = await db.getServersByType(type);
 
   const results: DetectionResult[] = [];
   let totalMissing = 0;
@@ -151,11 +151,11 @@ export async function detectSingleServer(
   const db = getDatabase();
 
   // Try by ID first
-  let server = db.getServer(idOrName);
+  let server = await db.getServer(idOrName);
 
   // Then try by name
   if (!server) {
-    server = db.getServerByName(idOrName);
+    server = await db.getServerByName(idOrName);
   }
 
   if (!server) {

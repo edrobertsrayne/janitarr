@@ -21,11 +21,13 @@ This is the only mechanism for the user to see what the automation has done.
 #### Acceptance Criteria
 
 - [ ] Every triggered search is logged with: timestamp, server name, server type
-      (Radarr/Sonarr), search category (missing or cutoff-not-met)
+      (Radarr/Sonarr), search category (missing or cutoff-not-met), content title,
+      and Radarr/Sonarr item ID
+- [ ] Each search creates a separate log entry (one entry per movie/episode
+      searched, not grouped)
 - [ ] Log entries are created immediately when searches are triggered
 - [ ] Log persists across application restarts
-- [ ] Log entries include count of items searched in each trigger (if applicable
-      to API)
+- [ ] Content titles and IDs allow cross-referencing with Radarr/Sonarr UIs
 
 ### Story: Log Automation Cycle Events
 
@@ -100,12 +102,15 @@ This is the only mechanism for the user to see what the automation has done.
 
 ### Log Detail Level
 
-- Log should be detailed enough to troubleshoot issues but not overwhelming with
-  noise
-- Don't log every API call - log meaningful events (cycle start/end, searches
-  triggered, failures)
-- Group related operations where possible (e.g., "Triggered 5 missing searches
-  on Server1" rather than 5 separate entries)
+- Log should be detailed enough to troubleshoot issues and provide full
+  visibility into what content is being searched
+- Log meaningful events: cycle start/end, individual searches triggered
+  (with titles and IDs), and failures
+- Individual log entries per search provide granular audit trail
+  - Example: "Triggered search for Breaking Bad S01E01 [ID:12345]"
+  - More verbose but enables users to see exactly what's being searched
+- Use efficient storage and display techniques (virtualization, pagination) to
+  handle potentially large log volumes
 
 ### Time Representation
 
@@ -131,6 +136,7 @@ This is the only mechanism for the user to see what the automation has done.
 
 - The system logs what searches were triggered, not whether searches found
   content (that's Radarr/Sonarr's responsibility)
-- Log does not track which specific episodes/movies were searched, only counts
-  and categories
+- Individual log entries mean higher log volumes compared to grouped entries
 - Very old logs are purged automatically to prevent unbounded growth
+- Recommend using react-window or similar virtualization for displaying large
+  log lists efficiently

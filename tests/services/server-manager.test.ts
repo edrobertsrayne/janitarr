@@ -54,8 +54,8 @@ describe("Server Manager Database Integration", () => {
     }
   });
 
-  test("prevents duplicate server URLs", () => {
-    testDb.addServer({
+  test("prevents duplicate server URLs", async () => {
+    await testDb.addServer({
       id: "id1",
       name: "Radarr 1",
       url: "http://localhost:7878",
@@ -64,14 +64,14 @@ describe("Server Manager Database Integration", () => {
     });
 
     // Same URL + type should be detected as duplicate
-    expect(testDb.serverExists("http://localhost:7878", "radarr")).toBe(true);
+    expect(await testDb.serverExists("http://localhost:7878", "radarr")).toBe(true);
 
     // Same URL but different type is allowed
-    expect(testDb.serverExists("http://localhost:7878", "sonarr")).toBe(false);
+    expect(await testDb.serverExists("http://localhost:7878", "sonarr")).toBe(false);
   });
 
-  test("prevents duplicate server names", () => {
-    testDb.addServer({
+  test("prevents duplicate server names", async () => {
+    await testDb.addServer({
       id: "id1",
       name: "My Server",
       url: "http://localhost:7878",
@@ -79,7 +79,7 @@ describe("Server Manager Database Integration", () => {
       type: "radarr",
     });
 
-    const existing = testDb.getServerByName("My Server");
+    const existing = await testDb.getServerByName("My Server");
     expect(existing).not.toBeNull();
   });
 });

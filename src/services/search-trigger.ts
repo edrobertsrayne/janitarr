@@ -154,7 +154,7 @@ export async function triggerSearches(
 ): Promise<TriggerResults> {
   const db = getDatabase();
   const config = db.getAppConfig();
-  const servers = db.getAllServers();
+  const servers = await db.getAllServers();
 
   // Create a map of server ID to server config for URL/API key lookup
   const serverMap = new Map(servers.map((s) => [s.id, s]));

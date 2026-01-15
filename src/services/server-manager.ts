@@ -84,7 +84,7 @@ export async function addServer(
   }
 
   // Check for duplicate name
-  if (db.getServerByName(name)) {
+  if (await db.getServerByName(name)) {
     return {
       success: false,
       error: `A server named "${name}" already exists`,
@@ -113,7 +113,7 @@ export async function addServer(
   }
 
   // Save to database
-  const server = db.addServer({
+  const server = await db.addServer({ // Await addServer
     id: crypto.randomUUID(),
     name,
     url: normalizedUrl,
@@ -127,23 +127,24 @@ export async function addServer(
 /**
  * Get all configured servers
  */
-export function listServers(): ServerInfo[] {
+export async function listServers(): Promise<ServerInfo[]> {
   const db = getDatabase();
-  return db.getAllServers().map(toServerInfo);
+  const allServers = await db.getAllServers();
+  return allServers.map(toServerInfo);
 }
 
 /**
  * Get a server by ID or name
  */
-export function getServer(idOrName: string): ServerResult<ServerConfig> {
+export async function getServer(idOrName: string): Promise<ServerResult<ServerConfig>> {
   const db = getDatabase();
 
   // Try by ID first
-  let server = db.getServer(idOrName);
+  let server = await db.getServer(idOrName);
 
   // Then try by name
   if (!server) {
-    server = db.getServerByName(idOrName);
+    server = await db.getServerByName(idOrName);
   }
 
   if (!server) {
@@ -156,9 +157,9 @@ export function getServer(idOrName: string): ServerResult<ServerConfig> {
 /**
  * Get servers by type
  */
-export function getServersByType(type: ServerType): ServerConfig[] {
+export async function getServersByType(type: ServerType): Promise<ServerConfig[]> {
   const db = getDatabase();
-  return db.getServersByType(type);
+  return await db.getServersByType(type);
 }
 
 /**
@@ -168,7 +169,7 @@ export async function editServer(
   idOrName: string,
   updates: { name?: string; url?: string; apiKey?: string }
 ): Promise<ServerResult<ServerInfo>> {
-  const serverResult = getServer(idOrName);
+  const serverResult = await getServer(idOrName); // Await getServer
   if (!serverResult.success) {
     return serverResult;
   }
@@ -199,7 +200,7 @@ export async function editServer(
 
   // Check for duplicate name
   if (updates.name && updates.name !== server.name) {
-    const existing = db.getServerByName(updates.name);
+    const existing = await db.getServerByName(updates.name); // Await db.getServerByName
     if (existing && existing.id !== server.id) {
       return {
         success: false,
@@ -222,7 +223,7 @@ export async function editServer(
   }
 
   // Apply updates
-  const updated = db.updateServer(server.id, {
+  const updated = await db.updateServer(server.id, { // Await db.updateServer
     name: updates.name,
     url: updates.url ? newUrl : undefined,
     apiKey: updates.apiKey,
@@ -238,8 +239,8 @@ export async function editServer(
 /**
  * Remove a server
  */
-export function removeServer(idOrName: string): ServerResult<void> {
-  const serverResult = getServer(idOrName);
+export async function removeServer(idOrName: string): Promise<ServerResult<void>> {
+  const serverResult = await getServer(idOrName);
   if (!serverResult.success) {
     return serverResult;
   }
@@ -260,7 +261,7 @@ export function removeServer(idOrName: string): ServerResult<void> {
 export async function testServerConnection(
   idOrName: string
 ): Promise<ServerResult<SystemStatus>> {
-  const serverResult = getServer(idOrName);
+  const serverResult = await getServer(idOrName);
   if (!serverResult.success) {
     return serverResult;
   }

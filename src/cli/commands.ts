@@ -134,8 +134,8 @@ export function createProgram(): Command {
     .command("list")
     .description("List all configured servers")
     .option("--json", "Output as JSON")
-    .action((options) => {
-      const servers = listServers();
+    .action(async (options) => {
+      const servers = await listServers();
 
       if (options.json) {
         console.log(fmt.formatServerJson(servers));
@@ -151,7 +151,7 @@ export function createProgram(): Command {
       const rl = createInterface();
 
       try {
-        const serverResult = getServer(idOrName);
+        const serverResult = await getServer(idOrName);
         if (!serverResult.success) {
           console.log(fmt.error(serverResult.error));
           rl.close();
@@ -201,7 +201,7 @@ export function createProgram(): Command {
       const rl = createInterface();
 
       try {
-        const serverResult = getServer(idOrName);
+        const serverResult = await getServer(idOrName);
         if (!serverResult.success) {
           console.log(fmt.error(serverResult.error));
           rl.close();
@@ -221,7 +221,7 @@ export function createProgram(): Command {
           return;
         }
 
-        const result = removeServer(server.id);
+        const result = await removeServer(server.id);
 
         if (result.success) {
           console.log(fmt.success(`Server '${server.name}' removed`));
@@ -237,7 +237,7 @@ export function createProgram(): Command {
     .command("test <id-or-name>")
     .description("Test connection to a server")
     .action(async (idOrName: string) => {
-      const serverResult = getServer(idOrName);
+      const serverResult = await getServer(idOrName);
       if (!serverResult.success) {
         console.log(fmt.error(serverResult.error));
         return;
@@ -264,9 +264,9 @@ export function createProgram(): Command {
     .command("status")
     .description("Show scheduler status and configuration")
     .option("--json", "Output as JSON")
-    .action((options) => {
+    .action(async (options) => {
       const status = getStatus();
-      const servers = listServers();
+      const servers = await listServers();
       const db = getDatabase();
       const config = db.getAppConfig();
 

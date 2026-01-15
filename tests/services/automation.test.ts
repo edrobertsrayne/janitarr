@@ -86,7 +86,7 @@ describe("Automation Orchestrator", () => {
 
     test("handles unreachable servers gracefully", async () => {
       // Add unreachable server
-      testDb.addServer({
+      await testDb.addServer({
         id: "test-1",
         name: "Unreachable",
         url: "http://localhost:59999",
@@ -103,7 +103,7 @@ describe("Automation Orchestrator", () => {
     });
 
     test("logs server errors", async () => {
-      testDb.addServer({
+      await testDb.addServer({
         id: "test-1",
         name: "Unreachable",
         url: "http://localhost:59999",
@@ -124,14 +124,14 @@ describe("Automation Orchestrator", () => {
 
     test("continues with other servers if one fails", async () => {
       // Add one unreachable and one reachable (but still fake)
-      testDb.addServer({
+      await testDb.addServer({
         id: "test-1",
         name: "Unreachable1",
         url: "http://localhost:59999",
         apiKey: "fake-key",
         type: "radarr",
       });
-      testDb.addServer({
+      await testDb.addServer({
         id: "test-2",
         name: "Unreachable2",
         url: "http://localhost:59998",
@@ -158,7 +158,7 @@ describe("Automation Orchestrator", () => {
     });
 
     test("records failures in cycle summary", async () => {
-      testDb.addServer({
+      await testDb.addServer({
         id: "test-1",
         name: "Unreachable",
         url: "http://localhost:59999",

@@ -55,7 +55,31 @@ This is the timing control for the entire automation system.
 - [ ] Manual trigger executes the same complete cycle as scheduled automation
 - [ ] Manual trigger does not affect the regular schedule (next scheduled run
       occurs at the original time)
+- [ ] If a cycle is already running, manual triggers are queued and execute
+      after the current cycle completes
 - [ ] User receives feedback when manual cycle completes
+
+### Story: Preview Mode (Dry-Run)
+
+- **As a** user
+- **I want to** preview what would be searched without actually triggering
+  searches
+- **So that** I can validate my configuration and limits before running actual
+  automation
+
+#### Acceptance Criteria
+
+- [ ] User can run automation in dry-run/preview mode via CLI flag (e.g.,
+      `--dry-run`)
+- [ ] Dry-run mode performs full detection across all configured servers
+- [ ] Dry-run mode applies configured limits and distribution logic
+- [ ] Dry-run mode displays or logs what _would_ be searched without triggering
+      actual searches
+- [ ] Dry-run mode clearly indicates in output that no searches were triggered
+- [ ] Dry-run mode does not create log entries for searches (since none
+      occurred)
+- [ ] Dry-run is useful for testing configuration changes, validating limits,
+      and understanding automation behavior
 
 ### Story: View Schedule Status
 
@@ -76,8 +100,9 @@ This is the timing control for the entire automation system.
 - If an automation cycle takes longer than the configured interval, the next
   cycle should wait until the current one completes (don't run concurrent
   cycles)
-- If the application is stopped and restarted, first automation cycle runs
-  immediately on startup, then resumes regular schedule
+- If the application is stopped and restarted, the next automation cycle waits
+  for the next scheduled time (no immediate run on startup). Users can manually
+  trigger if immediate execution is desired.
 
 ### Error Handling
 

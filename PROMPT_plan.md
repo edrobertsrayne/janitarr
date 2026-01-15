@@ -3,8 +3,8 @@
 ## Phase 1: Understand the Project
 
 - Study `specs/*` to learn application requirements and design
-- Review @IMPLEMENTATION_PLAN.md (if present) for current status
-- Analyze `src/lib/*` to understand shared utilities and components
+- Study @IMPLEMENTATION_PLAN.md (if present) for current status
+- Study `src/lib/*` to understand shared utilities and components
 - Reference application source in `src/*`
 
 ## Phase 2: Gap Analysis & Planning
@@ -31,10 +31,10 @@ prioritized task list:
   implementations there
 - For missing elements: search first, then document at `specs/FILENAME.md` if
   needed
-
-## Project Goal
-
-[Replace with specific goal]
+- Resolve any ambiguity or discrepancies between specifications using your
+  preferred approach
 
 Work systematically through the codebase, documenting findings and maintaining
 an accurate implementation roadmap.
+
+**DO NOT** IMPLEMENT ANY CHANGES IN `src/*`
