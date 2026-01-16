@@ -1,32 +1,34 @@
 ## Setup
 
-Enter the development environment:
+The development environment uses [devenv](https://devenv.sh) with direnv for automatic environment loading.
+
+**First-time setup:**
 ```bash
-nix develop
+direnv allow  # Authorize the development environment
 ```
 
-This provides all necessary dependencies including Bun runtime.
+This provides all necessary dependencies including Bun runtime. The environment loads automatically when entering the project directory.
 
-Install project dependencies:
+**Install project dependencies:**
 ```bash
-nix develop -c bun install
+bun install
 ```
 
 ## Build & Run
 
 **Development mode** (with auto-reload):
 ```bash
-nix develop -c bun run dev
+bun run dev
 ```
 
 **Production mode**:
 ```bash
-nix develop -c bun run start
+bun run start
 ```
 
 **CLI commands** use the pattern:
 ```bash
-nix develop -c bun run src/index.ts <command>
+bun run src/index.ts <command>
 ```
 
 ## Validation
@@ -34,9 +36,9 @@ nix develop -c bun run src/index.ts <command>
 Run after making changes:
 
 ```bash
-nix develop -c bun test              # Run test suite
-nix develop -c bunx tsc --noEmit     # Type checking
-nix develop -c bunx eslint .         # Linting
+bun test              # Run test suite
+bunx tsc --noEmit     # Type checking
+bunx eslint .         # Linting
 ```
 
 ## Test Environment
@@ -55,27 +57,27 @@ The `data/` directory is gitignored.
 
 **First-time setup:**
 ```bash
-nix develop -c bun run src/index.ts server add                     # Add servers with validation
-nix develop -c bun run src/index.ts config set limits.missing 10   # Configure limits
+bun run src/index.ts server add                     # Add servers with validation
+bun run src/index.ts config set limits.missing 10   # Configure limits
 ```
 
 **Testing server connections:**
 ```bash
-nix develop -c bun run src/index.ts server test <name>
+bun run src/index.ts server test <name>
 ```
 
 **Manual automation run:**
 ```bash
-nix develop -c bun run src/index.ts scan   # Preview what will be searched
-nix develop -c bun run src/index.ts run    # Execute searches
-nix develop -c bun run src/index.ts logs   # Review results
+bun run src/index.ts scan   # Preview what will be searched
+bun run src/index.ts run    # Execute searches
+bun run src/index.ts logs   # Review results
 ```
 
 **Scheduler operations:**
 ```bash
-nix develop -c bun run src/index.ts start   # Start daemon
-nix develop -c bun run src/index.ts status  # Check next run time
-nix develop -c bun run src/index.ts stop    # Stop daemon
+bun run src/index.ts start   # Start daemon
+bun run src/index.ts status  # Check next run time
+bun run src/index.ts stop    # Stop daemon
 ```
 
 ## Code Standards

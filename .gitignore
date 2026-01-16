@@ -3,3 +3,8 @@ node_modules/
 dist/
 data/
 .direnv/
+
+# devenv
+.devenv/
+.devenv.flake.nix
+devenv.lock
