@@ -6,7 +6,7 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   // Test directory
-  testDir: './tests/ui',
+  testDir: './tests/e2e',
 
   // Maximum time one test can run
   timeout: 30 * 1000,
@@ -44,6 +44,7 @@ export default defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
+        headless: true,
         // Use devenv's Chromium if CHROMIUM_PATH is set
         // Otherwise Playwright will download its own
         ...(process.env.CHROMIUM_PATH && {
@@ -57,10 +58,16 @@ export default defineConfig({
   ],
 
   // Run your local dev server before starting the tests
-  // Uncomment if you want Playwright to auto-start the UI
-  // webServer: {
-  //   command: 'cd ui && bun run dev',
-  //   url: 'http://localhost:5173',
-  //   reuseExistingServer: !process.env.CI,
-  // },
+  webServer: [
+    {
+      command: 'bun run start',
+      url: 'http://localhost:3000',
+      reuseExistingServer: !process.env.CI,
+    },
+    {
+      command: 'cd ui && bun run dev',
+      url: 'http://localhost:5173',
+      reuseExistingServer: !process.env.CI,
+    },
+  ],
 });
