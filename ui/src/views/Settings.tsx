@@ -117,21 +117,23 @@ export default function Settings() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h4">Settings</Typography>
-        <Box sx={{ display: 'flex', gap: 1 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+        <Typography variant="h4" sx={{ mb: 0 }}>Settings</Typography>
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
           <Button
             variant="outlined"
-            startIcon={<ResetIcon />}
+            startIcon={<ResetIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
             onClick={() => setResetConfirmOpen(true)}
+            sx={{ minWidth: { xs: '70px', sm: 'auto' } }}
           >
             Reset
           </Button>
           <Button
             variant="contained"
-            startIcon={<SaveIcon />}
+            startIcon={<SaveIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
             onClick={handleSave}
             disabled={saving}
+            sx={{ minWidth: { xs: '90px', sm: 'auto' } }}
           >
             {saving ? 'Saving...' : 'Save Changes'}
           </Button>
@@ -309,6 +311,7 @@ export default function Settings() {
                   <Tooltip title="Copy to clipboard">
                     <IconButton
                       onClick={() => handleCopy(`${window.location.origin}/api`)}
+                      sx={{ minWidth: 44, minHeight: 44 }}
                     >
                       <CopyIcon />
                     </IconButton>

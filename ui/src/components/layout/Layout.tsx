@@ -120,7 +120,12 @@ export default function Layout() {
             {navItems.find((item) => item.path === location.pathname)?.label ||
               'Janitarr'}
           </Typography>
-          <IconButton color="inherit" onClick={handleThemeToggle}>
+          <IconButton
+            color="inherit"
+            onClick={handleThemeToggle}
+            sx={{ minWidth: 44, minHeight: 44 }}
+            aria-label="Toggle theme"
+          >
             {effectiveMode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
           </IconButton>
         </Toolbar>

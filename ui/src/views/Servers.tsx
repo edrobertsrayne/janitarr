@@ -277,26 +277,27 @@ export default function Servers() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h4">Servers</Typography>
-        <Box sx={{ display: 'flex', gap: 1 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+        <Typography variant="h4" sx={{ mb: 0 }}>Servers</Typography>
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
           <ToggleButtonGroup
             value={viewMode}
             exclusive
             onChange={(_, value) => value && setViewMode(value)}
             size="small"
           >
-            <ToggleButton value="list">
+            <ToggleButton value="list" sx={{ minWidth: 44, minHeight: 44 }}>
               <ListIcon />
             </ToggleButton>
-            <ToggleButton value="card">
+            <ToggleButton value="card" sx={{ minWidth: 44, minHeight: 44 }}>
               <CardIcon />
             </ToggleButton>
           </ToggleButtonGroup>
           <Button
             variant="contained"
-            startIcon={<AddIcon />}
+            startIcon={<AddIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
             onClick={() => handleOpenDialog()}
+            sx={{ minWidth: { xs: '100px', sm: 'auto' } }}
           >
             Add Server
           </Button>
@@ -309,8 +310,8 @@ export default function Servers() {
         </Alert>
       ) : viewMode === 'list' ? (
         <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
+          <Table size="small">
+            <TableHead sx={{ display: { xs: 'none', md: 'table-header-group' } }}>
               <TableRow>
                 <TableCell>Name</TableCell>
                 <TableCell>Type</TableCell>
@@ -323,56 +324,78 @@ export default function Servers() {
               {servers.map((server) => (
                 <TableRow key={server.id}>
                   <TableCell>
-                    <Typography variant="body1">{server.name}</Typography>
+                    <Box>
+                      <Typography variant="body1" sx={{ fontWeight: 500 }}>{server.name}</Typography>
+                      <Box sx={{ display: { xs: 'block', md: 'none' }, mt: 0.5 }}>
+                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap', mb: 0.5 }}>
+                          <Chip
+                            label={server.type.toUpperCase()}
+                            size="small"
+                            color={server.type === 'radarr' ? 'primary' : 'secondary'}
+                          />
+                          <StatusBadge
+                            status={server.enabled === false ? 'disabled' : 'connected'}
+                          />
+                        </Box>
+                        <Typography variant="caption" color="text.secondary" sx={{ wordBreak: 'break-all' }}>
+                          {server.url}
+                        </Typography>
+                      </Box>
+                    </Box>
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
                     <Chip
                       label={server.type.toUpperCase()}
                       size="small"
                       color={server.type === 'radarr' ? 'primary' : 'secondary'}
                     />
                   </TableCell>
-                  <TableCell>
-                    <Typography variant="body2" color="text.secondary">
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {server.url}
                     </Typography>
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
                     <StatusBadge
                       status={server.enabled === false ? 'disabled' : 'connected'}
                     />
                   </TableCell>
                   <TableCell align="right">
-                    <IconButton
-                      size="small"
-                      onClick={() => handleTestConnection(server)}
-                      disabled={testing === server.id}
-                      title="Test Connection"
-                    >
-                      {testing === server.id ? (
-                        <CircularProgress size={20} />
-                      ) : (
-                        <TestIcon />
-                      )}
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      onClick={() => handleOpenDialog(server)}
-                      title="Edit"
-                    >
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      onClick={() => {
-                        setServerToDelete(server);
-                        setDeleteConfirmOpen(true);
-                      }}
-                      title="Delete"
-                      color="error"
-                    >
-                      <DeleteIcon />
-                    </IconButton>
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleTestConnection(server)}
+                        disabled={testing === server.id}
+                        title="Test Connection"
+                        sx={{ minWidth: 44, minHeight: 44 }}
+                      >
+                        {testing === server.id ? (
+                          <CircularProgress size={20} />
+                        ) : (
+                          <TestIcon />
+                        )}
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleOpenDialog(server)}
+                        title="Edit"
+                        sx={{ minWidth: 44, minHeight: 44 }}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        onClick={() => {
+                          setServerToDelete(server);
+                          setDeleteConfirmOpen(true);
+                        }}
+                        title="Delete"
+                        color="error"
+                        sx={{ minWidth: 44, minHeight: 44 }}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
                   </TableCell>
                 </TableRow>
               ))}
@@ -404,12 +427,13 @@ export default function Servers() {
                   </Typography>
                 </CardContent>
                 <CardActions sx={{ justifyContent: 'space-between' }}>
-                  <Box>
+                  <Box sx={{ display: 'flex', gap: 0.5 }}>
                     <IconButton
                       size="small"
                       onClick={() => handleTestConnection(server)}
                       disabled={testing === server.id}
                       title="Test"
+                      sx={{ minWidth: 44, minHeight: 44 }}
                     >
                       {testing === server.id ? (
                         <CircularProgress size={20} />
@@ -421,6 +445,7 @@ export default function Servers() {
                       size="small"
                       onClick={() => handleOpenDialog(server)}
                       title="Edit"
+                      sx={{ minWidth: 44, minHeight: 44 }}
                     >
                       <EditIcon />
                     </IconButton>
@@ -433,6 +458,7 @@ export default function Servers() {
                     }}
                     title="Delete"
                     color="error"
+                    sx={{ minWidth: 44, minHeight: 44 }}
                   >
                     <DeleteIcon />
                   </IconButton>

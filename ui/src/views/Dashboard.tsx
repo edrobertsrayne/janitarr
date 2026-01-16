@@ -161,16 +161,17 @@ export default function Dashboard() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h4" gutterBottom>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+        <Typography variant="h4" gutterBottom sx={{ mb: 0 }}>
           Dashboard
         </Typography>
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
           <Button
             variant="contained"
             startIcon={<PlayIcon />}
             onClick={handleTriggerAutomation}
             disabled={triggering}
+            sx={{ minWidth: { xs: '110px', sm: 'auto' } }}
           >
             {triggering ? 'Running...' : 'Run Now'}
           </Button>
@@ -178,6 +179,7 @@ export default function Dashboard() {
             variant="outlined"
             startIcon={<AddIcon />}
             onClick={() => navigate('/servers')}
+            sx={{ minWidth: { xs: '120px', sm: 'auto' } }}
           >
             Add Server
           </Button>
@@ -283,8 +285,8 @@ export default function Dashboard() {
             </Alert>
           ) : (
             <TableContainer>
-              <Table>
-                <TableHead>
+              <Table size="small">
+                <TableHead sx={{ display: { xs: 'none', sm: 'table-header-group' } }}>
                   <TableRow>
                     <TableCell>Name</TableCell>
                     <TableCell>Type</TableCell>
@@ -295,15 +297,31 @@ export default function Dashboard() {
                 <TableBody>
                   {servers.map((server) => (
                     <TableRow key={server.id}>
-                      <TableCell>{server.name}</TableCell>
                       <TableCell>
+                        <Box>
+                          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                            {server.name}
+                          </Typography>
+                          <Box sx={{ display: { xs: 'flex', sm: 'none' }, gap: 1, mt: 0.5, alignItems: 'center', flexWrap: 'wrap' }}>
+                            <Chip
+                              label={server.type.toUpperCase()}
+                              size="small"
+                              color={server.type === 'radarr' ? 'primary' : 'secondary'}
+                            />
+                            <StatusBadge
+                              status={server.enabled === false ? 'disabled' : 'connected'}
+                            />
+                          </Box>
+                        </Box>
+                      </TableCell>
+                      <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                         <Chip
                           label={server.type.toUpperCase()}
                           size="small"
                           color={server.type === 'radarr' ? 'primary' : 'secondary'}
                         />
                       </TableCell>
-                      <TableCell>
+                      <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                         <StatusBadge
                           status={server.enabled === false ? 'disabled' : 'connected'}
                         />
@@ -313,6 +331,7 @@ export default function Dashboard() {
                           size="small"
                           onClick={() => navigate('/servers')}
                           title="Edit"
+                          sx={{ minWidth: 44, minHeight: 44 }}
                         >
                           <EditIcon />
                         </IconButton>
@@ -320,6 +339,7 @@ export default function Dashboard() {
                           size="small"
                           onClick={() => navigate('/servers')}
                           title="Test"
+                          sx={{ minWidth: 44, minHeight: 44 }}
                         >
                           <TestIcon />
                         </IconButton>

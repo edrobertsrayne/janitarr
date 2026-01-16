@@ -181,9 +181,9 @@ export default function Logs() {
   return (
     <Box>
       {/* Toolbar */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h4">Logs</Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+        <Typography variant="h4" sx={{ mb: 0 }}>Logs</Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
           <Chip
             icon={<ConnectionIcon />}
             label={wsStatus}
@@ -198,25 +198,28 @@ export default function Logs() {
           />
           <Button
             size="small"
-            startIcon={<ExportIcon />}
+            startIcon={<ExportIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
             onClick={() => handleExport('json')}
+            sx={{ minWidth: { xs: '60px', sm: 'auto' } }}
           >
             JSON
           </Button>
           <Button
             size="small"
-            startIcon={<ExportIcon />}
+            startIcon={<ExportIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
             onClick={() => handleExport('csv')}
+            sx={{ minWidth: { xs: '50px', sm: 'auto' } }}
           >
             CSV
           </Button>
-          <IconButton onClick={loadLogs} title="Refresh">
+          <IconButton onClick={loadLogs} title="Refresh" sx={{ minWidth: 44, minHeight: 44 }}>
             <RefreshIcon />
           </IconButton>
           <IconButton
             onClick={() => setClearConfirmOpen(true)}
             title="Clear All Logs"
             color="error"
+            sx={{ minWidth: 44, minHeight: 44 }}
           >
             <ClearIcon />
           </IconButton>
