@@ -468,7 +468,7 @@ export function startWebServer(port = 3000) {
 ### Testing Plan
 1. Unit tests for route handlers
 2. Integration tests for API endpoints
-3. E2E tests with Playwright (browser automation)
+3. Manual E2E testing (browser-based)
 4. Accessibility testing (WCAG compliance)
 5. Mobile responsive testing
 

@@ -7,9 +7,11 @@ Automation tool for managing Radarr and Sonarr media servers. Automatically dete
 - **Multi-server support**: Manage multiple Radarr and Sonarr instances from a single tool
 - **Smart detection**: Automatically finds missing episodes/movies and content below quality cutoffs
 - **Flexible scheduling**: Run automation on a custom interval or manually trigger searches
-- **Search limits**: Control how many searches to trigger per cycle to avoid overwhelming your indexers
+- **Granular search limits**: Four independent limits for movies/episodes, missing/upgrades
 - **Activity logging**: Track all automation activity with detailed logs
+- **Web interface**: Modern, responsive web UI with real-time updates
 - **CLI interface**: Simple, intuitive command-line interface for all operations
+- **Dry-run mode**: Preview automation cycles before executing searches
 
 ## Quick Start
 
@@ -31,6 +33,19 @@ bun install
 
 ### Basic Usage
 
+#### Using the Web Interface
+
+1. **Start the server:**
+```bash
+bun run start
+```
+
+2. **Open your browser to:** `http://localhost:3000`
+
+3. **Add servers** via the web UI, configure settings, and monitor activity
+
+#### Using the CLI
+
 1. **Add a media server:**
 ```bash
 bun run src/index.ts server add
@@ -38,8 +53,10 @@ bun run src/index.ts server add
 
 2. **Configure search limits:**
 ```bash
-bun run src/index.ts config set limits.missing 10
-bun run src/index.ts config set limits.cutoff 5
+bun run src/index.ts config set limits.missing.movies 10
+bun run src/index.ts config set limits.missing.episodes 10
+bun run src/index.ts config set limits.cutoff.movies 5
+bun run src/index.ts config set limits.cutoff.episodes 5
 ```
 
 3. **Run a manual cycle:**
@@ -51,6 +68,46 @@ bun run src/index.ts run
 ```bash
 bun run src/index.ts start
 ```
+
+## Web Interface
+
+Janitarr includes a modern, responsive web interface for easy management.
+
+### Features
+
+- **Dashboard**: Real-time overview of missing content, quality upgrades, and server status
+- **Server Management**: Add, edit, test, and manage Radarr/Sonarr servers
+- **Activity Logs**: View and filter automation logs with real-time streaming
+- **Settings**: Configure automation schedule and search limits
+- **Responsive Design**: Works on desktop, tablet, and mobile devices (≥320px)
+- **Accessibility**: WCAG 2.1 Level AA compliant with keyboard navigation and screen reader support
+- **Dark/Light/System Themes**: Automatic theme detection with manual override
+
+### Accessing the Web UI
+
+1. Start the Janitarr server:
+   ```bash
+   bun run start
+   ```
+
+2. Open your browser to: `http://localhost:3000`
+
+3. Navigate between views using the sidebar menu
+
+### Building the Web UI
+
+The web interface is built with React and Vite. To build for production:
+
+```bash
+cd ui
+bun install
+bun run build
+cd ..
+```
+
+Built files are placed in `dist/public/` and served automatically by the backend.
+
+For more details, see [ui/README.md](ui/README.md).
 
 ## CLI Commands
 
@@ -141,8 +198,10 @@ janitarr logs --clear
 
 - **Schedule interval**: 6 hours
 - **Schedule enabled**: Yes
-- **Missing content limit**: 10 items per cycle
-- **Quality cutoff limit**: 5 items per cycle
+- **Missing movies limit**: 10 items per cycle
+- **Missing episodes limit**: 10 items per cycle
+- **Movie upgrades limit**: 5 items per cycle
+- **Episode upgrades limit**: 5 items per cycle
 
 ### Data Storage
 
@@ -168,6 +227,7 @@ All configuration, server credentials, and logs are stored in a SQLite database 
 
 ### Running Tests
 
+**Backend tests:**
 ```bash
 # Run all tests
 bun test
@@ -178,6 +238,19 @@ bunx tsc --noEmit
 # Linting
 bunx eslint .
 ```
+
+**UI testing:**
+
+Manual testing is recommended for the web UI. Start both the UI dev server and backend:
+
+```bash
+cd ui && bun run dev                    # Start UI dev server
+cd .. && bun run start                  # Start backend (in separate terminal)
+```
+
+Then test functionality at http://localhost:5173 in your browser.
+
+See `ui/README.md` for detailed UI documentation and `UI_VALIDATION_REPORT.md` for validation results.
 
 ### Project Structure
 
@@ -246,6 +319,21 @@ Authentication is handled via the `X-Api-Key` header.
 - Start the scheduler with `janitarr start`
 - Check scheduler status with `janitarr status`
 - Verify `schedule.enabled` is set to `true` in configuration
+
+## Documentation
+
+Comprehensive documentation is available in the `docs/` directory:
+
+- **[User Guide](docs/user-guide.md)** - Complete guide to using Janitarr, including web UI and CLI workflows
+- **[API Reference](docs/api-reference.md)** - REST API and WebSocket protocol documentation
+- **[Troubleshooting Guide](docs/troubleshooting.md)** - Common issues and solutions
+- **[Development Guide](docs/development.md)** - Contributing and development setup
+
+## Support
+
+- **Issues**: Report bugs or request features on [GitHub Issues](https://github.com/yourusername/janitarr/issues)
+- **Documentation**: See guides in the `docs/` directory
+- **Web UI**: See [ui/README.md](ui/README.md) for frontend-specific documentation
 
 ## License
 

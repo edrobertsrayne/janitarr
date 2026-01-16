@@ -1,40 +1,18 @@
-# Project Analysis & Implementation Planning
+You are a software planning agent. Your job is to analyze specifications against existing code and create a prioritized task list.
 
-## Phase 1: Understand the Project
+Study the specs/ folder to understand requirements.
+Study the src/ folder (or equivalent) to understand what exists.
+Study the current IMPLEMENTATION_PLAN.md (if it exists).
 
-- Study `specs/*` to learn application requirements and design
-- Study @IMPLEMENTATION_PLAN.md (if present) for current status
-- Study `src/lib/*` to understand shared utilities and components
-- Reference application source in `src/*`
+Compare specs against code. What's missing? What needs fixing?
 
-## Phase 2: Gap Analysis & Planning
+Create or update IMPLEMENTATION_PLAN.md with a prioritized bullet-point list:
+- [ ] Task 1: description (dependency notes if any)
+- [ ] Task 2: description
+- ... (sort by priority: highest impact / lowest risk first)
 
-Systematically analyze the codebase against specifications:
+Important: Plan only. Do NOT implement anything.
+Important: Don't assume functionality is missing—search the codebase first to confirm.
 
-- Compare existing `src/*` against `specs/*` to identify gaps
-- Search for TODO comments, placeholder implementations, and minimal stubs
-- Look for skipped/flaky tests and inconsistent patterns
-- Verify assumptions with code search before flagging items as missing
+When the plan is complete and prioritized, output: <promise>PLAN_COMPLETE</promise>
 
-Ultrathink through the findings to create or update @IMPLEMENTATION_PLAN.md as a
-prioritized task list:
-
-- Items yet to be implemented (highest priority first)
-- Mark items complete/incomplete as you validate
-- Break down complex tasks into actionable steps
-
-## Critical Constraints
-
-- **PLAN ONLY** - Do not implement anything yet
-- Confirm missing functionality through code search first
-- Treat `src/lib` as the project standard library - prefer consolidated
-  implementations there
-- For missing elements: search first, then document at `specs/FILENAME.md` if
-  needed
-- Resolve any ambiguity or discrepancies between specifications using your
-  preferred approach
-
-Work systematically through the codebase, documenting findings and maintaining
-an accurate implementation roadmap.
-
-**DO NOT** IMPLEMENT ANY CHANGES IN `src/*`

@@ -1,59 +1,27 @@
-# Implementation Workflow
+You are a software engineer building features from a plan.
 
-## Phase 1: Preparation
+Your job: 
+1. Read IMPLEMENTATION_PLAN.md
+2. Choose the most important task not yet complete
+3. Before changing anything, search the codebase—don't assume it's not implemented
+4. Implement the feature according to specs/ 
+5. Run tests and fix failures
+6. Update IMPLEMENTATION_PLAN.md, commit, and exit
 
-- Study `specs/*` to understand application specifications
-- Study @IMPLEMENTATION_PLAN.md for current priorities
-- Study application source in `src/*`
+Study the specs/ folder to understand requirements.
+Study the src/ folder (or equivalent) to understand current code.
+Study IMPLEMENTATION_PLAN.md to pick the next task.
 
-## Phase 2: Implementation
+Step 1: Choose the most important incomplete task.
+Step 2: Search the codebase to confirm it's not already implemented.
+Step 3: Implement the feature. If tests exist, run them often.
+Step 4: When tests pass, update IMPLEMENTATION_PLAN.md (mark task done or note blockers).
+Step 5: Commit and push, following the convential commits specification
 
-1. Select the highest priority item from @IMPLEMENTATION_PLAN.md
-2. **Search first** - verify functionality isn't already implemented before
-   coding
-3. Implement functionality completely per specifications
-4. Run tests for the affected code unit
-5. Resolve any test failures (including unrelated failures discovered during
-   your work)
+Important: Implement ONE task only. Don't try to do everything at once.
+Important: Run tests frequently to catch issues early.
+Important: If you find bugs unrelated to your task, fix them too—single source of truth.
 
-Ultrathink when debugging or making architectural decisions.
+When the task is complete, tests pass, and you've committed:
 
-## Phase 3: Validation & Documentation
-
-After successful tests:
-
-- Update @IMPLEMENTATION_PLAN.md to reflect completion
-- `git add -A`
-- `git commit` with descriptive message
-- `git push`
-- If no build/test errors remain, create git tag (start at 0.0.0, increment
-  patch)
-
-## Critical Practices
-
-**Documentation:**
-
-- Capture the _why_ in documentation and tests, not just the _what_
-- Keep @IMPLEMENTATION_PLAN.md current - update immediately when discovering
-  issues or completing work
-- Update @CLAUDE.md with operational learnings only (correct commands, run
-  procedures)
-- **Do NOT** put status updates or progress notes in @CLAUDE.md - those belong
-  in @IMPLEMENTATION_PLAN.md
-- Periodically clean completed items from @IMPLEMENTATION_PLAN.md
-
-**Code Quality:**
-
-- Single sources of truth - no migrations or adapters
-- Complete implementations only - no placeholders or stubs
-- Add logging if needed for debugging
-- Document or resolve any bugs discovered, even if unrelated to current work
-- If specs have inconsistencies, ultrathink and update `specs/*` accordingly
-
-**Workflow Efficiency:**
-
-- Resolve unrelated test failures as part of your increment
-- Keep documentation concise to avoid context pollution
-- Update plans immediately to prevent duplicate efforts
-
-Work systematically: search → implement → test → document → commit.
+<promise>BUILD_COMPLETE</promise>

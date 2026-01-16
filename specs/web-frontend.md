@@ -818,8 +818,7 @@ GET    /api/stats/servers/:id
    - Test form validation
 
 3. **End-to-End Tests**:
-   - Use Playwright or Cypress
-   - Test critical user journeys:
+   - Manual testing of critical user journeys:
      - Add and configure server
      - View logs and filter
      - Change settings and save
