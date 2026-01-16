@@ -6,8 +6,8 @@
     "start": "bun run src/index.ts",
     "dev": "bun --watch run src/index.ts",
     "test": "bun test tests/",
-    "test:ui": "cd ui && bun test",
-    "test:all": "bun test tests/ && cd ui && bun test",
+    "test:ui": "cd ui && bunx vitest run",
+    "test:all": "bun test tests/ && cd ui && bunx vitest run",
     "typecheck": "bunx tsc --noEmit",
     "lint": "bunx eslint ."
   },
