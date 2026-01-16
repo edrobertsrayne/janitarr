@@ -36,8 +36,11 @@ bun run src/index.ts <command>
 Run after making changes:
 
 ```bash
-bun test              # Run test suite
-bunx tsc --noEmit     # Type checking
+bun test tests/       # Run backend test suite
+cd ui && bunx vitest run  # Run frontend tests
+bun run test:all      # Run both backend and frontend tests
+bunx tsc --noEmit     # Type checking (backend)
+cd ui && bunx tsc -b --noEmit  # Type checking (frontend)
 bunx eslint .         # Linting
 ```
 

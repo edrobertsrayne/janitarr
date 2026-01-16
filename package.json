@@ -5,7 +5,9 @@
   "scripts": {
     "start": "bun run src/index.ts",
     "dev": "bun --watch run src/index.ts",
-    "test": "bun test",
+    "test": "bun test tests/",
+    "test:ui": "cd ui && bun test",
+    "test:all": "bun test tests/ && cd ui && bun test",
     "typecheck": "bunx tsc --noEmit",
     "lint": "bunx eslint ."
   },

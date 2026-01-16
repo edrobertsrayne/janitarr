@@ -33,7 +33,7 @@ describe('API Service', () => {
         },
       };
 
-      vi.mocked(fetch).mockResolvedValueOnce({
+      (fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ success: true, data: mockConfig }),
       } as Response);
@@ -55,7 +55,7 @@ describe('API Service', () => {
         },
       };
 
-      vi.mocked(fetch).mockResolvedValueOnce({
+      (fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ success: true, data: mockResponse }),
       } as Response);
@@ -82,7 +82,7 @@ describe('API Service', () => {
         },
       };
 
-      vi.mocked(fetch).mockResolvedValueOnce({
+      (fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ success: true, data: mockConfig }),
       } as Response);
@@ -111,7 +111,7 @@ describe('API Service', () => {
         },
       ];
 
-      vi.mocked(fetch).mockResolvedValueOnce({
+      (fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ success: true, data: mockServers }),
       } as Response);
@@ -137,7 +137,7 @@ describe('API Service', () => {
         enabled: true,
       };
 
-      vi.mocked(fetch).mockResolvedValueOnce({
+      (fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ success: true, data: mockResponse }),
       } as Response);
@@ -166,7 +166,7 @@ describe('API Service', () => {
         enabled: false,
       };
 
-      vi.mocked(fetch).mockResolvedValueOnce({
+      (fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ success: true, data: mockResponse }),
       } as Response);
@@ -178,7 +178,7 @@ describe('API Service', () => {
     });
 
     it('deleteServer - deletes server successfully', async () => {
-      vi.mocked(fetch).mockResolvedValueOnce({
+      (fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ success: true }),
       } as Response);
@@ -198,7 +198,7 @@ describe('API Service', () => {
         message: 'Connection successful',
       };
 
-      vi.mocked(fetch).mockResolvedValueOnce({
+      (fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ success: true, data: mockResponse }),
       } as Response);
@@ -222,7 +222,7 @@ describe('API Service', () => {
         },
       ];
 
-      vi.mocked(fetch).mockResolvedValueOnce({
+      (fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ success: true, data: mockLogs }),
       } as Response);
@@ -236,7 +236,7 @@ describe('API Service', () => {
     it('deleteLogs - deletes logs successfully', async () => {
       const mockResponse = { deletedCount: 42 };
 
-      vi.mocked(fetch).mockResolvedValueOnce({
+      (fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ success: true, data: mockResponse }),
       } as Response);
@@ -257,7 +257,7 @@ describe('API Service', () => {
         lastRun: '2026-01-16T10:30:00Z',
       };
 
-      vi.mocked(fetch).mockResolvedValueOnce({
+      (fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ success: true, data: mockStats }),
       } as Response);
@@ -276,7 +276,7 @@ describe('API Service', () => {
         message: 'Automation cycle started',
       };
 
-      vi.mocked(fetch).mockResolvedValueOnce({
+      (fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ success: true, data: mockResponse }),
       } as Response);
@@ -294,7 +294,7 @@ describe('API Service', () => {
         nextRun: '2026-01-16T16:00:00Z',
       };
 
-      vi.mocked(fetch).mockResolvedValueOnce({
+      (fetch as any).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ success: true, data: mockStatus }),
       } as Response);
@@ -308,7 +308,7 @@ describe('API Service', () => {
 
   describe('Error Handling', () => {
     it('handles network errors', async () => {
-      vi.mocked(fetch).mockRejectedValueOnce(new Error('Network error'));
+      (fetch as any).mockRejectedValueOnce(new Error('Network error'));
 
       const result = await getConfig();
 
@@ -317,7 +317,7 @@ describe('API Service', () => {
     });
 
     it('handles HTTP errors', async () => {
-      vi.mocked(fetch).mockResolvedValueOnce({
+      (fetch as any).mockResolvedValueOnce({
         ok: false,
         status: 500,
         json: async () => ({ error: 'Internal server error' }),
@@ -330,7 +330,7 @@ describe('API Service', () => {
     });
 
     it('handles non-Error exceptions', async () => {
-      vi.mocked(fetch).mockRejectedValueOnce('String error');
+      (fetch as any).mockRejectedValueOnce('String error');
 
       const result = await getConfig();
 

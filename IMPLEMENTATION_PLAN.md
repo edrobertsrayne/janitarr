@@ -1,7 +1,7 @@
 # Janitarr Implementation Plan
 
 **Last Updated:** 2026-01-16
-**Status:** Production Ready - All Features Complete - Documentation Complete
+**Status:** Production Ready - All Features Complete - Documentation Complete - Test Suite Fixed
 **Overall Completion:** 100% (All core features, specs, mobile responsiveness, accessibility, frontend testing, and comprehensive documentation complete)
 
 ---
@@ -291,9 +291,11 @@ Janitarr is a production-ready automation tool for managing Radarr/Sonarr media 
 
 **Test Results:**
 - ✅ **36 tests passing** (0 failures)
-- ✅ Test suite runs in ~3.3 seconds (well under 30 second target)
+- ✅ Test suite runs in ~3.5 seconds (well under 30 second target)
 - ✅ Component tests: 20 tests (LoadingSpinner, StatusBadge, ConfirmDialog)
 - ✅ API service tests: 16 tests (all endpoints, error handling)
+- ✅ Fixed Bun runtime compatibility issues (vi.mocked replaced with type assertions)
+- ✅ Separated test scripts: `bun test tests/` (backend), `cd ui && bunx vitest run` (UI)
 - ⚠️ Minor act() warnings from Material-UI TouchRipple (non-critical)
 
 **Acceptance Criteria Met:**
@@ -672,6 +674,13 @@ tests/integration/
 
 **Test Coverage:** >80% for critical paths
 
+**Recent Fixes (2026-01-16):**
+- ✅ Fixed Bun runtime compatibility for UI tests (replaced `vi.mocked` with direct type assertions)
+- ✅ Separated backend and frontend test execution (backend: `bun test tests/`, frontend: `bunx vitest run`)
+- ✅ Fixed TypeScript configuration (`@types/bun` instead of `bun-types`)
+- ✅ Added `test:ui` and `test:all` scripts to root package.json
+- ✅ All 149 backend tests + 36 frontend tests passing
+
 ---
 
 ## Recommended Next Steps
@@ -717,7 +726,7 @@ tests/integration/
 ✅ **Core Features**: Server management, detection, search triggering, scheduling, logging
 ✅ **Web UI**: Full-featured frontend with 4 views, real-time updates, responsive design
 ✅ **CLI**: Complete command-line interface for all operations
-✅ **Testing**: 149 passing backend tests, 36 frontend tests (Bun compatibility issues noted)
+✅ **Testing**: 149 passing backend tests, 36 passing frontend tests (all compatibility issues resolved)
 ✅ **Mobile**: Fully responsive for screens ≥320px with touch-friendly interactions
 ✅ **Accessibility**: WCAG 2.1 Level AA foundation with ARIA, keyboard nav, semantic HTML
 ✅ **Documentation**: Comprehensive guides for users, developers, API, and troubleshooting (2,800+ lines)

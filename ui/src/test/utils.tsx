@@ -3,6 +3,7 @@ import { render, type RenderOptions } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import { vi } from 'vitest';
 
 // Create a test theme (light mode by default)
 const testTheme = createTheme({
