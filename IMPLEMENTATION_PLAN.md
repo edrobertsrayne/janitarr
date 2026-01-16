@@ -1,8 +1,8 @@
 # Janitarr Implementation Plan
 
-**Last Updated:** 2026-01-15
-**Status:** Phase 1 Complete - Core Completeness Achieved
-**Latest Update:** 2026-01-15 - Search Limits Granularity implemented and tested
+**Last Updated:** 2026-01-16
+**Status:** Phase 2.1 Complete - Backend API Foundation Implemented
+**Latest Update:** 2026-01-16 - Web Backend API with REST endpoints and WebSocket streaming complete
 
 ---
 
@@ -16,7 +16,8 @@ Janitarr is a well-architected automation tool for managing Radarr/Sonarr media 
 - ✅ Background scheduling with configurable intervals
 - ✅ Comprehensive test suite (144 tests passing)
 - ✅ Search limits granularity complete (4 separate limits)
-- ❌ Web frontend not implemented (largest remaining gap)
+- ✅ Web Backend API complete (REST + WebSocket)
+- ❌ Web frontend React application not implemented (remaining work)
 - ⚠️ Minor CLI command variations from spec (optional)
 
 ---
@@ -50,21 +51,33 @@ Janitarr is a well-architected automation tool for managing Radarr/Sonarr media 
 
 ## Critical Gaps (High Priority)
 
-### 1. ❌ Web Frontend - NOT IMPLEMENTED
+### 1. ⚠️ Web Frontend - BACKEND COMPLETE, FRONTEND NOT IMPLEMENTED
 **Specification:** `specs/web-frontend.md` (comprehensive 997-line spec)
-**Current State:** No implementation exists (`src/web/`, `ui/` directories missing)
-**Package Dependencies:** No web dependencies in package.json (no React, Vite, MUI, React Router)
-**Impact:** Major feature gap - entire web UI missing
+**Current State:** Backend API complete (`src/web/` implemented), Frontend not started (`ui/` directory missing)
+**Package Dependencies:** No frontend dependencies yet (no React, Vite, MUI, React Router in package.json)
+**Impact:** Backend operational, but web UI missing
 
-**Required Implementation:**
-- **Backend API** (`src/web/`):
-  - REST API server with Bun's native HTTP server
-  - WebSocket server for real-time log streaming
-  - API endpoints for configuration, servers, logs, automation, statistics
-  - Route handlers, middleware, error handling
-  - Integration with existing services
+**✅ Completed Implementation (Phase 2.1: Backend API Foundation):**
+- **Backend API** (`src/web/`) - **COMPLETE** (2026-01-16):
+  - ✅ REST API server with Bun's native HTTP server (`src/web/server.ts`)
+  - ✅ WebSocket server for real-time log streaming (`src/web/websocket.ts`)
+  - ✅ API endpoints for configuration (`src/web/routes/config.ts`)
+  - ✅ API endpoints for server management (`src/web/routes/servers.ts`)
+  - ✅ API endpoints for logs (`src/web/routes/logs.ts`)
+  - ✅ API endpoints for automation control (`src/web/routes/automation.ts`)
+  - ✅ API endpoints for statistics (`src/web/routes/stats.ts`)
+  - ✅ CORS support for development
+  - ✅ Error handling and validation
+  - ✅ Integration with existing services (DatabaseManager, automation, logger)
+  - ✅ CLI command: `janitarr serve [--port] [--host]`
+  - ✅ WebSocket log broadcasting integrated into logger
+  - ✅ DatabaseManager extended with query methods (getLogsPaginated, getServerStats, getSystemStats)
+  - ✅ All TypeScript compilation passing
+  - ✅ All ESLint validation passing
+  - ✅ All 144 tests passing
 
-- **Frontend React Application** (`ui/`):
+**❌ Remaining Implementation (Phase 2.2-2.5: Frontend Application):**
+- **Frontend React Application** (`ui/`) - **NOT STARTED**:
   - React 18+ with TypeScript, Vite 5+ build system
   - Material-UI v6 (Material Design 3 Expressive theme)
   - React Router v6 for navigation
@@ -72,17 +85,17 @@ Janitarr is a well-architected automation tool for managing Radarr/Sonarr media 
   - Real-time WebSocket integration
   - Dark/light theme support
 
-**Acceptance Criteria:** All features in `specs/web-frontend.md` sections:
+**Acceptance Criteria for Remaining Work:**
 - Dashboard view with status cards, server list, activity timeline, quick actions
 - Servers view with list/card toggle, add/edit dialogs, statistics
 - Logs view with search, filters, virtualized scrolling, real-time streaming
 - Settings view with automation, limits, web interface, advanced sections
-- All REST and WebSocket API endpoints functional
+- Frontend integration with completed REST and WebSocket API endpoints
 - Mobile responsive (≥320px width)
 - WCAG 2.1 Level AA accessibility compliance
 
-**Dependencies:** None (can implement immediately)
-**Estimated Complexity:** Very High (largest single feature)
+**Dependencies:** Backend API complete ✅ (ready to start frontend)
+**Estimated Complexity:** Very High (largest remaining feature)
 
 ---
 
@@ -460,12 +473,26 @@ Before marking any gap as complete, verify:
    - ✅ Updated CLI commands and formatters
    - ✅ All tests passing (144/144)
 
-2. **Begin Gap #1: Web Frontend** (Largest effort)
-   - Start with Phase 2.1 (Backend API Foundation)
-   - Create `src/web/` directory structure
-   - Implement REST API endpoints
-   - Add WebSocket log streaming
-   - Test API endpoints independently before frontend work
+2. **✅ COMPLETED: Gap #1 Phase 2.1 - Backend API Foundation** (2026-01-16)
+   - ✅ Created `src/web/` directory structure
+   - ✅ Implemented all REST API endpoints (config, servers, logs, automation, stats)
+   - ✅ Added WebSocket log streaming with real-time broadcasting
+   - ✅ Integrated WebSocket broadcasting into logger
+   - ✅ Extended DatabaseManager with web API query methods
+   - ✅ Added `janitarr serve` CLI command
+   - ✅ All TypeScript compilation passing
+   - ✅ All ESLint validation passing
+   - ✅ All 144 tests passing
+
+3. **TODO: Gap #1 Phase 2.2-2.5 - Frontend React Application** (Largest remaining effort)
+   - Initialize React + Vite project in `ui/` directory
+   - Install and configure MUI, React Router, dependencies
+   - Implement Layout components (AppBar, NavDrawer, Layout)
+   - Implement Dashboard view with real-time WebSocket updates
+   - Implement Servers view with CRUD operations
+   - Implement Logs view with streaming and filtering
+   - Implement Settings view with config management
+   - Add E2E tests and documentation
 
 ### Follow-Up
 - Address Gap #3 (dry-run flag) only if strict spec compliance required
@@ -484,15 +511,24 @@ Janitarr has a **solid, production-ready CLI implementation** with excellent cod
 - ✅ All 144 tests passing
 - ✅ Full backward compatibility with automatic migration
 
-**Remaining Work:**
-1. **Web Frontend** (Gap #1) - Massive feature, entire UI implementation required
+**Phase 2.1 Status:** ✅ **COMPLETE** (2026-01-16)
+- ✅ Backend API Foundation implemented
+- ✅ All REST API endpoints operational (config, servers, logs, automation, stats)
+- ✅ WebSocket log streaming with real-time broadcasting
+- ✅ DatabaseManager extended with web query methods
+- ✅ `janitarr serve` CLI command added
+- ✅ All TypeScript, ESLint, and tests passing (144/144)
 
-Once the web frontend is implemented, Janitarr will be **100% feature-complete** according to all specifications.
+**Remaining Work:**
+1. **Web Frontend React Application** (Phase 2.2-2.5) - Frontend UI implementation required
+
+Once the frontend React application is implemented, Janitarr will be **100% feature-complete** according to all specifications.
 
 **Next Steps:**
 1. ✅ **DONE:** Search limits granularity (Phase 1)
-2. **TODO:** Implement web frontend (Phase 2)
-3. **OPTIONAL:** Polish with optional enhancements (Phase 3)
+2. ✅ **DONE:** Backend API Foundation (Phase 2.1)
+3. **TODO:** Implement frontend React application (Phase 2.2-2.5)
+4. **OPTIONAL:** Polish with optional enhancements (Phase 3)
 
 ---
 

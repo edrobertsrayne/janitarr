@@ -8,14 +8,32 @@
 import type { ServerType, LogEntry, LogEntryType, SearchCategory } from "../types";
 import { getDatabase } from "../storage/database";
 
+/**
+ * Broadcast log entry to WebSocket clients (if server is running)
+ */
+function broadcastLogEntry(entry: LogEntry): void {
+  try {
+    // Dynamically import to avoid issues when web server is not running
+    import("../web/websocket").then(({ broadcastLog }) => {
+      broadcastLog(entry);
+    }).catch(() => {
+      // Silently ignore if web server is not loaded
+    });
+  } catch {
+    // Silently ignore if web server is not available
+  }
+}
+
 /** Log a cycle start event */
 export function logCycleStart(isManual = false): LogEntry {
   const db = getDatabase();
-  return db.addLog({
+  const entry = db.addLog({
     type: "cycle_start",
     message: isManual ? "Manual automation cycle started" : "Scheduled automation cycle started",
     isManual,
   });
+  broadcastLogEntry(entry);
+  return entry;
 }
 
 /** Log a cycle end event with summary */
@@ -30,12 +48,14 @@ export function logCycleEnd(
       ? `Automation cycle complete: ${totalSearches} searches triggered, ${failures} failures`
       : `Automation cycle complete: ${totalSearches} searches triggered`;
 
-  return db.addLog({
+  const entry = db.addLog({
     type: "cycle_end",
     message,
     count: totalSearches,
     isManual,
   });
+  broadcastLogEntry(entry);
+  return entry;
 }
 
 /** Log triggered searches for a server */
@@ -49,7 +69,7 @@ export function logSearches(
   const db = getDatabase();
   const categoryLabel = category === "missing" ? "missing" : "cutoff";
 
-  return db.addLog({
+  const entry = db.addLog({
     type: "search",
     serverName,
     serverType,
@@ -58,6 +78,8 @@ export function logSearches(
     message: `Triggered ${count} ${categoryLabel} searches on ${serverName}`,
     isManual,
   });
+  broadcastLogEntry(entry);
+  return entry;
 }
 
 /** Log a server connection error */
@@ -67,12 +89,14 @@ export function logServerError(
   reason: string
 ): LogEntry {
   const db = getDatabase();
-  return db.addLog({
+  const entry = db.addLog({
     type: "error",
     serverName,
     serverType,
     message: `Connection failed to ${serverName}: ${reason}`,
   });
+  broadcastLogEntry(entry);
+  return entry;
 }
 
 /** Log a search trigger error */
@@ -85,13 +109,15 @@ export function logSearchError(
   const db = getDatabase();
   const categoryLabel = category === "missing" ? "missing" : "cutoff";
 
-  return db.addLog({
+  const entry = db.addLog({
     type: "error",
     serverName,
     serverType,
     category,
     message: `Failed to trigger ${categoryLabel} searches on ${serverName}: ${reason}`,
   });
+  broadcastLogEntry(entry);
+  return entry;
 }
 
 /** Get recent log entries */

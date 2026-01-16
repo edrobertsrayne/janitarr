@@ -467,6 +467,129 @@ export class DatabaseManager {
   }
 
   /**
+   * Get filtered logs with pagination
+   */
+  getLogsPaginated(filters: {
+    type?: LogEntryType;
+    server?: string;
+    startDate?: string;
+    endDate?: string;
+    search?: string;
+  }, limit = 100, offset = 0): LogEntry[] {
+    let query = "SELECT * FROM logs WHERE 1=1";
+    const params: (string | number)[] = [];
+
+    if (filters.type) {
+      query += " AND type = ?";
+      params.push(filters.type);
+    }
+
+    if (filters.server) {
+      query += " AND server_name = ?";
+      params.push(filters.server);
+    }
+
+    if (filters.startDate) {
+      query += " AND timestamp >= ?";
+      params.push(filters.startDate);
+    }
+
+    if (filters.endDate) {
+      query += " AND timestamp <= ?";
+      params.push(filters.endDate);
+    }
+
+    if (filters.search) {
+      query += " AND message LIKE ?";
+      params.push(`%${filters.search}%`);
+    }
+
+    query += " ORDER BY timestamp DESC LIMIT ? OFFSET ?";
+    params.push(limit, offset);
+
+    const rows = this.db.query<LogRow, (string | number)[]>(query).all(...params);
+    return rows.map(this.rowToLog);
+  }
+
+  /**
+   * Get statistics for a specific server
+   */
+  getServerStats(serverId: string): {
+    totalSearches: number;
+    errorCount: number;
+    lastCheckTime: string | null;
+  } {
+    // Get server name first
+    const server = this.db.query<ServerRow, [string]>(
+      "SELECT name FROM servers WHERE id = ?"
+    ).get(serverId);
+
+    if (!server) {
+      return { totalSearches: 0, errorCount: 0, lastCheckTime: null };
+    }
+
+    // Count total searches for this server
+    const searchCount = this.db.query<{ count: number }, [string]>(
+      "SELECT COUNT(*) as count FROM logs WHERE server_name = ? AND type = 'search'"
+    ).get(server.name);
+
+    // Count errors for this server
+    const errorCount = this.db.query<{ count: number }, [string]>(
+      "SELECT COUNT(*) as count FROM logs WHERE server_name = ? AND type = 'error'"
+    ).get(server.name);
+
+    // Get last check time (most recent log entry)
+    const lastLog = this.db.query<{ timestamp: string }, [string]>(
+      "SELECT timestamp FROM logs WHERE server_name = ? ORDER BY timestamp DESC LIMIT 1"
+    ).get(server.name);
+
+    return {
+      totalSearches: searchCount?.count ?? 0,
+      errorCount: errorCount?.count ?? 0,
+      lastCheckTime: lastLog?.timestamp ?? null,
+    };
+  }
+
+  /**
+   * Get system-wide statistics for dashboard
+   */
+  getSystemStats(): {
+    totalServers: number;
+    lastCycleTime: string | null;
+    searchesLast24h: number;
+    errorsLast24h: number;
+  } {
+    // Count total servers
+    const serverCount = this.db.query<{ count: number }, []>(
+      "SELECT COUNT(*) as count FROM servers"
+    ).get();
+
+    // Get last cycle end time
+    const lastCycle = this.db.query<{ timestamp: string }, []>(
+      "SELECT timestamp FROM logs WHERE type = 'cycle_end' ORDER BY timestamp DESC LIMIT 1"
+    ).get();
+
+    // Count searches in last 24 hours
+    const yesterday = new Date();
+    yesterday.setHours(yesterday.getHours() - 24);
+    const searchCount = this.db.query<{ count: number }, [string]>(
+      "SELECT COUNT(*) as count FROM logs WHERE type = 'search' AND timestamp >= ?"
+    ).get(yesterday.toISOString());
+
+    // Count errors in last 24 hours
+    const errorCount = this.db.query<{ count: number }, [string]>(
+      "SELECT COUNT(*) as count FROM logs WHERE type = 'error' AND timestamp >= ?"
+    ).get(yesterday.toISOString());
+
+    return {
+      totalServers: serverCount?.count ?? 0,
+      lastCycleTime: lastCycle?.timestamp ?? null,
+      searchesLast24h: searchCount?.count ?? 0,
+      errorsLast24h: errorCount?.count ?? 0,
+    };
+  }
+
+  /**
    * Clear all logs
    */
   clearLogs(): number {
