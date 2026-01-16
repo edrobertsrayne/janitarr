@@ -1,8 +1,8 @@
 # Janitarr Implementation Plan
 
 **Last Updated:** 2026-01-16
-**Status:** Phase 2.1 Complete - Backend API Foundation Implemented
-**Latest Update:** 2026-01-16 - Web Backend API with REST endpoints and WebSocket streaming complete
+**Status:** Phase 2.2 Complete - Frontend Project Setup Implemented
+**Latest Update:** 2026-01-16 - React + Vite project initialized with routing, theme, and build configuration
 
 ---
 
@@ -17,7 +17,9 @@ Janitarr is a well-architected automation tool for managing Radarr/Sonarr media 
 - ✅ Comprehensive test suite (144 tests passing)
 - ✅ Search limits granularity complete (4 separate limits)
 - ✅ Web Backend API complete (REST + WebSocket)
-- ❌ Web frontend React application not implemented (remaining work)
+- ✅ Frontend project setup complete (React + Vite + MUI + Router)
+- ✅ Static file serving from backend
+- ❌ Core views implementation (Dashboard, Servers, Logs, Settings - remaining work)
 - ⚠️ Minor CLI command variations from spec (optional)
 
 ---
@@ -51,11 +53,11 @@ Janitarr is a well-architected automation tool for managing Radarr/Sonarr media 
 
 ## Critical Gaps (High Priority)
 
-### 1. ⚠️ Web Frontend - BACKEND COMPLETE, FRONTEND NOT IMPLEMENTED
+### 1. ⚠️ Web Frontend - BACKEND AND SETUP COMPLETE, VIEWS NOT IMPLEMENTED
 **Specification:** `specs/web-frontend.md` (comprehensive 997-line spec)
-**Current State:** Backend API complete (`src/web/` implemented), Frontend not started (`ui/` directory missing)
-**Package Dependencies:** No frontend dependencies yet (no React, Vite, MUI, React Router in package.json)
-**Impact:** Backend operational, but web UI missing
+**Current State:** Backend API complete (`src/web/` implemented), Frontend project setup complete (`ui/` directory initialized)
+**Package Dependencies:** All frontend dependencies installed (React 19, Vite 7, MUI 7, React Router 7)
+**Impact:** Backend operational, frontend builds successfully, but core views not yet implemented
 
 **✅ Completed Implementation (Phase 2.1: Backend API Foundation):**
 - **Backend API** (`src/web/`) - **COMPLETE** (2026-01-16):
@@ -76,14 +78,41 @@ Janitarr is a well-architected automation tool for managing Radarr/Sonarr media 
   - ✅ All ESLint validation passing
   - ✅ All 144 tests passing
 
-**❌ Remaining Implementation (Phase 2.2-2.5: Frontend Application):**
-- **Frontend React Application** (`ui/`) - **NOT STARTED**:
-  - React 18+ with TypeScript, Vite 5+ build system
-  - Material-UI v6 (Material Design 3 Expressive theme)
-  - React Router v6 for navigation
-  - Four main views: Dashboard, Servers, Logs, Settings
-  - Real-time WebSocket integration
-  - Dark/light theme support
+**✅ Completed Implementation (Phase 2.2: Frontend Project Setup):**
+- **Frontend React Application** (`ui/`) - **PROJECT SETUP COMPLETE** (2026-01-16):
+  - ✅ React 19 + TypeScript + Vite 7 project initialized
+  - ✅ Material-UI v7 (Material Design 3) installed and configured
+  - ✅ React Router v7 routing structure implemented
+  - ✅ Dark/light/system theme support with ThemeContext
+  - ✅ API service client with typed endpoints (`ui/src/services/api.ts`)
+  - ✅ WebSocket client with auto-reconnect (`ui/src/services/websocket.ts`)
+  - ✅ Type definitions synced with backend (`ui/src/types/index.ts`)
+  - ✅ Layout component with responsive navigation drawer
+  - ✅ Placeholder views for Dashboard, Servers, Logs, Settings
+  - ✅ Vite proxy configuration for API and WebSocket
+  - ✅ Build configuration to output to `dist/public`
+  - ✅ Static file serving added to backend server
+  - ✅ Frontend TypeScript compilation passing
+  - ✅ Production build successful (396 KB bundle)
+  - ✅ All backend tests still passing (144/144)
+
+**❌ Remaining Implementation (Phase 2.3-2.5: Views & Features):**
+- **Core Views Implementation** (Phase 2.3) - **NOT STARTED**:
+  - Dashboard view with status cards, server list, activity timeline, quick actions
+  - Servers view with CRUD operations, list/card toggle, statistics
+  - Logs view with search, filters, virtualized scrolling, real-time streaming
+  - Settings view with automation, limits, web interface, advanced sections
+- **Real-time Features & Polish** (Phase 2.4) - **NOT STARTED**:
+  - WebSocket integration for live log streaming
+  - API integration with error handling and loading states
+  - Real-time dashboard updates
+  - Performance optimizations (lazy loading, virtualization, memoization)
+  - Mobile responsiveness testing (≥320px width)
+  - Accessibility (ARIA, keyboard navigation, WCAG 2.1 Level AA)
+- **Testing & Documentation** (Phase 2.5) - **NOT STARTED**:
+  - Frontend component tests
+  - E2E tests (Playwright or Cypress)
+  - Documentation with screenshots and user guides
 
 **Acceptance Criteria for Remaining Work:**
 - Dashboard view with status cards, server list, activity timeline, quick actions
@@ -484,14 +513,25 @@ Before marking any gap as complete, verify:
    - ✅ All ESLint validation passing
    - ✅ All 144 tests passing
 
-3. **TODO: Gap #1 Phase 2.2-2.5 - Frontend React Application** (Largest remaining effort)
-   - Initialize React + Vite project in `ui/` directory
-   - Install and configure MUI, React Router, dependencies
-   - Implement Layout components (AppBar, NavDrawer, Layout)
-   - Implement Dashboard view with real-time WebSocket updates
-   - Implement Servers view with CRUD operations
-   - Implement Logs view with streaming and filtering
+3. **✅ COMPLETED: Gap #1 Phase 2.2 - Frontend Project Setup** (2026-01-16)
+   - ✅ Initialized React 19 + Vite 7 project in `ui/` directory
+   - ✅ Installed and configured MUI 7, React Router 7, dependencies
+   - ✅ Created project structure (components, hooks, services, types)
+   - ✅ Configured Material Design 3 theme with dark/light/system modes
+   - ✅ Implemented routing structure with Layout component
+   - ✅ Created API and WebSocket service clients
+   - ✅ Added static file serving to backend server
+   - ✅ All TypeScript compilation passing (frontend + backend)
+   - ✅ Production build successful (396 KB bundle)
+   - ✅ All 144 tests passing
+
+4. **TODO: Gap #1 Phase 2.3-2.5 - Frontend Views & Features** (Largest remaining effort)
+   - Implement Dashboard view with status cards and real-time updates
+   - Implement Servers view with CRUD operations and statistics
+   - Implement Logs view with streaming, search, and filtering
    - Implement Settings view with config management
+   - Add WebSocket integration for real-time log streaming
+   - Add mobile responsiveness and accessibility features
    - Add E2E tests and documentation
 
 ### Follow-Up
@@ -519,16 +559,29 @@ Janitarr has a **solid, production-ready CLI implementation** with excellent cod
 - ✅ `janitarr serve` CLI command added
 - ✅ All TypeScript, ESLint, and tests passing (144/144)
 
+**Phase 2.2 Status:** ✅ **COMPLETE** (2026-01-16)
+- ✅ Frontend Project Setup implemented
+- ✅ React 19 + Vite 7 + MUI 7 + React Router 7 configured
+- ✅ Material Design 3 theme with dark/light/system modes
+- ✅ Routing structure and Layout component
+- ✅ API and WebSocket service clients
+- ✅ Static file serving from backend
+- ✅ Production build successful (396 KB bundle)
+- ✅ All TypeScript compilation and tests passing (144/144)
+
 **Remaining Work:**
-1. **Web Frontend React Application** (Phase 2.2-2.5) - Frontend UI implementation required
+1. **Web Frontend Views & Features** (Phase 2.3-2.5) - Core views and real-time features implementation required
 
 Once the frontend React application is implemented, Janitarr will be **100% feature-complete** according to all specifications.
 
 **Next Steps:**
 1. ✅ **DONE:** Search limits granularity (Phase 1)
 2. ✅ **DONE:** Backend API Foundation (Phase 2.1)
-3. **TODO:** Implement frontend React application (Phase 2.2-2.5)
-4. **OPTIONAL:** Polish with optional enhancements (Phase 3)
+3. ✅ **DONE:** Frontend Project Setup (Phase 2.2)
+4. **TODO:** Implement core views (Dashboard, Servers, Logs, Settings) (Phase 2.3)
+5. **TODO:** Add real-time features and polish (Phase 2.4)
+6. **TODO:** Testing and documentation (Phase 2.5)
+7. **OPTIONAL:** Polish with optional enhancements (Phase 3)
 
 ---
 

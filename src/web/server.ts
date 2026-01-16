@@ -30,6 +30,64 @@ export interface WebServerOptions {
 }
 
 /**
+ * Serve static files from dist/public directory
+ */
+async function serveStaticFile(urlPath: string): Promise<Response> {
+  // Default to index.html for root path and SPA routes
+  const filePath = urlPath === "/" ? "/index.html" : urlPath;
+
+  // Construct full file path
+  const publicDir = new URL("../../dist/public", import.meta.url).pathname;
+  const fullPath = publicDir + filePath;
+
+  try {
+    const file = Bun.file(fullPath);
+    const exists = await file.exists();
+
+    if (!exists) {
+      // For SPA routing, serve index.html for non-existent routes
+      const indexFile = Bun.file(publicDir + "/index.html");
+      const indexExists = await indexFile.exists();
+
+      if (indexExists) {
+        return new Response(indexFile, {
+          headers: { "Content-Type": "text/html" },
+        });
+      }
+
+      return new Response("Not Found", { status: 404 });
+    }
+
+    // Determine content type based on file extension
+    const ext = filePath.split(".").pop()?.toLowerCase();
+    const contentTypes: Record<string, string> = {
+      html: "text/html",
+      css: "text/css",
+      js: "application/javascript",
+      json: "application/json",
+      png: "image/png",
+      jpg: "image/jpeg",
+      jpeg: "image/jpeg",
+      gif: "image/gif",
+      svg: "image/svg+xml",
+      ico: "image/x-icon",
+      woff: "font/woff",
+      woff2: "font/woff2",
+      ttf: "font/ttf",
+    };
+
+    const contentType = contentTypes[ext || ""] || "application/octet-stream";
+
+    return new Response(file, {
+      headers: { "Content-Type": contentType },
+    });
+  } catch (error) {
+    console.error("Error serving static file:", error);
+    return new Response("Internal Server Error", { status: 500 });
+  }
+}
+
+/**
  * Create and start the web server
  */
 export function createWebServer(options: WebServerOptions) {
@@ -111,8 +169,13 @@ export function createWebServer(options: WebServerOptions) {
             headers: { "Content-Type": "application/json" },
           });
         } else {
-          // 404 for unknown routes
-          response = jsonError("Not found", HttpStatus.NOT_FOUND);
+          // Serve static files from dist/public for non-API routes
+          if (!path.startsWith("/api/")) {
+            response = await serveStaticFile(path);
+          } else {
+            // 404 for unknown API routes
+            response = jsonError("Not found", HttpStatus.NOT_FOUND);
+          }
         }
 
         // Add CORS headers to response
