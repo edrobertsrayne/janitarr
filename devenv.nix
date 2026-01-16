@@ -1,17 +1,4 @@
 { pkgs, lib, config, ... }:
-let
-  # Read .env file and extract CONTEXT7_API_KEY
-  envFile = builtins.readFile ./.env;
-  envLines = lib.splitString "\n" envFile;
-  context7ApiKey = lib.findFirst
-    (line: lib.hasPrefix "CONTEXT7_API_KEY=" line)
-    ""
-    envLines;
-  apiKeyValue = if context7ApiKey != "" then
-    lib.removePrefix "CONTEXT7_API_KEY=" context7ApiKey
-  else
-    "";
-in
 {
   # Fix for devenv secretspec module
   _module.args.secretspec = null;
@@ -22,11 +9,8 @@ in
     pkgs.chromium # for headless testing
   ];
 
-  # Environment variables
-  env.CONTEXT7_API_KEY = apiKeyValue;
-
-  # Disable dotenv hint (we handle .env manually in this config)
-  dotenv.disableHint = true;
+  # Enable dotenv to load from .env file
+  dotenv.enable = true;
 
   # Enable Claude Code integration
   claude.code.enable = true;
@@ -38,7 +22,7 @@ in
       command = "bunx";
       args = [ "--bun" "@upstash/context7-mcp" ];
       env = {
-        CONTEXT7_API_KEY = apiKeyValue;
+        CONTEXT7_API_KEY = config.dotenv.vars.CONTEXT7_API_KEY or "";
       };
     };
   };
@@ -48,12 +32,12 @@ in
     plan = {
       description = "Run the planning agent against the codebase";
       exec = ''
-        iterations="${1:-1}"
+        iterations="''${1:-1}"
         current_iteration=0
 
         while [ "$current_iteration" -lt "$iterations" ]; do
           echo "Running plan iteration $((current_iteration + 1)) of $iterations"
-          echo ''
+          cat << 'EOF' | claude -p --model opus --output-format stream-json --verbose
 You are a software planning agent. Your job is to analyze specifications against existing code and create a prioritized task list.
 
 Study the specs/ folder to understand requirements.
@@ -71,7 +55,7 @@ Important: Plan only. Do NOT implement anything.
 Important: Don't assume functionality is missing—search the codebase first to confirm.
 
 When the plan is complete and prioritized, output: <promise>PLAN_COMPLETE</promise>
-'' | claude -p --model opus --output-format stream-json --verbose
+EOF
           current_iteration=$((current_iteration + 1))
         done
       '';
@@ -96,20 +80,20 @@ When the plan is complete and prioritized, output: <promise>PLAN_COMPLETE</promi
           esac
         done
 
-        iterations=${iterations_arg:-5}
+        iterations=''${iterations_arg:-5}
         current_iteration=0
 
         while [ "$current_iteration" -lt "$iterations" ]; do
           echo "Running build iteration $((current_iteration + 1)) of $iterations"
-          
-          prompt_content=''
+
+          prompt_content=$(cat << 'EOF'
 You are a software engineer building features from a plan.
 
-Your job: 
+Your job:
 1. Read IMPLEMENTATION_PLAN.md
 2. Choose the most important task not yet complete
 3. Before changing anything, search the codebase—don't assume it's not implemented
-4. Implement the feature according to specs/ 
+4. Implement the feature according to specs/
 5. Run tests and fix failures
 6. Update IMPLEMENTATION_PLAN.md, commit, and exit
 
@@ -130,16 +114,17 @@ Important: If you find bugs unrelated to your task, fix them too—single source
 When the task is complete, tests pass, and you've committed:
 
 <promise>BUILD_COMPLETE</promise>
-''
-          
+EOF
+)
+
           if [ "$gemini_mode" = true ]; then
             echo "Using gemini --yolo"
-            echo "$prompt_content" | gemini -p --output-format stream-json --verbose --yolo
+            echo "$prompt_content" | bunx gemini -p --output-format stream-json --verbose --yolo
           else
             echo "Using claude"
             echo "$prompt_content" | claude -p --output-format stream-json --verbose --dangerously-skip-permissions
           fi
-          
+
           current_iteration=$((current_iteration + 1))
         done
       '';
