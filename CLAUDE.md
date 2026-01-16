@@ -53,6 +53,8 @@ bunx playwright test                    # Run all UI tests
 bunx playwright test --ui              # Run with interactive UI mode
 bunx playwright test --headed          # Run with visible browser
 bunx playwright show-report            # View HTML test report
+
+**Note:** When running UI tests or any browser-based tests, always ensure they are executed in headless mode (e.g., using `playwright test --headless` or configuring Playwright accordingly) as the development environment may not have a graphical display (X server) installed.
 ```
 
 UI tests are located in `tests/ui/` and test against http://localhost:5173.
