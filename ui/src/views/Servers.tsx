@@ -285,11 +285,12 @@ export default function Servers() {
             exclusive
             onChange={(_, value) => value && setViewMode(value)}
             size="small"
+            aria-label="View mode"
           >
-            <ToggleButton value="list" sx={{ minWidth: 44, minHeight: 44 }}>
+            <ToggleButton value="list" aria-label="List view" sx={{ minWidth: 44, minHeight: 44 }}>
               <ListIcon />
             </ToggleButton>
-            <ToggleButton value="card" sx={{ minWidth: 44, minHeight: 44 }}>
+            <ToggleButton value="card" aria-label="Card view" sx={{ minWidth: 44, minHeight: 44 }}>
               <CardIcon />
             </ToggleButton>
           </ToggleButtonGroup>
@@ -310,7 +311,7 @@ export default function Servers() {
         </Alert>
       ) : viewMode === 'list' ? (
         <TableContainer component={Paper}>
-          <Table size="small">
+          <Table size="small" aria-label="Configured servers">
             <TableHead sx={{ display: { xs: 'none', md: 'table-header-group' } }}>
               <TableRow>
                 <TableCell>Name</TableCell>
@@ -367,6 +368,7 @@ export default function Servers() {
                         onClick={() => handleTestConnection(server)}
                         disabled={testing === server.id}
                         title="Test Connection"
+                        aria-label={`Test connection to ${server.name}`}
                         sx={{ minWidth: 44, minHeight: 44 }}
                       >
                         {testing === server.id ? (
@@ -379,6 +381,7 @@ export default function Servers() {
                         size="small"
                         onClick={() => handleOpenDialog(server)}
                         title="Edit"
+                        aria-label={`Edit ${server.name}`}
                         sx={{ minWidth: 44, minHeight: 44 }}
                       >
                         <EditIcon />
@@ -390,6 +393,7 @@ export default function Servers() {
                           setDeleteConfirmOpen(true);
                         }}
                         title="Delete"
+                        aria-label={`Delete ${server.name}`}
                         color="error"
                         sx={{ minWidth: 44, minHeight: 44 }}
                       >
@@ -415,7 +419,7 @@ export default function Servers() {
                     />
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <StorageIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                    <StorageIcon sx={{ mr: 1, color: 'text.secondary' }} aria-hidden="true" />
                     <Chip
                       label={server.type.toUpperCase()}
                       size="small"
@@ -433,6 +437,7 @@ export default function Servers() {
                       onClick={() => handleTestConnection(server)}
                       disabled={testing === server.id}
                       title="Test"
+                      aria-label={`Test connection to ${server.name}`}
                       sx={{ minWidth: 44, minHeight: 44 }}
                     >
                       {testing === server.id ? (
@@ -445,6 +450,7 @@ export default function Servers() {
                       size="small"
                       onClick={() => handleOpenDialog(server)}
                       title="Edit"
+                      aria-label={`Edit ${server.name}`}
                       sx={{ minWidth: 44, minHeight: 44 }}
                     >
                       <EditIcon />
@@ -457,6 +463,7 @@ export default function Servers() {
                       setDeleteConfirmOpen(true);
                     }}
                     title="Delete"
+                    aria-label={`Delete ${server.name}`}
                     color="error"
                     sx={{ minWidth: 44, minHeight: 44 }}
                   >

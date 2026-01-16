@@ -81,14 +81,16 @@ export default function Layout() {
           Janitarr
         </Typography>
       </Toolbar>
-      <List>
+      <List component="nav" aria-label="Main navigation">
         {navItems.map((item) => (
           <ListItem key={item.path} disablePadding>
             <ListItemButton
               selected={location.pathname === item.path}
               onClick={() => handleNavigation(item.path)}
+              aria-label={item.label}
+              aria-current={location.pathname === item.path ? 'page' : undefined}
             >
-              <ListItemIcon>{item.icon}</ListItemIcon>
+              <ListItemIcon aria-hidden="true">{item.icon}</ListItemIcon>
               <ListItemText primary={item.label} />
             </ListItemButton>
           </ListItem>
@@ -99,6 +101,34 @@ export default function Layout() {
 
   return (
     <Box sx={{ display: 'flex' }}>
+      {/* Skip to main content link for screen readers */}
+      <Box
+        component="a"
+        href="#main-content"
+        sx={{
+          position: 'absolute',
+          left: '-9999px',
+          top: 'auto',
+          width: '1px',
+          height: '1px',
+          overflow: 'hidden',
+          '&:focus': {
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: 'auto',
+            height: 'auto',
+            overflow: 'visible',
+            zIndex: 9999,
+            padding: 2,
+            backgroundColor: 'primary.main',
+            color: 'primary.contrastText',
+            textDecoration: 'none',
+          },
+        }}
+      >
+        Skip to main content
+      </Box>
       <MuiAppBar
         position="fixed"
         sx={{
@@ -172,10 +202,16 @@ export default function Layout() {
 
       <Box
         component="main"
+        id="main-content"
+        role="main"
+        tabIndex={-1}
         sx={{
           flexGrow: 1,
           p: 3,
           width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
+          '&:focus': {
+            outline: 'none',
+          },
         }}
       >
         <Toolbar /> {/* Spacer for AppBar */}

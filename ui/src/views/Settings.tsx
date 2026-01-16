@@ -144,7 +144,7 @@ export default function Settings() {
         {/* Automation Schedule Section */}
         <Card>
           <CardContent>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" component="h2" gutterBottom>
               Automation Schedule
             </Typography>
             <Divider sx={{ mb: 2 }} />
@@ -195,7 +195,7 @@ export default function Settings() {
         {/* Search Limits Section */}
         <Card>
           <CardContent>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" component="h2" gutterBottom>
               Search Limits
             </Typography>
             <Divider sx={{ mb: 2 }} />
@@ -311,6 +311,7 @@ export default function Settings() {
                   <Tooltip title="Copy to clipboard">
                     <IconButton
                       onClick={() => handleCopy(`${window.location.origin}/api`)}
+                      aria-label="Copy API base URL to clipboard"
                       sx={{ minWidth: 44, minHeight: 44 }}
                     >
                       <CopyIcon />

@@ -187,12 +187,12 @@ export default function Dashboard() {
       </Box>
 
       {/* Status Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      <Grid container spacing={3} sx={{ mb: 4 }} role="region" aria-label="System statistics">
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <StorageIcon color="primary" sx={{ mr: 1 }} />
+                <StorageIcon color="primary" sx={{ mr: 1 }} aria-hidden="true" />
                 <Typography color="text.secondary" variant="body2">
                   Total Servers
                 </Typography>
@@ -209,7 +209,7 @@ export default function Dashboard() {
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <ScheduleIcon color="primary" sx={{ mr: 1 }} />
+                <ScheduleIcon color="primary" sx={{ mr: 1 }} aria-hidden="true" />
                 <Typography color="text.secondary" variant="body2">
                   Last Cycle
                 </Typography>
@@ -237,7 +237,7 @@ export default function Dashboard() {
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <SearchIcon color="primary" sx={{ mr: 1 }} />
+                <SearchIcon color="primary" sx={{ mr: 1 }} aria-hidden="true" />
                 <Typography color="text.secondary" variant="body2">
                   Recent Searches
                 </Typography>
@@ -254,7 +254,7 @@ export default function Dashboard() {
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <ErrorIcon color="error" sx={{ mr: 1 }} />
+                <ErrorIcon color="error" sx={{ mr: 1 }} aria-hidden="true" />
                 <Typography color="text.secondary" variant="body2">
                   Errors
                 </Typography>
@@ -274,7 +274,7 @@ export default function Dashboard() {
       <Card sx={{ mb: 4 }}>
         <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-            <Typography variant="h6">Servers</Typography>
+            <Typography variant="h6" component="h2">Servers</Typography>
             <Button size="small" onClick={() => navigate('/servers')}>
               View All
             </Button>
@@ -285,7 +285,7 @@ export default function Dashboard() {
             </Alert>
           ) : (
             <TableContainer>
-              <Table size="small">
+              <Table size="small" aria-label="Server status">
                 <TableHead sx={{ display: { xs: 'none', sm: 'table-header-group' } }}>
                   <TableRow>
                     <TableCell>Name</TableCell>
@@ -331,6 +331,7 @@ export default function Dashboard() {
                           size="small"
                           onClick={() => navigate('/servers')}
                           title="Edit"
+                          aria-label={`Edit ${server.name}`}
                           sx={{ minWidth: 44, minHeight: 44 }}
                         >
                           <EditIcon />
@@ -339,6 +340,7 @@ export default function Dashboard() {
                           size="small"
                           onClick={() => navigate('/servers')}
                           title="Test"
+                          aria-label={`Test ${server.name}`}
                           sx={{ minWidth: 44, minHeight: 44 }}
                         >
                           <TestIcon />
@@ -357,7 +359,7 @@ export default function Dashboard() {
       <Card>
         <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-            <Typography variant="h6">Recent Activity</Typography>
+            <Typography variant="h6" component="h2">Recent Activity</Typography>
             <Button size="small" onClick={() => navigate('/logs')}>
               View All Logs
             </Button>

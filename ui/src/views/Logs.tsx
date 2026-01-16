@@ -188,6 +188,7 @@ export default function Logs() {
             icon={<ConnectionIcon />}
             label={wsStatus}
             size="small"
+            aria-label={`WebSocket connection status: ${wsStatus}`}
             color={
               wsStatus === 'connected'
                 ? 'success'
@@ -212,12 +213,13 @@ export default function Logs() {
           >
             CSV
           </Button>
-          <IconButton onClick={loadLogs} title="Refresh" sx={{ minWidth: 44, minHeight: 44 }}>
+          <IconButton onClick={loadLogs} title="Refresh" aria-label="Refresh logs" sx={{ minWidth: 44, minHeight: 44 }}>
             <RefreshIcon />
           </IconButton>
           <IconButton
             onClick={() => setClearConfirmOpen(true)}
             title="Clear All Logs"
+            aria-label="Clear all logs"
             color="error"
             sx={{ minWidth: 44, minHeight: 44 }}
           >
@@ -235,10 +237,11 @@ export default function Logs() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               InputProps={{
-                startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />,
+                startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} aria-hidden="true" />,
               }}
               size="small"
               fullWidth
+              aria-label="Search logs"
             />
             <FormControl size="small" sx={{ minWidth: 200 }}>
               <InputLabel>Type Filter</InputLabel>
@@ -272,7 +275,7 @@ export default function Logs() {
             overflow: 'auto',
           }}
         >
-          <List>
+          <List aria-label="Activity logs" role="log" aria-live="polite" aria-atomic="false">
             {filteredLogs.map((log, index) => (
               <Box key={log.id}>
                 <ListItem
