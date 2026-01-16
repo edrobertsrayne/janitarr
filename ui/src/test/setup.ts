@@ -27,11 +27,14 @@ globalThis.IntersectionObserver = class IntersectionObserver {
   constructor() {}
   disconnect() {}
   observe() {}
-  takeRecords() {
+  takeRecords(): IntersectionObserverEntry[] {
     return [];
   }
   unobserve() {}
-} as any;
+  readonly root = null;
+  readonly rootMargin = '';
+  readonly thresholds = [];
+} as unknown as typeof IntersectionObserver;
 
 // Mock ResizeObserver
 globalThis.ResizeObserver = class ResizeObserver {
@@ -39,4 +42,4 @@ globalThis.ResizeObserver = class ResizeObserver {
   disconnect() {}
   observe() {}
   unobserve() {}
-} as any;
+} as unknown as typeof ResizeObserver;

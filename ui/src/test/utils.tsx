@@ -13,17 +13,13 @@ const testTheme = createTheme({
   },
 });
 
-interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
-  initialRoute?: string;
-}
-
 /**
  * Custom render function that wraps components with necessary providers
  * (Theme, Router, etc.)
  */
 export function renderWithProviders(
   ui: ReactElement,
-  { initialRoute = '/', ...renderOptions }: CustomRenderOptions = {}
+  renderOptions: Omit<RenderOptions, 'wrapper'> = {}
 ) {
   function Wrapper({ children }: { children: React.ReactNode }) {
     return (
@@ -71,7 +67,7 @@ export class MockWebSocketClient {
   send = vi.fn();
 
   // Helper to simulate receiving a message
-  simulateMessage(data: any) {
+  simulateMessage(data: unknown) {
     this.onMessage(data);
   }
 
