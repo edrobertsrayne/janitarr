@@ -105,7 +105,8 @@ async function triggerServerSearch(
   serverUrl: string,
   apiKey: string,
   items: MediaItem[],
-  category: "missing" | "cutoff"
+  category: "missing" | "cutoff",
+  dryRun = false
 ): Promise<SearchTriggerResult> {
   if (items.length === 0) {
     return {
@@ -118,8 +119,21 @@ async function triggerServerSearch(
     };
   }
 
-  const client = createClient(serverUrl, apiKey, serverType);
   const itemIds = items.map((i) => i.id);
+
+  // In dry-run mode, skip actual API calls and return what would be triggered
+  if (dryRun) {
+    return {
+      serverId,
+      serverName,
+      serverType,
+      category,
+      itemIds,
+      success: true,
+    };
+  }
+
+  const client = createClient(serverUrl, apiKey, serverType);
 
   let result;
   if (serverType === "radarr") {
@@ -152,9 +166,13 @@ async function triggerServerSearch(
 
 /**
  * Trigger searches based on detection results and configured limits
+ *
+ * @param detectionResults - Results from detection phase
+ * @param dryRun - If true, preview what would be searched without triggering actual searches
  */
 export async function triggerSearches(
-  detectionResults: AggregatedResults
+  detectionResults: AggregatedResults,
+  dryRun = false
 ): Promise<TriggerResults> {
   const db = getDatabase();
   const config = db.getAppConfig();
@@ -189,7 +207,8 @@ export async function triggerSearches(
         server.url,
         server.apiKey,
         items,
-        "missing"
+        "missing",
+        dryRun
       );
 
       results.push(result);
@@ -223,7 +242,8 @@ export async function triggerSearches(
         server.url,
         server.apiKey,
         items,
-        "missing"
+        "missing",
+        dryRun
       );
 
       results.push(result);
@@ -257,7 +277,8 @@ export async function triggerSearches(
         server.url,
         server.apiKey,
         items,
-        "cutoff"
+        "cutoff",
+        dryRun
       );
 
       results.push(result);
@@ -291,7 +312,8 @@ export async function triggerSearches(
         server.url,
         server.apiKey,
         items,
-        "cutoff"
+        "cutoff",
+        dryRun
       );
 
       results.push(result);

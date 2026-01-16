@@ -39,37 +39,45 @@ export interface CycleResult {
  * Execute a complete automation cycle
  *
  * @param isManual - Whether this is a manual trigger (vs scheduled)
+ * @param dryRun - If true, preview what would be searched without triggering actual searches
  * @returns Cycle result summary
  */
 export async function runAutomationCycle(
-  isManual = false
+  isManual = false,
+  dryRun = false
 ): Promise<CycleResult> {
   const errors: string[] = [];
 
-  // Log cycle start
-  logCycleStart(isManual);
+  // Log cycle start (only if not dry-run)
+  if (!dryRun) {
+    logCycleStart(isManual);
+  }
 
   // Phase 1: Detection
   const detectionResults = await detectAll();
 
-  // Log detection failures
+  // Log detection failures (only if not dry-run)
   for (const result of detectionResults.results) {
     if (result.error) {
-      logServerError(result.serverName, result.serverType, result.error);
+      if (!dryRun) {
+        logServerError(result.serverName, result.serverType, result.error);
+      }
       errors.push(`Detection failed for ${result.serverName}: ${result.error}`);
     }
   }
 
-  // Phase 2: Search Triggering
+  // Phase 2: Search Triggering (or preview in dry-run mode)
   let searchResults;
   try {
-    searchResults = await triggerSearches(detectionResults);
+    searchResults = await triggerSearches(detectionResults, dryRun);
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
     errors.push(`Search triggering failed: ${errorMsg}`);
 
-    // Log cycle end with failure
-    logCycleEnd(0, errors.length, isManual);
+    // Log cycle end with failure (only if not dry-run)
+    if (!dryRun) {
+      logCycleEnd(0, errors.length, isManual);
+    }
 
     return {
       success: false,
@@ -91,63 +99,65 @@ export async function runAutomationCycle(
     };
   }
 
-  // Log successful searches
-  const serverSearchCounts = new Map<
-    string,
-    { missing: number; cutoff: number }
-  >();
+  // Log successful searches (only if not dry-run)
+  if (!dryRun) {
+    const serverSearchCounts = new Map<
+      string,
+      { missing: number; cutoff: number }
+    >();
 
-  for (const result of searchResults.results) {
-    const key = `${result.serverName}:${result.serverType}`;
+    for (const result of searchResults.results) {
+      const key = `${result.serverName}:${result.serverType}`;
 
-    if (!serverSearchCounts.has(key)) {
-      serverSearchCounts.set(key, { missing: 0, cutoff: 0 });
-    }
-
-    const counts = serverSearchCounts.get(key)!;
-
-    if (result.success) {
-      if (result.category === "missing") {
-        counts.missing += result.itemIds.length;
-      } else {
-        counts.cutoff += result.itemIds.length;
+      if (!serverSearchCounts.has(key)) {
+        serverSearchCounts.set(key, { missing: 0, cutoff: 0 });
       }
-    } else {
-      // Log search failures
-      logSearchError(
-        result.serverName,
-        result.serverType,
-        result.category,
-        result.error ?? "Unknown error"
-      );
-      errors.push(
-        `Search trigger failed for ${result.serverName} (${result.category}): ${result.error}`
-      );
-    }
-  }
 
-  // Log aggregated successful searches per server
-  for (const [key, counts] of serverSearchCounts) {
-    const [serverName, serverType] = key.split(":");
+      const counts = serverSearchCounts.get(key)!;
 
-    if (counts.missing > 0) {
-      logSearches(
-        serverName,
-        serverType as "radarr" | "sonarr",
-        "missing",
-        counts.missing,
-        isManual
-      );
+      if (result.success) {
+        if (result.category === "missing") {
+          counts.missing += result.itemIds.length;
+        } else {
+          counts.cutoff += result.itemIds.length;
+        }
+      } else {
+        // Log search failures
+        logSearchError(
+          result.serverName,
+          result.serverType,
+          result.category,
+          result.error ?? "Unknown error"
+        );
+        errors.push(
+          `Search trigger failed for ${result.serverName} (${result.category}): ${result.error}`
+        );
+      }
     }
 
-    if (counts.cutoff > 0) {
-      logSearches(
-        serverName,
-        serverType as "radarr" | "sonarr",
-        "cutoff",
-        counts.cutoff,
-        isManual
-      );
+    // Log aggregated successful searches per server
+    for (const [key, counts] of serverSearchCounts) {
+      const [serverName, serverType] = key.split(":");
+
+      if (counts.missing > 0) {
+        logSearches(
+          serverName,
+          serverType as "radarr" | "sonarr",
+          "missing",
+          counts.missing,
+          isManual
+        );
+      }
+
+      if (counts.cutoff > 0) {
+        logSearches(
+          serverName,
+          serverType as "radarr" | "sonarr",
+          "cutoff",
+          counts.cutoff,
+          isManual
+        );
+      }
     }
   }
 
@@ -156,8 +166,10 @@ export async function runAutomationCycle(
   const totalFailures =
     detectionResults.failureCount + searchResults.failureCount;
 
-  // Log cycle end
-  logCycleEnd(totalSearches, totalFailures, isManual);
+  // Log cycle end (only if not dry-run)
+  if (!dryRun) {
+    logCycleEnd(totalSearches, totalFailures, isManual);
+  }
 
   return {
     success: totalFailures === 0,

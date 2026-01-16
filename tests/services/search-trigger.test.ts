@@ -229,6 +229,203 @@ describe("Search Trigger Service", () => {
       expect(results.missingTriggered).toBe(0);
     });
   });
+
+  describe("triggerSearches - dry run mode", () => {
+    test("dry run returns expected results without triggering searches", async () => {
+      setSearchLimits(2, 2, 1, 1);
+
+      await testDb.addServer({
+        id: "server-1",
+        name: "Test Radarr",
+        url: "http://localhost:59999",
+        apiKey: "fake-key",
+        type: "radarr",
+      });
+
+      await testDb.addServer({
+        id: "server-2",
+        name: "Test Sonarr",
+        url: "http://localhost:59998",
+        apiKey: "fake-key",
+        type: "sonarr",
+      });
+
+      const detectionResults: AggregatedResults = {
+        results: [
+          {
+            serverId: "server-1",
+            serverName: "Test Radarr",
+            serverType: "radarr",
+            missingCount: 5,
+            cutoffCount: 3,
+            missingItems: [
+              { id: 1, title: "Movie 1", type: "movie" },
+              { id: 2, title: "Movie 2", type: "movie" },
+              { id: 3, title: "Movie 3", type: "movie" },
+            ],
+            cutoffItems: [
+              { id: 4, title: "Movie 4", type: "movie" },
+              { id: 5, title: "Movie 5", type: "movie" },
+            ],
+          },
+          {
+            serverId: "server-2",
+            serverName: "Test Sonarr",
+            serverType: "sonarr",
+            missingCount: 8,
+            cutoffCount: 4,
+            missingItems: [
+              { id: 10, title: "Episode 1", type: "episode" },
+              { id: 11, title: "Episode 2", type: "episode" },
+              { id: 12, title: "Episode 3", type: "episode" },
+            ],
+            cutoffItems: [
+              { id: 13, title: "Episode 4", type: "episode" },
+              { id: 14, title: "Episode 5", type: "episode" },
+            ],
+          },
+        ],
+        totalMissing: 13,
+        totalCutoff: 7,
+        successCount: 2,
+        failureCount: 0,
+      };
+
+      const results = await triggerSearches(detectionResults, true);
+
+      // Should return what would be triggered (respecting limits)
+      // Missing movies limit: 2, Missing episodes limit: 2
+      // Total missing: 2 + 2 = 4
+      expect(results.missingTriggered).toBe(4);
+      // Cutoff movies limit: 1, Cutoff episodes limit: 1
+      // Total cutoff: 1 + 1 = 2
+      expect(results.cutoffTriggered).toBe(2);
+      // All operations should succeed in dry-run
+      expect(results.successCount).toBeGreaterThan(0);
+      expect(results.failureCount).toBe(0);
+
+      // Verify results contain the expected structure
+      expect(results.results.length).toBeGreaterThan(0);
+      // Filter to only results with items (some may be empty due to distribution)
+      const nonEmptyResults = results.results.filter(r => r.itemIds.length > 0);
+      expect(nonEmptyResults.length).toBeGreaterThan(0);
+      for (const result of nonEmptyResults) {
+        expect(result.success).toBe(true);
+        expect(result.itemIds.length).toBeGreaterThan(0);
+      }
+    });
+
+    test("dry run respects all four separate limits", async () => {
+      setSearchLimits(1, 2, 3, 4);
+
+      await testDb.addServer({
+        id: "server-1",
+        name: "Test Radarr",
+        url: "http://localhost:59999",
+        apiKey: "fake-key",
+        type: "radarr",
+      });
+
+      await testDb.addServer({
+        id: "server-2",
+        name: "Test Sonarr",
+        url: "http://localhost:59998",
+        apiKey: "fake-key",
+        type: "sonarr",
+      });
+
+      const detectionResults: AggregatedResults = {
+        results: [
+          {
+            serverId: "server-1",
+            serverName: "Test Radarr",
+            serverType: "radarr",
+            missingCount: 10,
+            cutoffCount: 10,
+            missingItems: Array.from({ length: 10 }, (_, i) => ({
+              id: i + 1,
+              title: `Movie ${i + 1}`,
+              type: "movie" as const,
+            })),
+            cutoffItems: Array.from({ length: 10 }, (_, i) => ({
+              id: i + 100,
+              title: `Movie Cutoff ${i + 1}`,
+              type: "movie" as const,
+            })),
+          },
+          {
+            serverId: "server-2",
+            serverName: "Test Sonarr",
+            serverType: "sonarr",
+            missingCount: 10,
+            cutoffCount: 10,
+            missingItems: Array.from({ length: 10 }, (_, i) => ({
+              id: i + 200,
+              title: `Episode ${i + 1}`,
+              type: "episode" as const,
+            })),
+            cutoffItems: Array.from({ length: 10 }, (_, i) => ({
+              id: i + 300,
+              title: `Episode Cutoff ${i + 1}`,
+              type: "episode" as const,
+            })),
+          },
+        ],
+        totalMissing: 20,
+        totalCutoff: 20,
+        successCount: 2,
+        failureCount: 0,
+      };
+
+      const results = await triggerSearches(detectionResults, true);
+
+      // Missing movies: 1, Missing episodes: 2, Cutoff movies: 3, Cutoff episodes: 4
+      // Total missing: 1 + 2 = 3
+      expect(results.missingTriggered).toBe(3);
+      // Total cutoff: 3 + 4 = 7
+      expect(results.cutoffTriggered).toBe(7);
+      // Total: 10 searches
+      expect(results.missingTriggered + results.cutoffTriggered).toBe(10);
+      expect(results.successCount).toBeGreaterThan(0);
+      expect(results.failureCount).toBe(0);
+    });
+
+    test("dry run with zero limits returns no results", async () => {
+      setSearchLimits(0, 0, 0, 0);
+
+      await testDb.addServer({
+        id: "server-1",
+        name: "Test Server",
+        url: "http://localhost:59999",
+        apiKey: "fake-key",
+        type: "radarr",
+      });
+
+      const detectionResults: AggregatedResults = {
+        results: [
+          {
+            serverId: "server-1",
+            serverName: "Test Server",
+            serverType: "radarr",
+            missingCount: 5,
+            cutoffCount: 3,
+            missingItems: [{ id: 1, title: "Movie 1", type: "movie" }],
+            cutoffItems: [{ id: 2, title: "Movie 2", type: "movie" }],
+          },
+        ],
+        totalMissing: 5,
+        totalCutoff: 3,
+        successCount: 1,
+        failureCount: 0,
+      };
+
+      const results = await triggerSearches(detectionResults, true);
+
+      expect(results.missingTriggered).toBe(0);
+      expect(results.cutoffTriggered).toBe(0);
+      expect(results.results).toEqual([]);
+    });
+  });
 });
 
 // Integration tests

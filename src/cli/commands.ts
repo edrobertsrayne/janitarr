@@ -330,17 +330,29 @@ export function createProgram(): Command {
   program
     .command("run")
     .description("Execute automation cycle immediately")
+    .option("--dry-run", "Preview what would be searched without triggering searches")
     .option("--json", "Output as JSON")
     .action(async (options) => {
-      fmt.showProgress("Running automation cycle");
+      const dryRun = options.dryRun === true;
 
-      const result = await runAutomationCycle(true);
+      if (dryRun) {
+        fmt.showProgress("Running automation cycle (DRY RUN - no searches will be triggered)");
+      } else {
+        fmt.showProgress("Running automation cycle");
+      }
+
+      const result = await runAutomationCycle(true, dryRun);
 
       fmt.clearLine();
 
       if (options.json) {
         console.log(JSON.stringify(result, null, 2));
       } else {
+        if (dryRun) {
+          console.log(fmt.info("=== DRY RUN MODE - Preview Only ==="));
+          console.log();
+        }
+
         console.log(fmt.formatCycleSummary(result));
 
         if (result.errors.length > 0) {
@@ -349,6 +361,11 @@ export function createProgram(): Command {
           for (const err of result.errors) {
             console.log(fmt.error(`  ${err}`));
           }
+        }
+
+        if (dryRun) {
+          console.log();
+          console.log(fmt.info("No searches were triggered. Run without --dry-run to execute."));
         }
       }
     });

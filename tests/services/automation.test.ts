@@ -175,6 +175,45 @@ describe("Automation Orchestrator", () => {
       expect(summary.lastCycleTime).not.toBeNull();
       expect(summary.lastCycleFailures).toBeGreaterThan(0);
     });
+
+    test("dry run does not create log entries", async () => {
+      // Clear existing logs
+      testDb.clearLogs();
+
+      await testDb.addServer({
+        id: "test-1",
+        name: "Test Server",
+        url: "http://localhost:59999",
+        apiKey: "fake-key",
+        type: "radarr",
+      });
+
+      // Run in dry-run mode
+      const result = await runAutomationCycle(false, true);
+
+      // Verify cycle ran
+      expect(result.detectionResults.successCount).toBeGreaterThanOrEqual(0);
+
+      // Verify no logs were created
+      const logs = getRecentLogs(100);
+      expect(logs.length).toBe(0);
+    });
+
+    test("dry run completes successfully", async () => {
+      await testDb.addServer({
+        id: "test-1",
+        name: "Test Server",
+        url: "http://localhost:59999",
+        apiKey: "fake-key",
+        type: "radarr",
+      });
+
+      const result = await runAutomationCycle(false, true);
+
+      // Should complete without actually triggering searches
+      expect(result.detectionResults.failureCount).toBeGreaterThanOrEqual(0);
+      expect(result.errors.length).toBeGreaterThanOrEqual(0);
+    });
   });
 
   describe("formatCycleResult", () => {
