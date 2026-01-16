@@ -77,14 +77,32 @@ When the plan is complete and prioritized, output: <promise>PLAN_COMPLETE</promi
       '';
     };
     build = {
-      description = "Run the build agent against the codebase";
+      description = "Run the build agent against the codebase. Use --gemini to run with Gemini.";
       exec = ''
-        iterations="${1:-5}"
+        iterations_arg=""
+        gemini_mode=false
+
+        # Parse arguments
+        while (( "$#" )); do
+          case "$1" in
+            --gemini)
+              gemini_mode=true
+              shift
+              ;;
+            *)
+              iterations_arg="$1"
+              shift
+              ;;
+          esac
+        done
+
+        iterations=${iterations_arg:-5}
         current_iteration=0
 
         while [ "$current_iteration" -lt "$iterations" ]; do
           echo "Running build iteration $((current_iteration + 1)) of $iterations"
-          echo ''
+          
+          prompt_content=''
 You are a software engineer building features from a plan.
 
 Your job: 
@@ -112,7 +130,16 @@ Important: If you find bugs unrelated to your task, fix them too—single source
 When the task is complete, tests pass, and you've committed:
 
 <promise>BUILD_COMPLETE</promise>
-'' | claude -p --output-format stream-json --verbose
+''
+          
+          if [ "$gemini_mode" = true ]; then
+            echo "Using gemini --yolo"
+            echo "$prompt_content" | gemini -p --output-format stream-json --verbose --yolo
+          else
+            echo "Using claude"
+            echo "$prompt_content" | claude -p --output-format stream-json --verbose --dangerously-skip-permissions
+          fi
+          
           current_iteration=$((current_iteration + 1))
         done
       '';
