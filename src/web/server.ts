@@ -33,6 +33,37 @@ export interface WebServerOptions {
   db: DatabaseManager;
   /** Skip startup console output (default: false) */
   silent?: boolean;
+  /** Enable development mode with verbose logging and stack traces (default: false) */
+  isDev?: boolean;
+}
+
+/**
+ * Proxy request to Vite dev server (development mode only)
+ */
+async function proxyToVite(req: Request): Promise<Response> {
+  const url = new URL(req.url);
+  const viteUrl = `http://localhost:5173${url.pathname}${url.search}`;
+
+  try {
+    const response = await fetch(viteUrl, {
+      method: req.method,
+      headers: req.headers,
+      body: req.method !== "GET" && req.method !== "HEAD" ? await req.text() : undefined,
+    });
+
+    // Forward response from Vite
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    });
+  } catch (error) {
+    console.error("Vite proxy error:", error);
+    return new Response(
+      "Failed to proxy to Vite dev server. Is it running on http://localhost:5173?",
+      { status: 502 }
+    );
+  }
 }
 
 /**
@@ -97,7 +128,7 @@ async function serveStaticFile(urlPath: string): Promise<Response> {
  * Create and start the web server
  */
 export function createWebServer(options: WebServerOptions) {
-  const { port = 3000, host = "localhost", db, silent = false } = options;
+  const { port = 3000, host = "localhost", db, silent = false, isDev = false } = options;
 
   const server = Bun.serve({
     port,
@@ -135,6 +166,11 @@ export function createWebServer(options: WebServerOptions) {
 
       try {
         let response: Response;
+
+        // In dev mode, log all requests
+        if (isDev) {
+          console.log(`[${new Date().toISOString()}] ${method} ${path}`);
+        }
 
         // Route handling
         if (path === "/api/config" && method === "GET") {
@@ -178,7 +214,12 @@ export function createWebServer(options: WebServerOptions) {
         } else {
           // Serve static files from dist/public for non-API routes
           if (!path.startsWith("/api/") && !path.startsWith("/metrics")) {
-            response = await serveStaticFile(path);
+            // In dev mode, proxy to Vite dev server for hot module reloading
+            if (isDev) {
+              response = await proxyToVite(req);
+            } else {
+              response = await serveStaticFile(path);
+            }
           } else {
             // 404 for unknown API routes
             response = jsonError("Not found", HttpStatus.NOT_FOUND);
@@ -195,11 +236,23 @@ export function createWebServer(options: WebServerOptions) {
         const durationMs = endTime - startTime;
         recordHttpRequest(method, path, response.status, durationMs);
 
+        // In dev mode, log response details
+        if (isDev) {
+          console.log(`  → ${response.status} (${durationMs.toFixed(2)}ms)`);
+        }
+
         return response;
       } catch (error) {
         console.error("Request handler error:", error);
+
+        // In dev mode, include stack trace in error response
+        let errorMessage = "Internal server error";
+        if (isDev && error instanceof Error) {
+          errorMessage = `${error.message}\n\nStack trace:\n${error.stack}`;
+        }
+
         const errorResponse = jsonError(
-          "Internal server error",
+          errorMessage,
           HttpStatus.INTERNAL_SERVER_ERROR
         );
 
@@ -212,6 +265,11 @@ export function createWebServer(options: WebServerOptions) {
         const endTime = performance.now();
         const durationMs = endTime - startTime;
         recordHttpRequest(method, path, errorResponse.status, durationMs);
+
+        // In dev mode, log error response details
+        if (isDev) {
+          console.log(`  → ${errorResponse.status} (${durationMs.toFixed(2)}ms) ERROR`);
+        }
 
         return errorResponse;
       }

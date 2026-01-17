@@ -459,6 +459,105 @@ export function createProgram(): Command {
     });
 
   program
+    .command("dev")
+    .description("Start scheduler and web server (development mode)")
+    .option("-p, --port <number>", "Port to listen on", "3434")
+    .option("-h, --host <string>", "Host to bind to", "localhost")
+    .action(async (options) => {
+      const port = parseInt(options.port, 10);
+      const host = options.host;
+
+      // Validate port number
+      if (isNaN(port) || port < 1 || port > 65535) {
+        console.log(fmt.error("Invalid port number. Must be between 1 and 65535"));
+        process.exit(1);
+      }
+
+      console.log(fmt.header("Starting Janitarr (Development Mode)"));
+      console.log(fmt.warning("⚠ Development mode enabled:"));
+      console.log(fmt.info("  - Verbose logging enabled"));
+      console.log(fmt.info("  - Proxying frontend requests to Vite (http://localhost:5173)"));
+      console.log(fmt.info("  - API errors include stack traces"));
+      console.log();
+
+      const db = getDatabase();
+      const { createWebServer } = await import("../web/server");
+
+      let webServer: ReturnType<typeof createWebServer> | null = null;
+
+      // Start web server in development mode
+      try {
+        webServer = createWebServer({ port, host, db, silent: true, isDev: true });
+        console.log(fmt.success("✓ Web server started (development mode)"));
+        console.log(fmt.info(`  Web UI: http://${host}:${port} (proxied to Vite)`));
+        console.log(fmt.info(`  API: http://${host}:${port}/api`));
+        console.log(fmt.info(`  Health: http://${host}:${port}/api/health`));
+        console.log(fmt.info(`  Metrics: http://${host}:${port}/metrics`));
+        console.log();
+        console.log(fmt.warning("Make sure Vite dev server is running:"));
+        console.log(fmt.info("  cd ui && bun run dev"));
+        console.log();
+      } catch (error) {
+        console.log(fmt.error(`Failed to start web server: ${error instanceof Error ? error.message : String(error)}`));
+        process.exit(1);
+      }
+
+      // Start scheduler if enabled
+      const config = getScheduleConfig();
+      if (!config.enabled) {
+        console.log(fmt.warning("⚠ Scheduler is disabled in configuration"));
+        console.log(fmt.info("  Web server running, but automation cycles will not run"));
+        console.log(fmt.info("  Enable with: janitarr config set schedule.enabled true"));
+        console.log();
+      } else {
+        if (isSchedulerRunning()) {
+          console.log(fmt.warning("⚠ Scheduler is already running"));
+          console.log();
+        } else {
+          // Register automation cycle callback
+          registerCycleCallback(async (isManual: boolean) => {
+            console.log(fmt.info(`[${new Date().toISOString()}] Running automation cycle${isManual ? " (manual)" : ""}...`));
+            await runAutomationCycle(isManual);
+            console.log(fmt.success(`[${new Date().toISOString()}] Automation cycle complete`));
+          });
+
+          await startScheduler();
+          console.log(fmt.success("✓ Scheduler started"));
+          console.log(fmt.info(`  Interval: ${config.intervalHours} hours`));
+          console.log();
+        }
+      }
+
+      console.log(fmt.info("Press Ctrl+C to stop"));
+      console.log();
+      console.log(fmt.header("HTTP Request Log:"));
+
+      // Graceful shutdown on SIGINT
+      process.on("SIGINT", () => {
+        console.log();
+        console.log(fmt.info("Shutting down gracefully..."));
+
+        // Stop scheduler
+        if (isSchedulerRunning()) {
+          stopScheduler();
+          console.log(fmt.success("✓ Scheduler stopped"));
+        }
+
+        // Stop web server
+        if (webServer) {
+          webServer.stop();
+          console.log(fmt.success("✓ Web server stopped"));
+        }
+
+        console.log(fmt.success("Shutdown complete"));
+        process.exit(0);
+      });
+
+      // Keep the process running
+      await new Promise(() => {}); // Never resolves
+    });
+
+  program
     .command("stop")
     .description("Stop running scheduler daemon")
     .action(() => {

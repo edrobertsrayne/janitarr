@@ -1,8 +1,8 @@
 # Janitarr Implementation Plan
 
 **Last Updated:** 2026-01-17
-**Status:** ⚠️ FEATURE IN PROGRESS - Unified Service Startup Partially Implemented
-**Overall Completion:** 96% (Core features complete, unified startup in progress)
+**Status:** ⚠️ FEATURE IN PROGRESS - Unified Service Startup Mostly Complete
+**Overall Completion:** 97% (Core features complete, `dev` command implemented)
 
 ---
 
@@ -16,7 +16,7 @@ Janitarr is a production-ready automation tool for managing Radarr/Sonarr media 
 - ✅ **Web Backend API**: 100% complete with REST + WebSocket
 - ✅ **Web Frontend**: 100% core functionality implemented
 - ✅ **Testing**: 142 unit tests passing (all passing)
-- ⚠️ **Unified Service Startup**: IN PROGRESS - `start` command updated, `dev` pending
+- ✅ **Unified Service Startup**: MOSTLY COMPLETE - `start` and `dev` commands implemented
 - ✅ **Health Check Endpoint**: COMPLETE with comprehensive status reporting
 - ✅ **Prometheus Metrics**: COMPLETE with full observability support
 
@@ -52,29 +52,30 @@ Janitarr is a production-ready automation tool for managing Radarr/Sonarr media 
 
 ---
 
-### Task 1.2: Add `dev` Command for Development Mode
+### Task 1.2: Add `dev` Command for Development Mode ✅ COMPLETE
 **Impact:** HIGH - Critical for developer experience
 **Spec:** `specs/unified-service-startup.md` lines 34-50
-**Status:** ❌ NOT STARTED
+**Status:** ✅ COMPLETE (2026-01-17)
 
-**Requirements:**
-- [ ] New `janitarr dev` command launches both services in development mode
-- [ ] Proxy non-API requests to Vite dev server at `http://localhost:5173`
-- [ ] Enable verbose logging (DEBUG level)
-- [ ] Log all HTTP requests with method, path, status, response time
-- [ ] Include stack traces in API error responses
-- [ ] Accept same `--port` and `--host` flags as production mode
-- [ ] Clear console indication that development mode is active
+**Implementation:**
+- Added `janitarr dev` command to CLI with `--port` and `--host` flags
+- Added `isDev` parameter to `WebServerOptions` interface
+- Implemented `proxyToVite()` function to proxy non-API requests to Vite dev server
+- Added verbose HTTP request logging with timestamp, method, path, status, and duration
+- Added stack traces to API error responses in development mode
+- Clear console messaging indicating development mode is active
+- Verbose logging for automation cycles with timestamps
 
-**Files to Modify:**
-- `src/cli/commands.ts` - Add new `dev` command
-- `src/web/server.ts` - Add `isDev` parameter and proxy support
+**Files Modified:**
+- `src/cli/commands.ts` - Added new `dev` command (lines 461-558)
+- `src/web/server.ts` - Added `isDev` parameter, proxy support, and verbose logging
 
 **Acceptance Criteria:**
-- [ ] `janitarr dev` starts both services with verbose logging
-- [ ] Non-API requests proxied to Vite (port 5173)
-- [ ] API errors include full stack traces
-- [ ] HTTP request logging shows method, path, status, duration
+- [x] `janitarr dev` starts both services with verbose logging
+- [x] Non-API requests proxied to Vite (port 5173)
+- [x] API errors include full stack traces in dev mode
+- [x] HTTP request logging shows method, path, status, duration
+- [x] All 142 unit tests still passing
 
 ---
 
@@ -396,7 +397,7 @@ bun run test:all      # All unit + frontend tests
 | Priority | Task | Status | Impact |
 |----------|------|--------|--------|
 | P1 | 1.1 Update `start` command | ✅ Complete | HIGH |
-| P1 | 1.2 Add `dev` command | ❌ Not Started | HIGH |
+| P1 | 1.2 Add `dev` command | ✅ Complete | HIGH |
 | P1 | 1.3 Remove `serve` command | ❌ Not Started | MEDIUM |
 | P1 | 1.4 Enhanced health check | ✅ Complete | HIGH |
 | P1 | 1.5 Prometheus metrics | ✅ Complete | HIGH |
@@ -414,8 +415,8 @@ bun run test:all      # All unit + frontend tests
 1. ~~**Task 1.4: Enhanced Health Check**~~ ✅ COMPLETE - Foundation for monitoring
 2. ~~**Task 1.5: Prometheus Metrics**~~ ✅ COMPLETE - Foundation for observability
 3. ~~**Task 1.1: Update `start` command**~~ ✅ COMPLETE - Core unified startup
-4. **Task 1.2: Add `dev` command** - Developer experience (NEXT)
-5. **Task 1.6: Graceful shutdown** - Production reliability
+4. ~~**Task 1.2: Add `dev` command**~~ ✅ COMPLETE - Developer experience
+5. **Task 1.6: Graceful shutdown** - Production reliability (NEXT)
 6. **Task 1.3: Remove `serve` command** - Cleanup
 7. **Task 2.x: Testing** - Validation
 8. **Task 3.x: Documentation** - User communication
@@ -430,15 +431,15 @@ All original specifications are complete and working. A new specification (`unif
 - ✅ Enhanced health check endpoint - COMPLETE
 - ✅ Prometheus metrics endpoint - COMPLETE
 - ✅ Combining scheduler and web server into single process - COMPLETE
-- ❌ New `dev` command for development mode - NOT STARTED
+- ✅ New `dev` command for development mode - COMPLETE
 - ❌ Removal of `serve` command (breaking change) - NOT STARTED
-- ⚠️ Improved graceful shutdown - PARTIAL (basic implementation exists, enhanced in `start` command)
+- ⚠️ Improved graceful shutdown - PARTIAL (basic implementation exists, enhanced in `start` and `dev` commands)
 
-**Progress:** 3 of 6 major tasks complete (Health Check + Metrics + Start Command)
-**Estimated Remaining Effort:** 3-5 tasks across Priority 1-3
+**Progress:** 4 of 6 major tasks complete (Health Check + Metrics + Start Command + Dev Command)
+**Estimated Remaining Effort:** 2-4 tasks across Priority 1-3
 **Breaking Changes:** Yes (`start` behavior changes, `serve` removed)
 
 ---
 
 **Last Reviewed:** 2026-01-17
-**Next Action:** Implement Task 1.2 (Add `dev` command for development mode)
+**Next Action:** Implement Task 1.6 (Improve graceful shutdown) or Task 1.3 (Remove `serve` command)
