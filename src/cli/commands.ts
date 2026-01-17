@@ -743,42 +743,5 @@ export function createProgram(): Command {
       }
     });
 
-  // Web server command
-  program
-    .command("serve")
-    .description("Start the web server")
-    .option("-p, --port <number>", "Port to listen on", "3000")
-    .option("-h, --host <string>", "Host to bind to", "localhost")
-    .action(async (options) => {
-      const port = parseInt(options.port, 10);
-      const host = options.host;
-
-      if (isNaN(port) || port < 1 || port > 65535) {
-        console.log(fmt.error("Invalid port number. Must be between 1 and 65535"));
-        return;
-      }
-
-      console.log(fmt.header("Starting Janitarr Web Server"));
-      console.log();
-
-      const db = getDatabase();
-      const { createWebServer } = await import("../web/server");
-
-      try {
-        createWebServer({ port, host, db });
-
-        console.log();
-        console.log(fmt.success("Web server started successfully"));
-        console.log(fmt.info(`Access the web UI at: http://${host}:${port}`));
-        console.log(fmt.info("Press Ctrl+C to stop the server"));
-
-        // Keep the process running
-        await new Promise(() => {});
-      } catch (error) {
-        console.log(fmt.error(`Failed to start web server: ${error instanceof Error ? error.message : String(error)}`));
-        process.exit(1);
-      }
-    });
-
   return program;
 }
