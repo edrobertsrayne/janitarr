@@ -22,6 +22,7 @@ import {
 import { handleGetLogs, handleDeleteLogs, handleExportLogs } from "./routes/logs";
 import { handleTriggerAutomation, handleGetAutomationStatus } from "./routes/automation";
 import { handleGetStatsSummary, handleGetServerStats } from "./routes/stats";
+import { handleHealthCheck } from "./routes/health";
 
 /** Web server options */
 export interface WebServerOptions {
@@ -166,11 +167,7 @@ export function createWebServer(options: WebServerOptions) {
         } else if (path.match(/^\/api\/stats\/servers\/[^/]+$/) && method === "GET") {
           response = await handleGetServerStats(path, db);
         } else if (path === "/api/health" && method === "GET") {
-          // Health check endpoint
-          response = new Response(JSON.stringify({ status: "ok", timestamp: new Date().toISOString() }), {
-            status: HttpStatus.OK,
-            headers: { "Content-Type": "application/json" },
-          });
+          response = await handleHealthCheck(db);
         } else {
           // Serve static files from dist/public for non-API routes
           if (!path.startsWith("/api/")) {
