@@ -4,6 +4,10 @@ dist/
 data/
 .direnv/
 
+# Test artifacts
+test-results/
+playwright-report/
+ui/test-results/
 
 # devenv
 .devenv/
