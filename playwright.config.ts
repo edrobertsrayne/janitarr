@@ -29,7 +29,7 @@ export default defineConfig({
   // Shared settings for all the projects below
   use: {
     // Base URL for page.goto('/')
-    baseURL: 'http://localhost:3001', // Changed baseURL to 3001
+    baseURL: 'http://localhost:5173', // Point to UI dev server
 
     // Collect trace when retrying the failed test
     trace: 'on-first-retry',
@@ -59,12 +59,20 @@ export default defineConfig({
   // Run your local dev server before starting the tests
   webServer: [
     {
-      command: 'bun run src/index.ts serve -p 3001', // Changed command to specify port 3001
-      url: 'http://localhost:3001', // Changed URL to 3001
+      command: 'bun run src/index.ts serve', // Correct command, no explicit port needed
+      url: 'http://localhost:3000', // Correct URL to match default server port
       reuseExistingServer: !process.env.CI,
-      timeout: 120 * 1000, // Increased timeout
-      stderr: 'pipe',      // Capture stderr
-      output: 'ignore'     // Ignore output
+      timeout: 120 * 1000,
+      stderr: 'pipe',
+      output: 'ignore'
     },
+    {
+      command: 'cd ui && bun run dev', // UI dev server
+      url: 'http://localhost:5173', // Vite's default port
+      reuseExistingServer: !process.env.CI,
+      timeout: 120 * 1000,
+      stderr: 'pipe',
+      output: 'ignore'
+    }
   ],
 });

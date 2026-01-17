@@ -33,9 +33,8 @@ export class WebSocketClient {
   constructor(options: WebSocketClientOptions = {}) {
     this.options = options;
     // Use ws:// protocol in development, wss:// in production
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.host;
-    this.url = `${protocol}//${host}/ws/logs`;
+    // and construct URL from window.location.origin for robustness
+    this.url = `${window.location.origin}/ws/logs`;
   }
 
   /**
