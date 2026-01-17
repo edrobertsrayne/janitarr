@@ -187,7 +187,7 @@ export async function addServer(
 export async function updateServer(
   db: DatabaseManager, // Pass db explicitly for web routes
   id: string,
-  updates: { name?: string; url?: string; apiKey?: string; enabled?: boolean; type?: ServerType }
+  updates: { name?: string; url?: string; apiKey?: string }
 ): Promise<ServerResult<ServerInfo>> {
   const serverResult = await getServerById(db, id);
   if (!serverResult.success) {
@@ -200,8 +200,6 @@ export async function updateServer(
   let newUrl = server.url;
   const newApiKey = updates.apiKey ?? server.apiKey;
   const newName = updates.name ?? server.name;
-  const newType = updates.type ?? server.type;
-  const newEnabled = updates.enabled !== undefined ? updates.enabled : server.enabled;
 
 
   // Validate and normalize URL if changed
@@ -213,10 +211,10 @@ export async function updateServer(
     newUrl = urlResult.data;
 
     // Check for duplicates with new URL
-    if (db.serverExists(newUrl, newType, id)) { // Use newType
+    if (db.serverExists(newUrl, server.type, id)) {
       return {
         success: false,
-        error: `A ${newType} server with this URL already exists`,
+        error: `A ${server.type} server with this URL already exists`,
       };
     }
   }
@@ -232,9 +230,9 @@ export async function updateServer(
     }
   }
 
-  // Test connection if URL, API key or Type changed
-  if (newUrl !== server.url || newApiKey !== server.apiKey || newType !== server.type) {
-    const connectionResult = await testConnection(newUrl, newApiKey, newType); // Use the global testConnection
+  // Test connection if URL or API key changed
+  if (newUrl !== server.url || newApiKey !== server.apiKey) {
+    const connectionResult = await testConnection(newUrl, newApiKey, server.type);
     if (!connectionResult.success) {
       return {
         success: false,
@@ -248,8 +246,6 @@ export async function updateServer(
     name: newName,
     url: newUrl,
     apiKey: newApiKey,
-    type: newType,
-    enabled: newEnabled,
   });
 
   if (!updated) {

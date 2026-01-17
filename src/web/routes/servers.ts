@@ -1,10 +1,10 @@
-import { jsonError, jsonSuccess, HttpStatus } from "../types";
-import { CreateServerRequest, ServerTestResponse, ServerUpdateRequest, ServerConfig } from "../../types";
+import { jsonError, jsonSuccess, HttpStatus, CreateServerRequest, ServerTestResponse, UpdateServerRequest } from "../types";
+import { ServerConfig } from "../../types";
 import { DatabaseManager } from "../../storage/database";
 import {
   addServer,
   updateServer,
-  deleteServer,
+  removeServer,
   getServerById,
   getServers,
   testServerConnection as testExistingServerConnection, // Renamed to avoid conflict
@@ -111,7 +111,7 @@ export async function handleUpdateServer(req: Request, path: string, db: Databas
       return jsonError("Server ID not found in path", HttpStatus.BAD_REQUEST);
     }
 
-    const body = await parseJsonBody<ServerUpdateRequest>(req);
+    const body = await parseJsonBody<UpdateServerRequest>(req);
     if (!body) {
       return jsonError("Invalid JSON body", HttpStatus.BAD_REQUEST);
     }
@@ -127,8 +127,6 @@ export async function handleUpdateServer(req: Request, path: string, db: Databas
     const newName = body.name ?? existingServer.name;
     const newUrl = body.url ?? existingServer.url;
     const newApiKey = body.apiKey ?? existingServer.apiKey;
-    const newType = body.type ?? existingServer.type;
-    const newEnabled = body.enabled !== undefined ? body.enabled : existingServer.enabled;
 
     // Validate if name uniqueness is maintained (if name is changed)
     if (newName !== existingServer.name) {
@@ -141,9 +139,9 @@ export async function handleUpdateServer(req: Request, path: string, db: Databas
       }
     }
 
-    // Test connection if URL, API key, or Type changed
-    if (newUrl !== existingServer.url || newApiKey !== existingServer.apiKey || newType !== existingServer.type) {
-      const testResult = await testConnection(newUrl, newApiKey, newType);
+    // Test connection if URL or API key changed
+    if (newUrl !== existingServer.url || newApiKey !== existingServer.apiKey) {
+      const testResult = await testConnection(newUrl, newApiKey, existingServer.type);
       if (!testResult.success) {
         return jsonError(testResult.error || "Connection test failed with new credentials", HttpStatus.BAD_REQUEST);
       }
@@ -154,8 +152,6 @@ export async function handleUpdateServer(req: Request, path: string, db: Databas
       name: newName,
       url: newUrl,
       apiKey: newApiKey,
-      type: newType,
-      enabled: newEnabled,
     });
 
     if (!updateResult.success) {
@@ -169,15 +165,5 @@ export async function handleUpdateServer(req: Request, path: string, db: Databas
       `Failed to update server: ${error instanceof Error ? error.message : String(error)}`,
       HttpStatus.INTERNAL_SERVER_ERROR
     );
-  }
-}
-
-
-// Helper to parse JSON body
-async function parseJsonBody<T>(req: Request): Promise<T | undefined> {
-  try {
-    return (await req.json()) as T;
-  } catch {
-    return undefined;
   }
 }

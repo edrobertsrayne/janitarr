@@ -34,7 +34,6 @@ export interface CreateServerRequest {
   type: ServerType;
   url: string;
   apiKey: string;
-  enabled?: boolean;
 }
 
 /** Request body for updating a server */
@@ -42,7 +41,6 @@ export interface UpdateServerRequest {
   name?: string;
   url?: string;
   apiKey?: string;
-  enabled?: boolean;
 }
 
 /** Response from server test endpoint */
@@ -147,6 +145,7 @@ export const HttpStatus = {
   BAD_REQUEST: 400,
   NOT_FOUND: 404,
   INTERNAL_SERVER_ERROR: 500,
+  NOT_IMPLEMENTED: 501,
 } as const;
 
 /** Helper to create successful JSON response */
