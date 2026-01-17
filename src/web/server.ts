@@ -31,6 +31,8 @@ export interface WebServerOptions {
   port?: number;
   host?: string;
   db: DatabaseManager;
+  /** Skip startup console output (default: false) */
+  silent?: boolean;
 }
 
 /**
@@ -95,7 +97,7 @@ async function serveStaticFile(urlPath: string): Promise<Response> {
  * Create and start the web server
  */
 export function createWebServer(options: WebServerOptions) {
-  const { port = 3000, host = "localhost", db } = options;
+  const { port = 3000, host = "localhost", db, silent = false } = options;
 
   const server = Bun.serve({
     port,
@@ -229,9 +231,11 @@ export function createWebServer(options: WebServerOptions) {
     },
   });
 
-  console.log(`Web server listening on http://${host}:${port}`);
-  console.log(`WebSocket endpoint: ws://${host}:${port}/ws/logs`);
-  console.log(`API base URL: http://${host}:${port}/api`);
+  if (!silent) {
+    console.log(`Web server listening on http://${host}:${port}`);
+    console.log(`WebSocket endpoint: ws://${host}:${port}/ws/logs`);
+    console.log(`API base URL: http://${host}:${port}/api`);
+  }
 
   return server;
 }

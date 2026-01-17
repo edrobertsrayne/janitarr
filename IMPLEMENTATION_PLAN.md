@@ -1,8 +1,8 @@
 # Janitarr Implementation Plan
 
 **Last Updated:** 2026-01-17
-**Status:** ⚠️ FEATURE PENDING - Unified Service Startup Not Implemented
-**Overall Completion:** 95% (Core features complete, new spec pending)
+**Status:** ⚠️ FEATURE IN PROGRESS - Unified Service Startup Partially Implemented
+**Overall Completion:** 96% (Core features complete, unified startup in progress)
 
 ---
 
@@ -16,7 +16,7 @@ Janitarr is a production-ready automation tool for managing Radarr/Sonarr media 
 - ✅ **Web Backend API**: 100% complete with REST + WebSocket
 - ✅ **Web Frontend**: 100% core functionality implemented
 - ✅ **Testing**: 142 unit tests passing (all passing)
-- ⚠️ **Unified Service Startup**: PARTIAL - Commands not yet updated
+- ⚠️ **Unified Service Startup**: IN PROGRESS - `start` command updated, `dev` pending
 - ✅ **Health Check Endpoint**: COMPLETE with comprehensive status reporting
 - ✅ **Prometheus Metrics**: COMPLETE with full observability support
 
@@ -24,33 +24,31 @@ Janitarr is a production-ready automation tool for managing Radarr/Sonarr media 
 
 ## Priority 1: Unified Service Startup (MUST DO) ⚠️ NEW
 
-### Task 1.1: Update `start` Command for Unified Startup
+### Task 1.1: Update `start` Command for Unified Startup ✅ COMPLETE
 **Impact:** HIGH - Breaking change, required for deployment simplicity
 **Spec:** `specs/unified-service-startup.md` lines 17-33
-**Status:** ❌ NOT STARTED
+**Status:** ✅ COMPLETE (2026-01-17)
 
-**Current Behavior:**
-- `janitarr start` - Only starts scheduler daemon
-- `janitarr serve` - Only starts web server
-- Users must run two commands/processes separately
+**Implementation:**
+- Modified `start` command to launch both scheduler AND web server together
+- Added `--port <number>` flag (default: 3434)
+- Added `--host <string>` flag (default: localhost)
+- Implemented port validation (1-65535)
+- When scheduler disabled in config, only web server starts with clear warning
+- Added formatted startup confirmation showing all service URLs
+- Implemented graceful shutdown on SIGINT for both services
+- Added `silent` option to web server to allow commands to control output
 
-**Required Changes:**
-- [ ] Modify `start` command to launch both scheduler AND web server together
-- [ ] Accept `--port <number>` flag (default: 3434)
-- [ ] Accept `--host <string>` flag (default: localhost)
-- [ ] Validate port number (1-65535)
-- [ ] If scheduler disabled in config, only start web server with warning
-- [ ] Display startup confirmation for both services with URLs
-- [ ] Handle graceful shutdown on SIGINT for both services
-
-**Files to Modify:**
-- `src/cli/commands.ts` - Update `start` command implementation
+**Files Modified:**
+- `src/cli/commands.ts` - Updated `start` command implementation (lines 373-459)
+- `src/web/server.ts` - Added `silent` option to suppress default console output
 
 **Acceptance Criteria:**
-- [ ] `janitarr start` launches scheduler + web server in single process
-- [ ] `janitarr start --port 8080 --host 0.0.0.0` works correctly
-- [ ] Scheduler-disabled config shows warning but web server still starts
-- [ ] Ctrl+C gracefully stops both services
+- [x] `janitarr start` launches scheduler + web server in single process
+- [x] `janitarr start --port 8080 --host 0.0.0.0` works correctly
+- [x] Scheduler-disabled config shows warning but web server still starts
+- [x] Ctrl+C gracefully stops both services
+- [x] All 142 unit tests still passing
 
 ---
 
@@ -397,7 +395,7 @@ bun run test:all      # All unit + frontend tests
 
 | Priority | Task | Status | Impact |
 |----------|------|--------|--------|
-| P1 | 1.1 Update `start` command | ❌ Not Started | HIGH |
+| P1 | 1.1 Update `start` command | ✅ Complete | HIGH |
 | P1 | 1.2 Add `dev` command | ❌ Not Started | HIGH |
 | P1 | 1.3 Remove `serve` command | ❌ Not Started | MEDIUM |
 | P1 | 1.4 Enhanced health check | ✅ Complete | HIGH |
@@ -415,8 +413,8 @@ bun run test:all      # All unit + frontend tests
 
 1. ~~**Task 1.4: Enhanced Health Check**~~ ✅ COMPLETE - Foundation for monitoring
 2. ~~**Task 1.5: Prometheus Metrics**~~ ✅ COMPLETE - Foundation for observability
-3. **Task 1.1: Update `start` command** - Core unified startup (NEXT)
-4. **Task 1.2: Add `dev` command** - Developer experience
+3. ~~**Task 1.1: Update `start` command**~~ ✅ COMPLETE - Core unified startup
+4. **Task 1.2: Add `dev` command** - Developer experience (NEXT)
 5. **Task 1.6: Graceful shutdown** - Production reliability
 6. **Task 1.3: Remove `serve` command** - Cleanup
 7. **Task 2.x: Testing** - Validation
@@ -431,16 +429,16 @@ bun run test:all      # All unit + frontend tests
 All original specifications are complete and working. A new specification (`unified-service-startup.md`) has been added that requires:
 - ✅ Enhanced health check endpoint - COMPLETE
 - ✅ Prometheus metrics endpoint - COMPLETE
-- ❌ Combining scheduler and web server into single process - NOT STARTED
+- ✅ Combining scheduler and web server into single process - COMPLETE
 - ❌ New `dev` command for development mode - NOT STARTED
 - ❌ Removal of `serve` command (breaking change) - NOT STARTED
-- ⚠️ Improved graceful shutdown - PARTIAL (basic implementation exists)
+- ⚠️ Improved graceful shutdown - PARTIAL (basic implementation exists, enhanced in `start` command)
 
-**Progress:** 2 of 6 major tasks complete (Health Check + Metrics)
-**Estimated Remaining Effort:** 4-6 tasks across Priority 1-3
+**Progress:** 3 of 6 major tasks complete (Health Check + Metrics + Start Command)
+**Estimated Remaining Effort:** 3-5 tasks across Priority 1-3
 **Breaking Changes:** Yes (`start` behavior changes, `serve` removed)
 
 ---
 
 **Last Reviewed:** 2026-01-17
-**Next Action:** Implement Task 1.1 (Update `start` command for unified startup)
+**Next Action:** Implement Task 1.2 (Add `dev` command for development mode)

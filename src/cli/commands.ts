@@ -372,39 +372,85 @@ export function createProgram(): Command {
 
   program
     .command("start")
-    .description("Start scheduler daemon")
-    .action(async () => {
-      if (isSchedulerRunning()) {
-        console.log(fmt.warning("Scheduler is already running"));
-        return;
+    .description("Start scheduler and web server (production mode)")
+    .option("-p, --port <number>", "Port to listen on", "3434")
+    .option("-h, --host <string>", "Host to bind to", "localhost")
+    .action(async (options) => {
+      const port = parseInt(options.port, 10);
+      const host = options.host;
+
+      // Validate port number
+      if (isNaN(port) || port < 1 || port > 65535) {
+        console.log(fmt.error("Invalid port number. Must be between 1 and 65535"));
+        process.exit(1);
       }
 
+      console.log(fmt.header("Starting Janitarr"));
+      console.log();
+
+      const db = getDatabase();
+      const { createWebServer } = await import("../web/server");
+
+      let webServer: ReturnType<typeof createWebServer> | null = null;
+
+      // Start web server
+      try {
+        webServer = createWebServer({ port, host, db, silent: true });
+        console.log(fmt.success("✓ Web server started"));
+        console.log(fmt.info(`  Web UI: http://${host}:${port}`));
+        console.log(fmt.info(`  API: http://${host}:${port}/api`));
+        console.log(fmt.info(`  Health: http://${host}:${port}/api/health`));
+        console.log(fmt.info(`  Metrics: http://${host}:${port}/metrics`));
+        console.log();
+      } catch (error) {
+        console.log(fmt.error(`Failed to start web server: ${error instanceof Error ? error.message : String(error)}`));
+        process.exit(1);
+      }
+
+      // Start scheduler if enabled
       const config = getScheduleConfig();
       if (!config.enabled) {
-        console.log(fmt.error("Scheduler is disabled in configuration"));
-        console.log(fmt.info("Enable it with: janitarr config set schedule.enabled true"));
-        return;
+        console.log(fmt.warning("⚠ Scheduler is disabled in configuration"));
+        console.log(fmt.info("  Web server running, but automation cycles will not run"));
+        console.log(fmt.info("  Enable with: janitarr config set schedule.enabled true"));
+        console.log();
+      } else {
+        if (isSchedulerRunning()) {
+          console.log(fmt.warning("⚠ Scheduler is already running"));
+          console.log();
+        } else {
+          // Register automation cycle callback
+          registerCycleCallback(async (isManual: boolean) => {
+            await runAutomationCycle(isManual);
+          });
+
+          await startScheduler();
+          console.log(fmt.success("✓ Scheduler started"));
+          console.log(fmt.info(`  Interval: ${config.intervalHours} hours`));
+          console.log();
+        }
       }
 
-      // Register automation cycle callback
-      registerCycleCallback(async (isManual: boolean) => {
-        await runAutomationCycle(isManual);
-      });
-
-      console.log(fmt.info("Starting scheduler..."));
-      await startScheduler();
-
-      console.log(fmt.success("Scheduler started"));
-      console.log(fmt.keyValue("Interval", `${config.intervalHours} hours`));
-      console.log();
       console.log(fmt.info("Press Ctrl+C to stop"));
 
-      // Keep process alive
+      // Graceful shutdown on SIGINT
       process.on("SIGINT", () => {
         console.log();
-        console.log(fmt.info("Stopping scheduler..."));
-        stopScheduler();
-        console.log(fmt.success("Scheduler stopped"));
+        console.log(fmt.info("Shutting down gracefully..."));
+
+        // Stop scheduler
+        if (isSchedulerRunning()) {
+          stopScheduler();
+          console.log(fmt.success("✓ Scheduler stopped"));
+        }
+
+        // Stop web server
+        if (webServer) {
+          webServer.stop();
+          console.log(fmt.success("✓ Web server stopped"));
+        }
+
+        console.log(fmt.success("Shutdown complete"));
         process.exit(0);
       });
 
