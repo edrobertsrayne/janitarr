@@ -1,514 +1,1899 @@
-# Janitarr Implementation Plan
+# Janitarr: TypeScript to Go Migration Plan
 
-**Last Updated:** 2026-01-17
-**Status:** ✅ COMPLETE - All Features and Documentation Finished
-**Overall Completion:** 100% (All core features, unified service startup, and documentation complete)
+## Overview
 
----
+Migrate Janitarr from TypeScript/Bun to Go, replacing the React SPA with server-rendered HTML using templ + htmx + Alpine.js. This is a fresh start migration - users will need to re-add their servers after migration.
 
-## Executive Summary
+## Agent Instructions
 
-Janitarr is a production-ready automation tool for managing Radarr/Sonarr media servers with both CLI and web interfaces. All original core functionality has been implemented and tested. A new specification (`unified-service-startup.md`) has been added requiring significant changes to service startup commands, health checks, and metrics.
+This document is designed for AI coding agents. Each task:
 
-**Current State:**
-- ✅ **CLI Application**: 100% complete (original spec)
-- ✅ **Backend Services**: 100% complete with comprehensive test coverage
-- ✅ **Web Backend API**: 100% complete with REST + WebSocket
-- ✅ **Web Frontend**: 100% core functionality implemented
-- ✅ **Testing**: 142 unit tests passing (all passing)
-- ✅ **Unified Service Startup**: 100% COMPLETE - All features implemented
-- ✅ **Health Check Endpoint**: 100% COMPLETE with comprehensive status reporting
-- ✅ **Prometheus Metrics**: 100% COMPLETE with full observability support
-- ✅ **Graceful Shutdown**: 100% COMPLETE with timeout and cycle completion handling
+- Has a checkbox `[ ]` that should be marked `[x]` when complete
+- Includes specific file paths and commands to execute
+- Has clear completion criteria
+- References the TypeScript implementation in `src-ts/` for behavior reference
 
----
+**Before starting each phase:**
 
-## Priority 1: Unified Service Startup ✅ COMPLETE
+1. Read the relevant TypeScript source files for reference
+2. Write tests first (TDD approach)
+3. Run `go test ./...` after each implementation
+4. Commit working code before moving to the next task
 
-### Task 1.1: Update `start` Command for Unified Startup ✅ COMPLETE
-**Impact:** HIGH - Breaking change, required for deployment simplicity
-**Spec:** `specs/unified-service-startup.md` lines 17-33
-**Status:** ✅ COMPLETE (2026-01-17)
+**Environment:** Development tools are provided by devenv. Run `direnv allow` to load.
 
-**Implementation:**
-- Modified `start` command to launch both scheduler AND web server together
-- Added `--port <number>` flag (default: 3434)
-- Added `--host <string>` flag (default: localhost)
-- Implemented port validation (1-65535)
-- When scheduler disabled in config, only web server starts with clear warning
-- Added formatted startup confirmation showing all service URLs
-- Implemented graceful shutdown on SIGINT for both services
-- Added `silent` option to web server to allow commands to control output
+## Technology Stack
 
-**Files Modified:**
-- `src/cli/commands.ts` - Updated `start` command implementation (lines 373-459)
-- `src/web/server.ts` - Added `silent` option to suppress default console output
+| Component     | Technology          | Purpose                  |
+| ------------- | ------------------- | ------------------------ |
+| Language      | Go 1.22+            | Main application         |
+| Web Framework | Chi (go-chi/chi/v5) | HTTP routing             |
+| Database      | modernc.org/sqlite  | SQLite (pure Go, no CGO) |
+| CLI           | Cobra (spf13/cobra) | Command-line interface   |
+| Templates     | templ (a-h/templ)   | Type-safe HTML templates |
+| Interactivity | htmx + Alpine.js    | Dynamic UI without React |
+| CSS           | Tailwind CSS        | Utility-first styling    |
+| Hot Reload    | Air                 | Development workflow     |
 
-**Acceptance Criteria:**
-- [x] `janitarr start` launches scheduler + web server in single process
-- [x] `janitarr start --port 8080 --host 0.0.0.0` works correctly
-- [x] Scheduler-disabled config shows warning but web server still starts
-- [x] Ctrl+C gracefully stops both services
-- [x] All 142 unit tests still passing
+## Project Structure
 
----
-
-### Task 1.2: Add `dev` Command for Development Mode ✅ COMPLETE
-**Impact:** HIGH - Critical for developer experience
-**Spec:** `specs/unified-service-startup.md` lines 34-50
-**Status:** ✅ COMPLETE (2026-01-17)
-
-**Implementation:**
-- Added `janitarr dev` command to CLI with `--port` and `--host` flags
-- Added `isDev` parameter to `WebServerOptions` interface
-- Implemented `proxyToVite()` function to proxy non-API requests to Vite dev server
-- Added verbose HTTP request logging with timestamp, method, path, status, and duration
-- Added stack traces to API error responses in development mode
-- Clear console messaging indicating development mode is active
-- Verbose logging for automation cycles with timestamps
-
-**Files Modified:**
-- `src/cli/commands.ts` - Added new `dev` command (lines 461-558)
-- `src/web/server.ts` - Added `isDev` parameter, proxy support, and verbose logging
-
-**Acceptance Criteria:**
-- [x] `janitarr dev` starts both services with verbose logging
-- [x] Non-API requests proxied to Vite (port 5173)
-- [x] API errors include full stack traces in dev mode
-- [x] HTTP request logging shows method, path, status, duration
-- [x] All 142 unit tests still passing
+```
+janitarr/
+├── src/                          # All Go source code
+│   ├── main.go                   # Entry point
+│   ├── cli/                      # Cobra commands
+│   ├── config/                   # Configuration management
+│   ├── crypto/                   # AES-256-GCM encryption
+│   ├── database/                 # SQLite operations
+│   ├── api/                      # Radarr/Sonarr API clients
+│   ├── services/                 # Business logic
+│   ├── web/                      # HTTP server and handlers
+│   ├── logger/                   # Activity logging
+│   ├── metrics/                  # Prometheus metrics
+│   └── templates/                # templ templates
+├── static/                       # Static assets (CSS, JS)
+├── migrations/                   # SQL migration files
+├── src-ts/                       # Original TypeScript (reference)
+├── ui-ts/                        # Original React UI (reference)
+└── tests/                        # Test files
+```
 
 ---
 
-### Task 1.3: Remove `serve` Command ✅ COMPLETE
-**Impact:** MEDIUM - Breaking change for existing users
-**Spec:** `specs/unified-service-startup.md` lines 161-173
-**Status:** ✅ COMPLETE (2026-01-17)
+## Phase 0: Setup
 
-**Implementation:**
-- Removed `janitarr serve` command from CLI (lines 746-781 in commands.ts)
-- Users running old `serve` command will now receive "unknown command" error from Commander.js
-- All 142 unit tests still passing
-- No type errors introduced
+**Reference:** None (infrastructure setup)
+**Verification:** `go build ./src && ./janitarr --help`
 
-**Files Modified:**
-- `src/cli/commands.ts` - Removed `serve` command and all related code
+### Directory Reorganization
 
-**Acceptance Criteria:**
-- [x] `janitarr serve` returns "unknown command" error
-- [ ] All documentation references `start` instead of `serve` (documentation updates still needed)
+- [x] Move `src/` to `src-ts/` to preserve TypeScript reference
+- [x] Move `ui/` to `ui-ts/` to preserve React reference
+- [x] Create directories: `mkdir -p src static/css static/js migrations`
+
+### Go Module Initialization
+
+- [x] Initialize module: `go mod init github.com/user/janitarr`
+- [x] Add dependencies (run each command):
+  ```bash
+  go get github.com/go-chi/chi/v5
+  go get modernc.org/sqlite
+  go get github.com/spf13/cobra
+  go get github.com/a-h/templ
+  go get github.com/gorilla/websocket
+  ```
+- [x] Create `src/main.go`:
+
+  ```go
+  package main
+
+  import (
+      "fmt"
+      "os"
+      "github.com/user/janitarr/src/cli"
+  )
+
+  func main() {
+      if err := cli.Execute(); err != nil {
+          fmt.Fprintln(os.Stderr, err)
+          os.Exit(1)
+      }
+  }
+  ```
+
+- [x] Verify build: `go build -o janitarr ./src`
+
+### Development Tooling
+
+- [x] Create `.air.toml`:
+
+  ```toml
+  [build]
+    cmd = "templ generate && go build -o ./tmp/janitarr ./src"
+    bin = "./tmp/janitarr dev"
+    include_ext = ["go", "templ"]
+    exclude_dir = ["tmp", "vendor", "node_modules", "src-ts", "ui-ts"]
+    delay = 1000
+
+  [log]
+    time = false
+
+  [misc]
+    clean_on_exit = true
+  ```
+
+- [x] Create `Makefile`:
+
+  ```makefile
+  .PHONY: dev build test generate
+
+  generate:
+  	templ generate
+  	npx tailwindcss -i ./static/css/input.css -o ./static/css/app.css
+
+  dev:
+  	air
+
+  build: generate
+  	go build -ldflags "-s -w" -o janitarr ./src
+
+  test:
+  	go test -race ./...
+  ```
+
+- [x] Create `static/css/input.css`:
+  ```css
+  @tailwind base;
+  @tailwind components;
+  @tailwind utilities;
+  ```
+- [x] Create `tailwind.config.js`:
+  ```javascript
+  module.exports = {
+    content: ["./src/templates/**/*.templ"],
+    darkMode: "class",
+    theme: { extend: {} },
+    plugins: [],
+  };
+  ```
+- [x] Download static JS files:
+  ```bash
+  curl -o static/js/htmx.min.js https://unpkg.com/htmx.org@1.9/dist/htmx.min.js
+  curl -o static/js/alpine.min.js https://unpkg.com/alpinejs@3/dist/cdn.min.js
+  ```
+- [x] Verify: `make build`
+
+### Update Specifications
+
+- [x] Update `specs/README.md` with Go file paths
+- [x] Update `specs/unified-service-startup.md` for Go implementation
+- [x] Update `specs/web-frontend.md` for templ + htmx architecture
+- [x] Create `specs/go-architecture.md` with Go-specific patterns
+- [x] Update `CLAUDE.md` for Go development
 
 ---
 
-### Task 1.4: Enhanced Health Check Endpoint ✅ COMPLETE
-**Impact:** HIGH - Required for deployments and monitoring
-**Spec:** `specs/unified-service-startup.md` lines 51-84
-**Status:** ✅ COMPLETE (2026-01-17)
+## Phase 1: Foundation (TDD)
 
-**Implementation:**
-- Created `src/web/routes/health.ts` with comprehensive health check handler
-- Updated `src/web/server.ts` to use new handler
-- Added `HttpStatus.SERVICE_UNAVAILABLE` (503) to types
-- Created comprehensive test suite in `tests/web/routes/health.test.ts`
+**Reference:** `src-ts/lib/crypto.ts`, `src-ts/storage/database.ts`
+**Verification:** `go test ./src/crypto/... && go test ./src/database/...`
 
-**Completed Response Format:**
-```json
-{
-  "status": "ok" | "degraded" | "error",
-  "timestamp": "2026-01-17T10:30:00Z",
-  "services": {
-    "webServer": { "status": "ok" },
-    "scheduler": {
-      "status": "ok" | "disabled" | "error",
-      "isRunning": true,
-      "isCycleActive": false,
-      "nextRun": "2026-01-17T11:30:00Z"
+### Crypto Module
+
+**Reference:** `src-ts/lib/crypto.ts` (lines 1-107)
+
+- [ ] Create `src/crypto/crypto_test.go` with tests:
+  - [ ] `TestGenerateKey` - verifies 32-byte output
+  - [ ] `TestEncryptDecrypt` - round-trip encryption
+  - [ ] `TestEncryptFormat` - output matches `IV_BASE64:CIPHERTEXT_BASE64`
+  - [ ] `TestDecryptWrongKey` - returns error
+  - [ ] `TestDecryptInvalidFormat` - returns error for malformed input
+- [ ] Create `src/crypto/crypto.go` implementing:
+  - [ ] `GenerateKey() ([]byte, error)` - 32 random bytes
+  - [ ] `LoadOrCreateKey(path string) ([]byte, error)` - load from file or create new
+  - [ ] `Encrypt(plaintext string, key []byte) (string, error)` - AES-256-GCM
+  - [ ] `Decrypt(ciphertext string, key []byte) (string, error)` - AES-256-GCM
+- [ ] Verify: `go test ./src/crypto/...`
+
+### Database Module
+
+**Reference:** `src-ts/storage/database.ts`
+
+- [ ] Create `migrations/001_initial_schema.sql` (copy exactly):
+
+  ```sql
+  CREATE TABLE IF NOT EXISTS servers (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    url TEXT NOT NULL,
+    api_key TEXT NOT NULL,
+    type TEXT NOT NULL CHECK(type IN ('radarr', 'sonarr')),
+    enabled INTEGER DEFAULT 1,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS config (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS logs (
+    id TEXT PRIMARY KEY,
+    timestamp TEXT NOT NULL,
+    type TEXT NOT NULL,
+    server_name TEXT,
+    server_type TEXT,
+    category TEXT,
+    count INTEGER,
+    message TEXT NOT NULL,
+    is_manual INTEGER DEFAULT 0
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_logs_timestamp ON logs(timestamp DESC);
+  ```
+
+- [ ] Create `src/database/types.go` with structs:
+  - [ ] `Server` struct matching table columns
+  - [ ] `LogEntry` struct matching table columns
+  - [ ] `AppConfig` struct with schedule and limits
+- [ ] Create `src/database/database_test.go` with tests:
+  - [ ] `TestNew` - database creation and migration
+  - [ ] `TestServerCRUD` - add, get, update, delete server
+  - [ ] `TestConfigGetSet` - configuration persistence
+  - [ ] `TestLogsInsertRetrieve` - log operations
+  - [ ] `TestLogsPagination` - offset and limit
+  - [ ] `TestLogsPurge` - delete old entries
+- [ ] Create `src/database/database.go`:
+  - [ ] `type DB struct { conn *sql.DB, crypto *crypto.Crypto }`
+  - [ ] `New(dbPath, keyPath string) (*DB, error)` - open and migrate
+  - [ ] `Close() error`
+  - [ ] Embed migrations using `//go:embed`
+- [ ] Create `src/database/servers.go` - server CRUD with API key encryption
+- [ ] Create `src/database/config.go` - config get/set with defaults
+- [ ] Create `src/database/logs.go` - log operations with pagination
+- [ ] Verify: `go test ./src/database/...`
+
+### CLI Skeleton
+
+**Reference:** `src-ts/cli/commands.ts` (lines 64-809)
+
+- [ ] Create `src/cli/root.go`:
+
+  ```go
+  package cli
+
+  import "github.com/spf13/cobra"
+
+  var (
+      dbPath  string
+      version = "0.1.0"
+  )
+
+  func NewRootCmd() *cobra.Command {
+      cmd := &cobra.Command{
+          Use:     "janitarr",
+          Short:   "Automation tool for Radarr and Sonarr",
+          Version: version,
+      }
+      cmd.PersistentFlags().StringVar(&dbPath, "db-path", "./data/janitarr.db", "Database path")
+      return cmd
+  }
+
+  func Execute() error {
+      return NewRootCmd().Execute()
+  }
+  ```
+
+- [ ] Create stub commands (each returns `fmt.Println("not implemented")`):
+  - [ ] `src/cli/start.go` - `start` command
+  - [ ] `src/cli/dev.go` - `dev` command
+  - [ ] `src/cli/server.go` - `server add|list|edit|remove|test` subcommands
+  - [ ] `src/cli/config.go` - `config show|set` subcommands
+  - [ ] `src/cli/run.go` - `run` command with `--dry-run` flag
+  - [ ] `src/cli/scan.go` - `scan` command
+  - [ ] `src/cli/status.go` - `status` command
+  - [ ] `src/cli/logs.go` - `logs` command
+- [ ] Add all commands to root in `root.go`
+- [ ] Verify: `go run ./src --help` shows all commands
+
+---
+
+## Phase 2: Core Services (TDD)
+
+**Reference:** `src-ts/lib/api-client.ts`, `src-ts/services/`
+**Verification:** `go test ./src/api/... && go test ./src/services/...`
+
+### API Client
+
+**Reference:** `src-ts/lib/api-client.ts`
+
+- [ ] Create `src/api/types.go` with response structs:
+  - [ ] `SystemStatus` - version, appName
+  - [ ] `Movie` - id, title, hasFile, monitored
+  - [ ] `Episode` - id, title, hasFile, monitored, seriesTitle
+  - [ ] `PagedResponse[T]` - totalRecords, records
+- [ ] Create `src/api/client_test.go`:
+  - [ ] `TestURLNormalization` - trailing slashes, protocol
+  - [ ] `TestTimeout` - request timeout handling
+  - [ ] `TestErrorResponses` - 401, 404, 500 handling
+  - [ ] Use `httptest.NewServer` for mocking
+- [ ] Create `src/api/client.go`:
+  - [ ] `type Client struct { baseURL, apiKey string, http *http.Client }`
+  - [ ] `NewClient(url, apiKey string) *Client` - 15s timeout
+  - [ ] `Get(ctx, path string, result interface{}) error`
+  - [ ] `Post(ctx, path string, body, result interface{}) error`
+  - [ ] `normalizeURL(url string) string` - ensure http(s)://, remove trailing /
+- [ ] Create `src/api/radarr_test.go` and `src/api/radarr.go`:
+  - [ ] `GetSystemStatus(ctx) (*SystemStatus, error)`
+  - [ ] `GetMissing(ctx, page, pageSize) (*PagedResponse[Movie], error)`
+  - [ ] `GetCutoffUnmet(ctx, page, pageSize) (*PagedResponse[Movie], error)`
+  - [ ] `TriggerSearch(ctx, movieIds []int) error`
+- [ ] Create `src/api/sonarr_test.go` and `src/api/sonarr.go`:
+  - [ ] Same methods as Radarr but for Episode type
+- [ ] Verify: `go test ./src/api/...`
+
+### Server Manager Service
+
+**Reference:** `src-ts/services/server-manager.ts`
+
+- [ ] Create `src/services/types.go` with shared types:
+
+  ```go
+  type ServerInfo struct {
+      ID        string    `json:"id"`
+      Name      string    `json:"name"`
+      URL       string    `json:"url"`
+      Type      string    `json:"type"`
+      Enabled   bool      `json:"enabled"`
+      CreatedAt time.Time `json:"createdAt"`
+      UpdatedAt time.Time `json:"updatedAt"`
+  }
+
+  type ServerUpdate struct {
+      URL    *string `json:"url,omitempty"`
+      APIKey *string `json:"apiKey,omitempty"`
+  }
+
+  type ConnectionResult struct {
+      Success bool   `json:"success"`
+      Version string `json:"version,omitempty"`
+      AppName string `json:"appName,omitempty"`
+      Error   string `json:"error,omitempty"`
+  }
+  ```
+
+- [ ] Create `src/services/server_manager_test.go`:
+  - [ ] `TestAddServer_Success` - creates server and tests connection
+  - [ ] `TestAddServer_DuplicateName` - rejects duplicate names
+  - [ ] `TestAddServer_DuplicateURLType` - rejects duplicate URL+type combo
+  - [ ] `TestAddServer_ConnectionFailed` - fails on bad connection
+  - [ ] `TestUpdateServer_Success` - updates and validates connection
+  - [ ] `TestUpdateServer_NotFound` - returns error for missing server
+  - [ ] `TestRemoveServer_Success` - deletes server
+  - [ ] `TestTestConnection_Success` - returns version info
+  - [ ] `TestGetServer_ByID` - finds by UUID
+  - [ ] `TestGetServer_ByName` - finds by name (case-insensitive)
+- [ ] Create `src/services/server_manager.go`:
+  - [ ] `type ServerManager struct { db *database.DB, apiFactory func(url, key string) APIClient }`
+  - [ ] `NewServerManager(db *database.DB) *ServerManager`
+  - [ ] `AddServer(name, url, apiKey, serverType string) (*ServerInfo, error)`
+  - [ ] `UpdateServer(id string, updates ServerUpdate) error`
+  - [ ] `RemoveServer(id string) error`
+  - [ ] `TestConnection(id string) (*ConnectionResult, error)`
+  - [ ] `ListServers() ([]ServerInfo, error)`
+  - [ ] `GetServer(idOrName string) (*ServerInfo, error)`
+- [ ] Verify: `go test ./src/services/... -run Server`
+
+### Detector Service
+
+**Reference:** `src-ts/services/detector.ts`
+
+- [ ] Create detection result types in `src/services/types.go`:
+
+  ```go
+  type DetectionResult struct {
+      ServerID   string `json:"serverId"`
+      ServerName string `json:"serverName"`
+      ServerType string `json:"serverType"`
+      Missing    []int  `json:"missing"`    // Item IDs
+      Cutoff     []int  `json:"cutoff"`     // Item IDs
+      Error      string `json:"error,omitempty"`
+  }
+
+  type DetectionResults struct {
+      Results      []DetectionResult `json:"results"`
+      TotalMissing int               `json:"totalMissing"`
+      TotalCutoff  int               `json:"totalCutoff"`
+      SuccessCount int               `json:"successCount"`
+      FailureCount int               `json:"failureCount"`
+  }
+  ```
+
+- [ ] Create `src/services/detector_test.go`:
+  - [ ] `TestDetectAll_MultipleServers` - aggregates from 2+ servers
+  - [ ] `TestDetectAll_PartialFailure` - continues on server error
+  - [ ] `TestDetectAll_SkipsDisabled` - ignores disabled servers
+  - [ ] `TestDetectMissing_Radarr` - fetches missing movies
+  - [ ] `TestDetectMissing_Sonarr` - fetches missing episodes
+  - [ ] `TestDetectCutoff_Radarr` - fetches cutoff unmet movies
+  - [ ] `TestDetectCutoff_Sonarr` - fetches cutoff unmet episodes
+  - [ ] `TestDetectAll_EmptyServers` - returns empty results
+- [ ] Create `src/services/detector.go`:
+  - [ ] `type Detector struct { db *database.DB, apiFactory APIFactory }`
+  - [ ] `NewDetector(db *database.DB) *Detector`
+  - [ ] `DetectAll(ctx context.Context) (*DetectionResults, error)` - parallel detection
+  - [ ] `detectServer(ctx, server *Server) (*DetectionResult, error)` - single server
+  - [ ] Use `sync.WaitGroup` for concurrent server detection
+  - [ ] Collect errors but don't abort on single server failure
+- [ ] Verify: `go test ./src/services/... -run Detect`
+
+### Search Trigger Service
+
+**Reference:** `src-ts/services/search-trigger.ts`
+
+- [ ] Create trigger types in `src/services/types.go`:
+
+  ```go
+  type SearchLimits struct {
+      Missing int `json:"missing"`
+      Cutoff  int `json:"cutoff"`
+  }
+
+  type TriggerResult struct {
+      ServerID   string `json:"serverId"`
+      ServerName string `json:"serverName"`
+      ServerType string `json:"serverType"`
+      Category   string `json:"category"` // "missing" or "cutoff"
+      ItemIDs    []int  `json:"itemIds"`
+      Success    bool   `json:"success"`
+      Error      string `json:"error,omitempty"`
+  }
+
+  type TriggerResults struct {
+      Results          []TriggerResult `json:"results"`
+      MissingTriggered int             `json:"missingTriggered"`
+      CutoffTriggered  int             `json:"cutoffTriggered"`
+      SuccessCount     int             `json:"successCount"`
+      FailureCount     int             `json:"failureCount"`
+  }
+  ```
+
+- [ ] Create `src/services/search_trigger_test.go`:
+  - [ ] `TestTriggerSearches_RespectsLimits` - doesn't exceed limits
+  - [ ] `TestTriggerSearches_RoundRobin` - distributes evenly across servers
+  - [ ] `TestTriggerSearches_DryRun` - returns counts but doesn't call API
+  - [ ] `TestTriggerSearches_PartialFailure` - continues after failures
+  - [ ] `TestTriggerSearches_NoResults` - handles empty detection
+  - [ ] `TestTriggerSearches_ZeroLimit` - skips category with 0 limit
+- [ ] Create `src/services/search_trigger.go`:
+  - [ ] `type SearchTrigger struct { db *database.DB, apiFactory APIFactory }`
+  - [ ] `NewSearchTrigger(db *database.DB) *SearchTrigger`
+  - [ ] `TriggerSearches(ctx, results *DetectionResults, limits SearchLimits, dryRun bool) (*TriggerResults, error)`
+  - [ ] `distributeSearches(items []int, limit int, serverCount int) [][]int` - round-robin
+- [ ] Verify: `go test ./src/services/... -run Trigger`
+
+---
+
+## Phase 3: Scheduler & Automation (TDD)
+
+**Reference:** `src-ts/lib/scheduler.ts`, `src-ts/services/automation.ts`, `src-ts/lib/logger.ts`
+**Verification:** `go test ./src/services/... && go test ./src/logger/...`
+
+### Scheduler
+
+**Reference:** `src-ts/lib/scheduler.ts`
+
+- [ ] Create scheduler types in `src/services/types.go`:
+  ```go
+  type SchedulerStatus struct {
+      IsRunning     bool       `json:"isRunning"`
+      IsCycleActive bool       `json:"isCycleActive"`
+      NextRun       *time.Time `json:"nextRun,omitempty"`
+      LastRun       *time.Time `json:"lastRun,omitempty"`
+      IntervalHours int        `json:"intervalHours"`
+  }
+  ```
+- [ ] Create `src/services/scheduler_test.go`:
+  - [ ] `TestScheduler_StartStop` - starts timer, stops cleanly
+  - [ ] `TestScheduler_IntervalConfig` - respects configured hours
+  - [ ] `TestScheduler_PreventsConcurrent` - blocks during active cycle
+  - [ ] `TestScheduler_ManualTrigger` - runs immediately
+  - [ ] `TestScheduler_ManualDuringActive` - returns error if cycle running
+  - [ ] `TestScheduler_GracefulShutdown` - waits for active cycle
+  - [ ] `TestScheduler_CallbackError` - handles callback errors
+  - [ ] `TestScheduler_StatusUpdates` - reflects current state
+- [ ] Create `src/services/scheduler.go`:
+
+  ```go
+  type Scheduler struct {
+      mu           sync.Mutex
+      running      bool
+      cycleActive  bool
+      timer        *time.Timer
+      stopCh       chan struct{}
+      callback     func(ctx context.Context, isManual bool) error
+      intervalHrs  int
+      nextRun      time.Time
+      lastRun      time.Time
+  }
+  ```
+
+  - [ ] `NewScheduler(intervalHours int, callback func(ctx, isManual bool) error) *Scheduler`
+  - [ ] `Start(ctx context.Context) error` - starts timer loop
+  - [ ] `Stop()` - signals stop, waits for cycle if active
+  - [ ] `TriggerManual(ctx context.Context) error` - runs immediately
+  - [ ] `GetStatus() SchedulerStatus`
+  - [ ] `IsRunning() bool`
+  - [ ] `IsCycleActive() bool`
+  - [ ] `GetTimeUntilNextRun() time.Duration`
+  - [ ] Use `sync.Mutex` for thread safety
+
+- [ ] Verify: `go test ./src/services/... -run Scheduler`
+
+### Automation Orchestrator
+
+**Reference:** `src-ts/services/automation.ts`
+
+- [ ] Create cycle result types in `src/services/types.go`:
+  ```go
+  type CycleResult struct {
+      Success          bool             `json:"success"`
+      DetectionResults DetectionResults `json:"detectionResults"`
+      SearchResults    TriggerResults   `json:"searchResults"`
+      TotalSearches    int              `json:"totalSearches"`
+      TotalFailures    int              `json:"totalFailures"`
+      Errors           []string         `json:"errors"`
+      Duration         time.Duration    `json:"duration"`
+  }
+  ```
+- [ ] Create `src/services/automation_test.go`:
+  - [ ] `TestRunCycle_Success` - detect -> trigger -> log pipeline
+  - [ ] `TestRunCycle_DetectionFailure` - continues with partial results
+  - [ ] `TestRunCycle_TriggerFailure` - logs errors, returns failure
+  - [ ] `TestRunCycle_DryRun` - no API calls, no logs
+  - [ ] `TestRunCycle_ManualLogging` - marks logs as manual
+  - [ ] `TestRunCycle_ScheduledLogging` - marks logs as scheduled
+  - [ ] `TestRunCycle_EmptyResults` - handles no items to search
+- [ ] Create `src/services/automation.go`:
+  - [ ] `type Automation struct { detector *Detector, trigger *SearchTrigger, logger *Logger, db *database.DB }`
+  - [ ] `NewAutomation(db *database.DB, logger *Logger) *Automation`
+  - [ ] `RunCycle(ctx context.Context, isManual, dryRun bool) (*CycleResult, error)`
+  - [ ] Pipeline: detect -> limit -> trigger -> log results
+  - [ ] Load limits from database config
+- [ ] Create `src/services/automation_formatter.go`:
+  - [ ] `FormatCycleResult(result *CycleResult) string` - human-readable summary
+- [ ] Verify: `go test ./src/services/... -run Automation`
+
+### Activity Logger
+
+**Reference:** `src-ts/lib/logger.ts`
+
+- [ ] Create log types in `src/logger/types.go`:
+
+  ```go
+  type LogEntryType string
+
+  const (
+      LogTypeCycleStart LogEntryType = "cycle_start"
+      LogTypeCycleEnd   LogEntryType = "cycle_end"
+      LogTypeSearch     LogEntryType = "search"
+      LogTypeError      LogEntryType = "error"
+  )
+
+  type LogEntry struct {
+      ID         string       `json:"id"`
+      Timestamp  time.Time    `json:"timestamp"`
+      Type       LogEntryType `json:"type"`
+      ServerName string       `json:"serverName,omitempty"`
+      ServerType string       `json:"serverType,omitempty"`
+      Category   string       `json:"category,omitempty"`
+      Count      int          `json:"count,omitempty"`
+      Message    string       `json:"message"`
+      IsManual   bool         `json:"isManual"`
+  }
+  ```
+
+- [ ] Create `src/logger/logger_test.go`:
+  - [ ] `TestLogCycleStart_Persists` - saves to database
+  - [ ] `TestLogCycleEnd_Persists` - saves with count
+  - [ ] `TestLogSearch_Persists` - saves with server details
+  - [ ] `TestLogError_Persists` - saves error message
+  - [ ] `TestBroadcast_SendsToSubscribers` - notifies channels
+  - [ ] `TestBroadcast_NoBlockOnSlow` - doesn't block if subscriber slow
+  - [ ] `TestSubscribe_ReceivesLogs` - channel receives entries
+  - [ ] `TestUnsubscribe_StopsReceiving` - channel closed
+- [ ] Create `src/logger/logger.go`:
+  - [ ] `type Logger struct { db *database.DB, mu sync.RWMutex, subscribers map[chan LogEntry]bool }`
+  - [ ] `NewLogger(db *database.DB) *Logger`
+  - [ ] `LogCycleStart(isManual bool) *LogEntry`
+  - [ ] `LogCycleEnd(totalSearches, failures int, isManual bool) *LogEntry`
+  - [ ] `LogSearches(serverName, serverType, category string, count int, isManual bool) *LogEntry`
+  - [ ] `LogServerError(serverName, serverType, reason string) *LogEntry`
+  - [ ] `LogSearchError(serverName, serverType, category, reason string) *LogEntry`
+  - [ ] `Subscribe() <-chan LogEntry` - returns receive-only channel
+  - [ ] `Unsubscribe(ch <-chan LogEntry)` - removes and closes channel
+  - [ ] `broadcast(entry *LogEntry)` - non-blocking send to all subscribers
+- [ ] Verify: `go test ./src/logger/...`
+
+---
+
+## Phase 4: CLI Commands
+
+**Reference:** `src-ts/cli/commands.ts`, `src-ts/cli/formatters.ts`
+**Verification:** `go build ./src && ./janitarr --help`
+
+### CLI Formatters
+
+**Reference:** `src-ts/cli/formatters.ts`
+
+- [ ] Create `src/cli/formatters.go` with output helpers:
+
+  ```go
+  package cli
+
+  import "fmt"
+
+  // Color codes
+  const (
+      colorReset  = "\033[0m"
+      colorRed    = "\033[31m"
+      colorGreen  = "\033[32m"
+      colorYellow = "\033[33m"
+      colorBlue   = "\033[34m"
+      colorCyan   = "\033[36m"
+      colorBold   = "\033[1m"
+  )
+
+  func success(msg string) string { return colorGreen + "✓ " + msg + colorReset }
+  func errorMsg(msg string) string { return colorRed + "✗ " + msg + colorReset }
+  func warning(msg string) string { return colorYellow + "⚠ " + msg + colorReset }
+  func info(msg string) string { return colorCyan + "ℹ " + msg + colorReset }
+  func header(msg string) string { return colorBold + msg + colorReset }
+  ```
+
+- [ ] Add table formatting functions:
+  - [ ] `formatServerTable(servers []ServerInfo) string`
+  - [ ] `formatLogTable(logs []LogEntry) string`
+  - [ ] `formatConfigTable(config AppConfig) string`
+
+### Server Commands
+
+**Reference:** `src-ts/cli/commands.ts` (lines 76-300)
+
+- [ ] Create `src/cli/server.go`:
+
+  ```go
+  var serverCmd = &cobra.Command{
+      Use:   "server",
+      Short: "Manage Radarr/Sonarr server configurations",
+  }
+
+  var serverAddCmd = &cobra.Command{
+      Use:   "add",
+      Short: "Add a new media server",
+      RunE:  runServerAdd,
+  }
+  ```
+
+- [ ] Implement `server add`:
+  - [ ] Use `bufio.Scanner` for interactive prompts
+  - [ ] Prompt: name, type (radarr/sonarr), URL, API key
+  - [ ] Validate inputs (non-empty, valid type)
+  - [ ] Test connection before saving
+  - [ ] Show spinner during connection test
+- [ ] Implement `server list`:
+  - [ ] `--json` flag for JSON output
+  - [ ] Default: formatted table with columns: Name, Type, URL, Enabled
+  - [ ] Show "(no servers)" if empty
+- [ ] Implement `server edit <id-or-name>`:
+  - [ ] Look up server by ID or name
+  - [ ] Prompt with current values as defaults
+  - [ ] Test connection before saving
+  - [ ] Skip if no changes made
+- [ ] Implement `server remove <id-or-name>`:
+  - [ ] Look up server by ID or name
+  - [ ] Prompt for confirmation (y/N)
+  - [ ] `--force` flag to skip confirmation
+- [ ] Implement `server test <id-or-name>`:
+  - [ ] Look up server by ID or name
+  - [ ] Test connection and display version/app name
+- [ ] Create `src/cli/server_test.go`:
+  - [ ] `TestServerAdd_Interactive` - simulates input
+  - [ ] `TestServerList_JSON` - verifies JSON format
+  - [ ] `TestServerList_Table` - verifies table format
+  - [ ] `TestServerRemove_Confirmation` - tests y/N prompt
+- [ ] Verify: `go build ./src && ./janitarr server --help`
+
+### Config Commands
+
+**Reference:** `src-ts/cli/commands.ts` (lines 450-550)
+
+- [ ] Create `src/cli/config.go`:
+
+  ```go
+  var configCmd = &cobra.Command{
+      Use:   "config",
+      Short: "View and modify configuration",
+  }
+
+  var configShowCmd = &cobra.Command{
+      Use:   "show",
+      Short: "Display current configuration",
+      RunE:  runConfigShow,
+  }
+
+  var configSetCmd = &cobra.Command{
+      Use:   "set <key> <value>",
+      Short: "Update a configuration value",
+      Args:  cobra.ExactArgs(2),
+      RunE:  runConfigSet,
+  }
+  ```
+
+- [ ] Implement `config show`:
+  - [ ] `--json` flag for JSON output
+  - [ ] Default: formatted key-value display
+  - [ ] Show all config values with descriptions
+- [ ] Implement `config set`:
+  - [ ] Validate key exists: `schedule.interval`, `schedule.enabled`, `limits.missing`, `limits.cutoff`
+  - [ ] Validate value types (int for interval/limits, bool for enabled)
+  - [ ] Confirm change and show new value
+- [ ] Valid config keys:
+  ```
+  schedule.interval  - Hours between cycles (default: 6)
+  schedule.enabled   - Scheduler enabled (default: true)
+  limits.missing     - Max missing searches per cycle (default: 10)
+  limits.cutoff      - Max cutoff searches per cycle (default: 5)
+  ```
+- [ ] Create `src/cli/config_test.go`:
+  - [ ] `TestConfigShow_JSON` - verifies JSON format
+  - [ ] `TestConfigSet_ValidKey` - updates value
+  - [ ] `TestConfigSet_InvalidKey` - returns error
+  - [ ] `TestConfigSet_InvalidValue` - returns error for bad type
+- [ ] Verify: `go build ./src && ./janitarr config --help`
+
+### Automation Commands
+
+**Reference:** `src-ts/cli/commands.ts` (lines 300-450)
+
+- [ ] Create `src/cli/run.go`:
+
+  ```go
+  var runCmd = &cobra.Command{
+      Use:   "run",
+      Short: "Execute automation cycle manually",
+      RunE:  runAutomation,
+  }
+
+  func init() {
+      runCmd.Flags().BoolP("dry-run", "d", false, "Preview without triggering searches")
+      runCmd.Flags().Bool("json", false, "Output as JSON")
+  }
+  ```
+
+- [ ] Implement `run`:
+  - [ ] Execute full automation cycle
+  - [ ] Show progress: "Detecting...", "Triggering searches..."
+  - [ ] Display cycle summary
+  - [ ] `--dry-run` flag: show what would be searched
+  - [ ] `--json` flag: JSON output
+- [ ] Create `src/cli/scan.go`:
+  ```go
+  var scanCmd = &cobra.Command{
+      Use:   "scan",
+      Short: "Scan servers for missing and cutoff content (detection only)",
+      RunE:  runScan,
+  }
+  ```
+- [ ] Implement `scan`:
+  - [ ] Run detection only (no searches)
+  - [ ] Display results per server
+  - [ ] `--json` flag for JSON output
+- [ ] Create `src/cli/status.go`:
+  ```go
+  var statusCmd = &cobra.Command{
+      Use:   "status",
+      Short: "Show scheduler and server status",
+      RunE:  runStatus,
+  }
+  ```
+- [ ] Implement `status`:
+  - [ ] Show scheduler status (running/stopped, next run)
+  - [ ] Show server count by type
+  - [ ] Show last cycle summary
+  - [ ] `--json` flag for JSON output
+- [ ] Create `src/cli/automation_test.go`:
+  - [ ] `TestRun_DryRun` - no API calls made
+  - [ ] `TestRun_JSON` - verifies JSON format
+  - [ ] `TestScan_JSON` - verifies JSON format
+  - [ ] `TestStatus_JSON` - verifies JSON format
+- [ ] Verify: `go build ./src && ./janitarr run --help`
+
+### Log Commands
+
+**Reference:** `src-ts/cli/commands.ts` (lines 550-650)
+
+- [ ] Create `src/cli/logs.go`:
+
+  ```go
+  var logsCmd = &cobra.Command{
+      Use:   "logs",
+      Short: "View activity logs",
+      RunE:  runLogs,
+  }
+
+  func init() {
+      logsCmd.Flags().IntP("limit", "n", 20, "Number of entries to show")
+      logsCmd.Flags().Bool("all", false, "Show all entries")
+      logsCmd.Flags().Bool("json", false, "Output as JSON")
+      logsCmd.Flags().Bool("clear", false, "Clear all logs")
+  }
+  ```
+
+- [ ] Implement `logs`:
+  - [ ] Show recent entries (default: 20)
+  - [ ] `-n, --limit` flag for count
+  - [ ] `--all` flag for all entries (paginated)
+  - [ ] `--json` flag for JSON output
+  - [ ] `--clear` flag with confirmation prompt
+  - [ ] Format: timestamp, type icon, message
+  - [ ] Color-code errors red
+- [ ] Create `src/cli/logs_test.go`:
+  - [ ] `TestLogs_Default` - shows 20 entries
+  - [ ] `TestLogs_Limit` - respects limit flag
+  - [ ] `TestLogs_JSON` - verifies JSON format
+  - [ ] `TestLogs_Clear` - clears with confirmation
+- [ ] Verify: `go build ./src && ./janitarr logs --help`
+
+### Register All Commands
+
+- [ ] Update `src/cli/root.go` to register all subcommands:
+
+  ```go
+  func NewRootCmd() *cobra.Command {
+      cmd := &cobra.Command{
+          Use:     "janitarr",
+          Short:   "Automation tool for Radarr and Sonarr",
+          Version: version,
+      }
+      cmd.PersistentFlags().StringVar(&dbPath, "db-path", "./data/janitarr.db", "Database path")
+
+      // Register commands
+      cmd.AddCommand(serverCmd)
+      cmd.AddCommand(configCmd)
+      cmd.AddCommand(runCmd)
+      cmd.AddCommand(scanCmd)
+      cmd.AddCommand(statusCmd)
+      cmd.AddCommand(logsCmd)
+      cmd.AddCommand(startCmd)
+      cmd.AddCommand(devCmd)
+
+      return cmd
+  }
+  ```
+
+- [ ] Verify all commands registered: `go build ./src && ./janitarr --help`
+
+---
+
+## Phase 5: Web Server & API (TDD)
+
+**Reference:** `src-ts/web/server.ts`, `src-ts/web/routes/*.ts`, `src-ts/web/websocket.ts`
+**Verification:** `go test ./src/web/...`
+
+### HTTP Server Setup
+
+**Reference:** `src-ts/web/server.ts`
+
+- [ ] Create `src/web/server.go`:
+
+  ```go
+  type ServerConfig struct {
+      Port      int
+      Host      string
+      DB        *database.DB
+      Logger    *logger.Logger
+      Scheduler *services.Scheduler
+      IsDev     bool
+  }
+
+  type Server struct {
+      config    ServerConfig
+      router    chi.Router
+      httpSrv   *http.Server
+      wsHub     *websocket.LogHub
+  }
+  ```
+
+  - [ ] `NewServer(config ServerConfig) *Server`
+  - [ ] `Start() error` - starts HTTP server
+  - [ ] `Shutdown(ctx context.Context) error` - graceful shutdown
+  - [ ] Chi router setup with middleware stack
+  - [ ] Static file serving from `static/` directory
+
+- [ ] Create `src/web/routes.go` to define all routes:
+
+  ```go
+  func (s *Server) setupRoutes() {
+      r := s.router
+
+      // Middleware
+      r.Use(middleware.RequestID)
+      r.Use(middleware.RealIP)
+      r.Use(middleware.Recoverer)
+      if s.config.IsDev {
+          r.Use(s.requestLogger)
+      }
+      r.Use(s.metricsMiddleware)
+
+      // API routes
+      r.Route("/api", func(r chi.Router) {
+          r.Get("/health", s.handleHealth)
+          r.Get("/config", s.handleGetConfig)
+          r.Patch("/config", s.handlePatchConfig)
+          // ... more routes
+      })
+
+      // Prometheus metrics
+      r.Get("/metrics", s.handleMetrics)
+
+      // WebSocket
+      r.Get("/ws/logs", s.wsHub.ServeWS)
+
+      // Static files and pages
+      r.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+      r.Get("/*", s.handlePage) // templ pages
+  }
+  ```
+
+- [ ] Verify: `go build ./src/web/...`
+
+### Middleware
+
+**Reference:** `src-ts/web/server.ts` (middleware section)
+
+- [ ] Create `src/web/middleware/logging.go`:
+  ```go
+  func RequestLogger(next http.Handler) http.Handler {
+      return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+          start := time.Now()
+          ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
+          defer func() {
+              log.Printf("[%s] %s %s %d %v",
+                  r.Method, r.URL.Path, r.RemoteAddr,
+                  ww.Status(), time.Since(start))
+          }()
+          next.ServeHTTP(ww, r)
+      })
+  }
+  ```
+- [ ] Create `src/web/middleware/recovery.go`:
+  - [ ] Recover from panics
+  - [ ] Log stack trace (dev mode: include in response)
+  - [ ] Return 500 JSON error
+- [ ] Create `src/web/middleware/metrics.go`:
+  - [ ] Record request count by method/path/status
+  - [ ] Record request duration histogram
+- [ ] Verify: `go test ./src/web/middleware/...`
+
+### API Handlers (with tests)
+
+**Reference:** `src-ts/web/routes/*.ts`
+
+- [ ] Create `src/web/handlers/api/types.go` with shared request/response types:
+
+  ```go
+  type ErrorResponse struct {
+      Error string `json:"error"`
+  }
+
+  type SuccessResponse struct {
+      Message string `json:"message,omitempty"`
+      Data    any    `json:"data,omitempty"`
+  }
+
+  func jsonError(w http.ResponseWriter, msg string, code int) {
+      w.Header().Set("Content-Type", "application/json")
+      w.WriteHeader(code)
+      json.NewEncoder(w).Encode(ErrorResponse{Error: msg})
+  }
+
+  func jsonSuccess(w http.ResponseWriter, data any) {
+      w.Header().Set("Content-Type", "application/json")
+      json.NewEncoder(w).Encode(data)
+  }
+  ```
+
+#### Config Endpoints
+
+**Reference:** `src-ts/web/routes/config.ts`
+
+- [ ] Create `src/web/handlers/api/config.go`:
+  - [ ] `GET /api/config` - return current config as JSON
+  - [ ] `PATCH /api/config` - update config fields
+  - [ ] `PUT /api/config/reset` - reset to defaults
+- [ ] Create `src/web/handlers/api/config_test.go`:
+  - [ ] `TestGetConfig_ReturnsJSON` - verifies structure
+  - [ ] `TestPatchConfig_UpdatesValue` - modifies field
+  - [ ] `TestPatchConfig_InvalidKey` - returns 400
+  - [ ] `TestResetConfig_RestoresDefaults` - resets all
+  - [ ] Use `httptest.NewRecorder()` for testing
+
+#### Servers Endpoints
+
+**Reference:** `src-ts/web/routes/servers.ts`
+
+- [ ] Create `src/web/handlers/api/servers.go`:
+  - [ ] `GET /api/servers` - list all servers (exclude apiKey)
+  - [ ] `GET /api/servers/{id}` - get single server
+  - [ ] `POST /api/servers` - create server (tests connection first)
+  - [ ] `PUT /api/servers/{id}` - update server
+  - [ ] `DELETE /api/servers/{id}` - delete server
+  - [ ] `POST /api/servers/test` - test new server config
+  - [ ] `POST /api/servers/{id}/test` - test existing server
+- [ ] Create `src/web/handlers/api/servers_test.go`:
+  - [ ] `TestListServers_Empty` - returns empty array
+  - [ ] `TestListServers_WithData` - returns servers
+  - [ ] `TestCreateServer_Success` - creates and returns
+  - [ ] `TestCreateServer_DuplicateName` - returns 409
+  - [ ] `TestCreateServer_ConnectionFailed` - returns 400
+  - [ ] `TestUpdateServer_Success` - updates fields
+  - [ ] `TestDeleteServer_Success` - removes server
+  - [ ] `TestTestServer_Success` - returns version info
+
+#### Logs Endpoints
+
+**Reference:** `src-ts/web/routes/logs.ts`
+
+- [ ] Create `src/web/handlers/api/logs.go`:
+  - [ ] `GET /api/logs` - list logs with pagination
+    - Query params: `limit`, `offset`, `type`, `server`
+  - [ ] `DELETE /api/logs` - clear all logs
+  - [ ] `GET /api/logs/export` - export as JSON or CSV
+    - Query params: `format` (json/csv)
+- [ ] Create `src/web/handlers/api/logs_test.go`:
+  - [ ] `TestGetLogs_Default` - returns recent logs
+  - [ ] `TestGetLogs_Pagination` - respects limit/offset
+  - [ ] `TestGetLogs_FilterByType` - filters by type
+  - [ ] `TestDeleteLogs_ClearsAll` - removes all logs
+  - [ ] `TestExportLogs_JSON` - returns JSON array
+  - [ ] `TestExportLogs_CSV` - returns CSV file
+
+#### Automation Endpoints
+
+**Reference:** `src-ts/web/routes/automation.ts`
+
+- [ ] Create `src/web/handlers/api/automation.go`:
+  - [ ] `POST /api/automation/trigger` - trigger manual cycle
+    - Body: `{ "dryRun": bool }`
+    - Returns: CycleResult
+  - [ ] `GET /api/automation/status` - get scheduler status
+    - Returns: SchedulerStatus
+- [ ] Create `src/web/handlers/api/automation_test.go`:
+  - [ ] `TestTrigger_Success` - runs cycle
+  - [ ] `TestTrigger_DryRun` - preview mode
+  - [ ] `TestTrigger_AlreadyRunning` - returns 409
+  - [ ] `TestGetStatus_Running` - shows running state
+  - [ ] `TestGetStatus_Stopped` - shows stopped state
+
+#### Stats Endpoints
+
+**Reference:** `src-ts/web/routes/stats.ts`
+
+- [ ] Create `src/web/handlers/api/stats.go`:
+  - [ ] `GET /api/stats/summary` - dashboard stats
+    ```go
+    type StatsSummary struct {
+        ServerCount    int           `json:"serverCount"`
+        TotalSearches  int           `json:"totalSearches"`
+        TotalFailures  int           `json:"totalFailures"`
+        LastCycle      *CycleSummary `json:"lastCycle,omitempty"`
     }
-  },
-  "database": { "status": "ok" | "error" }
-}
-```
+    ```
+  - [ ] `GET /api/stats/servers/{id}` - server-specific stats
+- [ ] Create `src/web/handlers/api/stats_test.go`:
+  - [ ] `TestGetSummary_ReturnsStats` - verifies structure
+  - [ ] `TestGetServerStats_Success` - returns server stats
+  - [ ] `TestGetServerStats_NotFound` - returns 404
 
-**Requirements:**
-- [x] Return comprehensive status for all services
-- [x] Overall status `ok` when all services healthy
-- [x] Overall status `degraded` when scheduler disabled
-- [x] Overall status `error` when critical component failing
-- [x] HTTP 200 for `ok` and `degraded`, HTTP 503 for `error`
-- [x] Response time < 100ms (lightweight check)
-- [x] Database health verified by simple query
+#### Health Endpoint
 
-**Files Created/Modified:**
-- `src/web/routes/health.ts` - New dedicated health check handler
-- `src/web/server.ts` - Updated route to use new handler
-- `src/web/types.ts` - Added SERVICE_UNAVAILABLE status code
-- `tests/web/routes/health.test.ts` - Comprehensive test suite (6 tests, all passing)
+**Reference:** `src-ts/web/routes/health.ts`
 
-**Acceptance Criteria:**
-- [x] `/api/health` returns full service status
-- [x] Database connectivity verified
-- [x] Scheduler status includes nextRun time
-- [x] Response within 100ms
-- [x] All tests passing (142 unit tests total)
+- [ ] Create `src/web/handlers/api/health.go`:
+  - [ ] `GET /api/health` - comprehensive health check
+    ```go
+    type HealthResponse struct {
+        Status    string                 `json:"status"` // ok, degraded, error
+        Timestamp time.Time              `json:"timestamp"`
+        Services  map[string]interface{} `json:"services"`
+        Database  map[string]string      `json:"database"`
+    }
+    ```
+  - [ ] Check database connectivity (`SELECT 1`)
+  - [ ] Check scheduler status
+  - [ ] Return 200 for ok/degraded, 503 for error
+- [ ] Create `src/web/handlers/api/health_test.go`:
+  - [ ] `TestHealth_AllOK` - returns ok status
+  - [ ] `TestHealth_SchedulerDisabled` - returns degraded
+  - [ ] `TestHealth_DatabaseError` - returns error
 
----
+#### Metrics Endpoint
 
-### Task 1.5: Prometheus Metrics Endpoint ✅ COMPLETE
-**Impact:** HIGH - Required for production monitoring
-**Spec:** `specs/unified-service-startup.md` lines 86-127
-**Status:** ✅ COMPLETE (2026-01-17)
+**Reference:** `src-ts/web/routes/metrics.ts`, `specs/unified-service-startup.md`
 
-**Implementation:**
-- Created `src/lib/metrics.ts` with comprehensive metrics collection and Prometheus formatting
-- Created `src/web/routes/metrics.ts` with metrics endpoint handler
-- Updated `src/web/server.ts` to add metrics route and HTTP request tracking middleware
-- Updated `src/services/automation.ts` to track cycle counts (success/failure)
-- Updated `src/services/search-trigger.ts` to track search counts by server type and category
-- Added `testConnection()` and `listServers()` methods to DatabaseManager for metrics
+- [ ] Create `src/metrics/metrics.go`:
 
-**Implemented Metrics:**
-- **Application info:**
-  - `janitarr_info{version}` - Application version (gauge)
-  - `janitarr_uptime_seconds` - Time since process start (counter)
-- **Scheduler metrics:**
-  - `janitarr_scheduler_enabled` - Whether scheduler enabled (gauge)
-  - `janitarr_scheduler_running` - Whether scheduler running (gauge)
-  - `janitarr_scheduler_cycle_active` - Whether cycle active (gauge)
-  - `janitarr_scheduler_cycles_total` - Total cycles executed (counter)
-  - `janitarr_scheduler_cycles_failed_total` - Failed cycles (counter)
-  - `janitarr_scheduler_next_run_timestamp` - Next run unix timestamp (gauge)
-- **Search metrics:**
-  - `janitarr_searches_triggered_total{server_type,category}` - Searches by type (counter)
-  - `janitarr_searches_failed_total{server_type,category}` - Failed searches (counter)
-- **Server metrics:**
-  - `janitarr_servers_configured{type}` - Configured servers by type (gauge)
-  - `janitarr_servers_enabled{type}` - Enabled servers by type (gauge)
-- **Database metrics:**
-  - `janitarr_database_connected` - Database status (gauge)
-  - `janitarr_logs_total` - Total log entries (gauge)
-- **HTTP metrics:**
-  - `janitarr_http_requests_total{method,path,status}` - Request counter
-  - `janitarr_http_request_duration_seconds{method,path}` - Request duration histogram
+  ```go
+  type Metrics struct {
+      mu              sync.RWMutex
+      startTime       time.Time
+      cyclesTotal     int64
+      cyclesFailed    int64
+      searchesTotal   map[string]int64 // key: "type:category"
+      searchesFailed  map[string]int64
+      httpRequests    map[string]int64 // key: "method:path:status"
+      httpDurations   map[string][]float64
+  }
+  ```
 
-**Requirements:**
-- [x] `GET /metrics` returns Prometheus text format
-- [x] Content-Type: `text/plain; version=0.0.4; charset=utf-8`
-- [x] HELP and TYPE annotations for each metric
-- [x] All metrics prefixed with `janitarr_`
-- [x] Labels follow snake_case convention
-- [x] Response time < 200ms (lightweight in-memory collection)
-- [x] Counters never decrease (monotonic)
-- [x] Invalid/missing data handled gracefully
+  - [ ] `NewMetrics() *Metrics`
+  - [ ] `IncrementCycles(failed bool)`
+  - [ ] `IncrementSearches(serverType, category string, failed bool)`
+  - [ ] `RecordHTTPRequest(method, path string, status int, duration time.Duration)`
+  - [ ] `Format() string` - Prometheus text format
 
-**Files Created:**
-- `src/lib/metrics.ts` - Metrics collection and formatting utilities
-- `src/web/routes/metrics.ts` - Metrics endpoint handler
+- [ ] Create `src/web/handlers/api/metrics.go`:
+  - [ ] `GET /metrics` - Prometheus text format
+  - [ ] Content-Type: `text/plain; version=0.0.4; charset=utf-8`
+- [ ] Create `src/metrics/metrics_test.go`:
+  - [ ] `TestFormat_PrometheusFormat` - valid output
+  - [ ] `TestIncrementCycles_Monotonic` - counters increase
+  - [ ] `TestRecordHTTPRequest_Labels` - correct labels
 
-**Files Modified:**
-- `src/web/server.ts` - Added metrics route, HTTP request tracking middleware
-- `src/services/automation.ts` - Track cycle counts (success/failure)
-- `src/services/search-trigger.ts` - Track search counts by server type and category
-- `src/storage/database.ts` - Added `testConnection()` and `listServers()` methods
+### WebSocket
 
-**Acceptance Criteria:**
-- [x] `/metrics` returns valid Prometheus format
-- [x] All specified metrics exposed
-- [x] HTTP request metrics collected via middleware
-- [x] Response lightweight and efficient
-- [x] All tests passing (142 unit tests)
+**Reference:** `src-ts/web/websocket.ts`
 
----
+- [ ] Create `src/web/websocket/types.go`:
 
-### Task 1.6: Graceful Shutdown ✅ COMPLETE
-**Impact:** MEDIUM - Required for clean deployments
-**Spec:** `specs/unified-service-startup.md` lines 129-144
-**Status:** ✅ COMPLETE (2026-01-17)
+  ```go
+  type ClientMessage struct {
+      Type    string          `json:"type"` // subscribe, unsubscribe, ping
+      Filters *WebSocketFilters `json:"filters,omitempty"`
+  }
 
-**Implementation:**
-- Added `waitForCycleCompletion()` function to scheduler with configurable timeout
-- Implemented `gracefulStopWebServer()` that closes WebSocket connections with proper close frames
-- Enhanced SIGINT handlers in both `start` and `dev` commands with:
-  - 10-second shutdown timeout with force exit fallback
-  - Active cycle completion waiting (up to 10 seconds)
-  - WebSocket graceful close with code 1001 and reason
-  - Clear console messaging for each shutdown step
-  - Exit code 0 on successful shutdown, code 1 on timeout/errors
-  - Double Ctrl+C for immediate force shutdown
+  type ServerMessage struct {
+      Type    string      `json:"type"` // connected, log, pong
+      Message string      `json:"message,omitempty"`
+      Data    interface{} `json:"data,omitempty"`
+  }
 
-**Files Modified:**
-- `src/lib/scheduler.ts` - Added `waitForCycleCompletion()` function (lines 264-291)
-- `src/web/server.ts` - Added `gracefulStopWebServer()` function (lines 309-323)
-- `src/web/websocket.ts` - Enhanced `closeAllClients()` with proper close frames (lines 151-167)
-- `src/cli/commands.ts` - Enhanced shutdown handlers in both `start` (lines 436-490) and `dev` (lines 566-620) commands
+  type WebSocketFilters struct {
+      Types   []string `json:"types,omitempty"`
+      Servers []string `json:"servers,omitempty"`
+  }
+  ```
 
-**Acceptance Criteria:**
-- [x] SIGINT triggers graceful shutdown sequence
-- [x] Scheduler waits for active cycle to complete (with timeout)
-- [x] Web server completes in-flight requests (Bun.serve handles automatically)
-- [x] WebSocket connections closed with proper close frames (code 1001)
-- [x] Console output confirms each service stopped successfully
-- [x] Process exits with code 0 after clean shutdown
-- [x] Maximum 10-second timeout before force exit
-- [x] Double Ctrl+C for immediate force shutdown
-- [x] All 142 unit tests still passing
+- [ ] Create `src/web/websocket/hub.go`:
+
+  ```go
+  type LogHub struct {
+      mu         sync.RWMutex
+      clients    map[*Client]bool
+      broadcast  chan *logger.LogEntry
+      register   chan *Client
+      unregister chan *Client
+  }
+
+  type Client struct {
+      hub     *LogHub
+      conn    *websocket.Conn
+      send    chan []byte
+      filters *WebSocketFilters
+  }
+  ```
+
+  - [ ] `NewLogHub(logger *logger.Logger) *LogHub`
+  - [ ] `Run()` - goroutine for hub loop
+  - [ ] `ServeWS(w http.ResponseWriter, r *http.Request)` - upgrade handler
+  - [ ] `Broadcast(entry *logger.LogEntry)` - send to matching clients
+
+- [ ] Create `src/web/websocket/client.go`:
+  - [ ] `readPump()` - read messages from client
+  - [ ] `writePump()` - write messages to client
+  - [ ] `shouldSend(entry, filters) bool` - filter check
+- [ ] Create `src/web/websocket/hub_test.go`:
+  - [ ] `TestHub_ClientConnect` - adds to clients map
+  - [ ] `TestHub_ClientDisconnect` - removes from map
+  - [ ] `TestHub_Broadcast` - sends to all clients
+  - [ ] `TestHub_FilteredBroadcast` - respects filters
+- [ ] Use `github.com/gorilla/websocket` for WebSocket handling
+- [ ] Verify: `go test ./src/web/websocket/...`
 
 ---
 
-## Priority 2: Testing for New Features (MUST DO)
+## Phase 6: Frontend with templ
 
-### Task 2.1: Unit Tests for Unified Startup ✅ COMPLETE
-**Impact:** HIGH - Critical for maintainability
-**Status:** ✅ COMPLETE (2026-01-17)
+**Reference:** `ui-ts/src/` (React components for feature reference only)
+**Verification:** `templ generate && go build ./src && ./janitarr dev`
 
-**Test Cases:**
-- [x] `start` command registration and options
-- [x] `start` command port validation (boundary cases)
-- [x] `start` command with invalid port (error handling)
-- [x] `dev` command registration and options
-- [x] `dev` command port validation (boundary cases)
-- [x] `serve` command removal verification
-- [x] Scheduler configuration integration
-- [x] Port validation boundary cases (1, 65535, 0, 65536)
+### templ Setup
 
-**Files Created:**
-- `tests/cli/commands.test.ts` - CLI command unit tests (19 tests, all passing)
+- [ ] Install templ: `go install github.com/a-h/templ/cmd/templ@latest`
+- [ ] Verify templ works: `templ --version`
+- [ ] Create `src/templates/layouts/base.templ`:
 
-**Test Coverage:**
-- Command registration and descriptions
-- Option defaults (port: 3434, host: localhost)
-- Port validation (must be 1-65535)
-- Invalid port rejection (0, negative, > 65535, non-numeric)
-- Scheduler configuration integration
-- Serve command removal verification
+  ```templ
+  package layouts
+
+  templ Base(title string) {
+      <!DOCTYPE html>
+      <html lang="en" class="h-full" x-data="{ darkMode: localStorage.getItem('darkMode') === 'true' }" :class="{ 'dark': darkMode }">
+      <head>
+          <meta charset="UTF-8"/>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+          <title>{ title } - Janitarr</title>
+          <link rel="stylesheet" href="/static/css/app.css"/>
+          <script src="/static/js/htmx.min.js"></script>
+          <script src="/static/js/alpine.min.js" defer></script>
+      </head>
+      <body class="h-full bg-gray-100 dark:bg-gray-900">
+          <div class="flex h-full">
+              @Nav()
+              <main class="flex-1 p-6 overflow-auto">
+                  { children... }
+              </main>
+          </div>
+      </body>
+      </html>
+  }
+  ```
+
+- [ ] Run `templ generate` to verify templates compile
+- [ ] Verify: `ls src/templates/layouts/base_templ.go` (generated file)
+
+### Navigation Component
+
+- [ ] Create `src/templates/components/nav.templ`:
+
+  ```templ
+  package components
+
+  templ Nav() {
+      <nav class="w-64 bg-white dark:bg-gray-800 shadow-lg">
+          <div class="p-4">
+              <h1 class="text-xl font-bold text-gray-900 dark:text-white">Janitarr</h1>
+          </div>
+          <ul class="space-y-2 p-4">
+              <li>
+                  <a href="/" class="block px-4 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                     hx-get="/" hx-target="#main-content" hx-push-url="true">
+                      Dashboard
+                  </a>
+              </li>
+              <li>
+                  <a href="/servers" class="block px-4 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                     hx-get="/servers" hx-target="#main-content" hx-push-url="true">
+                      Servers
+                  </a>
+              </li>
+              <li>
+                  <a href="/logs" class="block px-4 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                     hx-get="/logs" hx-target="#main-content" hx-push-url="true">
+                      Activity Logs
+                  </a>
+              </li>
+              <li>
+                  <a href="/settings" class="block px-4 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+                     hx-get="/settings" hx-target="#main-content" hx-push-url="true">
+                      Settings
+                  </a>
+              </li>
+          </ul>
+          <!-- Dark mode toggle -->
+          <div class="p-4 border-t dark:border-gray-700">
+              <button @click="darkMode = !darkMode; localStorage.setItem('darkMode', darkMode)"
+                      class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                  <span x-text="darkMode ? 'Light Mode' : 'Dark Mode'"></span>
+              </button>
+          </div>
+      </nav>
+  }
+  ```
+
+### Reusable Components
+
+- [ ] Create `src/templates/components/stats_card.templ`:
+
+  ```templ
+  package components
+
+  templ StatsCard(title string, value string, subtitle string) {
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">{ title }</h3>
+          <p class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{ value }</p>
+          if subtitle != "" {
+              <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">{ subtitle }</p>
+          }
+      </div>
+  }
+  ```
+
+- [ ] Create `src/templates/components/server_card.templ`:
+  - [ ] Server name, type badge, URL
+  - [ ] Status indicator (enabled/disabled)
+  - [ ] Test connection button with htmx
+  - [ ] Edit/Delete action buttons
+- [ ] Create `src/templates/components/log_entry.templ`:
+  - [ ] Timestamp formatting
+  - [ ] Type icon (cycle, search, error)
+  - [ ] Server name and message
+  - [ ] Error styling (red background)
+- [ ] Create `src/templates/components/forms/server_form.templ`:
+  - [ ] Name, type (select), URL, API key inputs
+  - [ ] Form validation with Alpine.js
+  - [ ] Submit with htmx POST/PUT
+  - [ ] Loading state during submission
+- [ ] Create `src/templates/components/forms/config_form.templ`:
+  - [ ] Interval hours input
+  - [ ] Scheduler enabled toggle
+  - [ ] Missing/Cutoff limit inputs
+  - [ ] Save button with htmx
+- [ ] Verify: `templ generate && go build ./src/templates/...`
+
+### Page Handlers
+
+- [ ] Create `src/web/handlers/pages/pages.go` with shared types:
+
+  ```go
+  package pages
+
+  import (
+      "net/http"
+      "github.com/user/janitarr/src/templates/pages"
+  )
+
+  type PageHandlers struct {
+      db        *database.DB
+      scheduler *services.Scheduler
+      logger    *logger.Logger
+  }
+
+  func NewPageHandlers(db *database.DB, scheduler *services.Scheduler, logger *logger.Logger) *PageHandlers {
+      return &PageHandlers{db: db, scheduler: scheduler, logger: logger}
+  }
+  ```
+
+- [ ] Create `src/web/handlers/pages/dashboard.go`:
+  - [ ] `GET /` - render dashboard with stats
+  - [ ] `GET /partials/stats` - htmx partial for stats cards
+  - [ ] `GET /partials/recent-activity` - htmx partial for activity
+  - [ ] Check `HX-Request` header for partial vs full page
+
+- [ ] Create `src/web/handlers/pages/servers.go`:
+  - [ ] `GET /servers` - render servers list page
+  - [ ] `GET /servers/new` - render modal form (partial)
+  - [ ] `POST /servers` - create server, return updated list
+  - [ ] `GET /servers/{id}/edit` - render edit modal (partial)
+  - [ ] `PUT /servers/{id}` - update server, return card
+  - [ ] `DELETE /servers/{id}` - delete, return empty (htmx swap)
+  - [ ] `POST /servers/{id}/test` - test connection, return result
+
+- [ ] Create `src/web/handlers/pages/logs.go`:
+  - [ ] `GET /logs` - render logs page
+  - [ ] `GET /partials/log-entries` - htmx partial for log list
+    - Query params: `offset`, `limit`, `type`, `server`
+  - [ ] Include WebSocket connection script for real-time updates
+
+- [ ] Create `src/web/handlers/pages/settings.go`:
+  - [ ] `GET /settings` - render settings form
+  - [ ] `POST /settings` - save config, show success toast
+  - [ ] Return `HX-Trigger: showToast` header for notifications
+
+### Page Templates
+
+- [ ] Create `src/templates/pages/dashboard.templ`:
+  - [ ] Stats row: server count, last cycle info, total searches, errors
+  - [ ] Server status table with htmx refresh
+  - [ ] Recent activity timeline (last 10 entries)
+  - [ ] "Run Now" button with htmx POST to `/api/automation/trigger`
+  - [ ] Auto-refresh stats every 30 seconds with htmx
+
+- [ ] Create `src/templates/pages/servers.templ`:
+  - [ ] Grid of server cards
+  - [ ] "Add Server" button opens modal
+  - [ ] Each card has Edit/Delete/Test buttons
+  - [ ] Modal container for forms (Alpine.js x-show)
+  - [ ] Empty state when no servers
+
+- [ ] Create `src/templates/pages/logs.templ`:
+  - [ ] Filter toolbar: type dropdown, server dropdown
+  - [ ] Log entries container with infinite scroll (htmx)
+  - [ ] Export buttons (JSON/CSV)
+  - [ ] Clear logs button with confirmation modal
+  - [ ] WebSocket integration for real-time updates:
+    ```html
+    <div id="log-container" hx-ext="ws" ws-connect="/ws/logs">
+      <!-- Log entries injected here -->
+    </div>
+    ```
+
+- [ ] Create `src/templates/pages/settings.templ`:
+  - [ ] Schedule section: interval, enabled toggle
+  - [ ] Search limits section: missing, cutoff inputs
+  - [ ] Save button with loading state
+  - [ ] Success/error toast notifications
+
+### Static Assets
+
+- [ ] Create `static/css/input.css`:
+
+  ```css
+  @tailwind base;
+  @tailwind components;
+  @tailwind utilities;
+
+  /* Custom styles */
+  .toast {
+    @apply fixed bottom-4 right-4 px-4 py-2 rounded-lg shadow-lg;
+  }
+  .toast-success {
+    @apply bg-green-500 text-white;
+  }
+  .toast-error {
+    @apply bg-red-500 text-white;
+  }
+  ```
+
+- [ ] Create `tailwind.config.js`:
+
+  ```javascript
+  module.exports = {
+    content: ["./src/templates/**/*.templ", "./src/templates/**/*_templ.go"],
+    darkMode: "class",
+    theme: {
+      extend: {},
+    },
+    plugins: [],
+  };
+  ```
+
+- [ ] Download static JS files:
+
+  ```bash
+  mkdir -p static/js
+  curl -o static/js/htmx.min.js https://unpkg.com/htmx.org@1.9.10/dist/htmx.min.js
+  curl -o static/js/alpine.min.js https://unpkg.com/alpinejs@3.13.3/dist/cdn.min.js
+  curl -o static/js/htmx-ws.min.js https://unpkg.com/htmx.org@1.9.10/dist/ext/ws.js
+  ```
+
+- [ ] Build CSS: `npx tailwindcss -i ./static/css/input.css -o ./static/css/app.css`
+
+- [ ] Verify: `make dev` (Air rebuilds on templ changes)
 
 ---
 
-### Task 2.2: Unit Tests for Health Check ✅ COMPLETE
-**Impact:** MEDIUM - Required for reliable health monitoring
-**Status:** ✅ COMPLETE (2026-01-17)
+## Phase 7: Integration & Polish
 
-**Test Cases:**
-- [x] Health returns `degraded` when scheduler disabled
-- [x] Health returns `error` when scheduler enabled but not running
-- [x] Response includes all required fields
-- [x] Timestamp is valid ISO 8601 format
-- [x] Returns JSON content type
-- [x] Database status is ok when accessible
+**Reference:** `specs/unified-service-startup.md`
+**Verification:** `make build && ./janitarr start --help && ./janitarr dev --help`
 
-**Files Created:**
-- `tests/web/routes/health.test.ts` - Health endpoint tests (6 tests, all passing)
+### Start Command (Production)
+
+**Reference:** `specs/unified-service-startup.md` (Production Mode section)
+
+- [ ] Create `src/cli/start.go`:
+
+  ```go
+  var startCmd = &cobra.Command{
+      Use:   "start",
+      Short: "Start Janitarr in production mode (scheduler + web server)",
+      RunE:  runStart,
+  }
+
+  func init() {
+      startCmd.Flags().IntP("port", "p", 3434, "Web server port")
+      startCmd.Flags().String("host", "localhost", "Web server host")
+  }
+
+  func runStart(cmd *cobra.Command, args []string) error {
+      port, _ := cmd.Flags().GetInt("port")
+      host, _ := cmd.Flags().GetString("host")
+
+      // Initialize components
+      db, err := database.New(dbPath, keyPath)
+      if err != nil {
+          return fmt.Errorf("failed to open database: %w", err)
+      }
+      defer db.Close()
+
+      logger := logger.NewLogger(db)
+      automation := services.NewAutomation(db, logger)
+      scheduler := services.NewScheduler(config.IntervalHours, automation.RunCycle)
+
+      // Start scheduler (if enabled)
+      if config.SchedulerEnabled {
+          if err := scheduler.Start(ctx); err != nil {
+              return fmt.Errorf("failed to start scheduler: %w", err)
+          }
+          fmt.Printf("Scheduler started (interval: %d hours)\n", config.IntervalHours)
+      } else {
+          fmt.Println("Warning: Scheduler is disabled in configuration")
+      }
+
+      // Start web server
+      server := web.NewServer(web.ServerConfig{
+          Port:      port,
+          Host:      host,
+          DB:        db,
+          Logger:    logger,
+          Scheduler: scheduler,
+          IsDev:     false,
+      })
+
+      fmt.Printf("Web server listening on http://%s:%d\n", host, port)
+      fmt.Printf("API: http://%s:%d/api\n", host, port)
+      fmt.Printf("Metrics: http://%s:%d/metrics\n", host, port)
+
+      // Wait for shutdown signal
+      return server.Start()
+  }
+  ```
+
+- [ ] Implement production logging:
+  - [ ] Log level: INFO
+  - [ ] Log scheduler events (cycle start/end)
+  - [ ] Log errors only (no HTTP request logging)
+- [ ] Validate port range (1-65535)
+- [ ] Display startup banner with URLs
+- [ ] Verify: `go build ./src && ./janitarr start --help`
+
+### Dev Command (Development)
+
+**Reference:** `specs/unified-service-startup.md` (Development Mode section)
+
+- [ ] Create `src/cli/dev.go`:
+
+  ```go
+  var devCmd = &cobra.Command{
+      Use:   "dev",
+      Short: "Start Janitarr in development mode (verbose logging)",
+      RunE:  runDev,
+  }
+
+  func init() {
+      devCmd.Flags().IntP("port", "p", 3434, "Web server port")
+      devCmd.Flags().String("host", "localhost", "Web server host")
+  }
+
+  func runDev(cmd *cobra.Command, args []string) error {
+      port, _ := cmd.Flags().GetInt("port")
+      host, _ := cmd.Flags().GetString("host")
+
+      fmt.Println("========================================")
+      fmt.Println("  DEVELOPMENT MODE")
+      fmt.Println("  Verbose logging enabled")
+      fmt.Println("  Stack traces in error responses")
+      fmt.Println("========================================")
+
+      // Same as start but with IsDev: true
+      server := web.NewServer(web.ServerConfig{
+          Port:      port,
+          Host:      host,
+          DB:        db,
+          Logger:    logger,
+          Scheduler: scheduler,
+          IsDev:     true,  // Enable verbose logging
+      })
+
+      return server.Start()
+  }
+  ```
+
+- [ ] Implement development logging:
+  - [ ] Log level: DEBUG
+  - [ ] Log all HTTP requests with timing
+  - [ ] Log WebSocket messages
+  - [ ] Include stack traces in error responses
+  - [ ] Log scheduler events with details
+- [ ] Display clear "DEVELOPMENT MODE" banner
+- [ ] Verify: `go build ./src && ./janitarr dev --help`
+
+### Graceful Shutdown
+
+**Reference:** `specs/unified-service-startup.md` (Graceful Shutdown section)
+
+- [ ] Create `src/shutdown/shutdown.go`:
+
+  ```go
+  package shutdown
+
+  import (
+      "context"
+      "os"
+      "os/signal"
+      "syscall"
+      "time"
+  )
+
+  type ShutdownManager struct {
+      scheduler *services.Scheduler
+      server    *web.Server
+      db        *database.DB
+      logger    *logger.Logger
+  }
+
+  func (m *ShutdownManager) Wait() error {
+      sigCh := make(chan os.Signal, 1)
+      signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+
+      <-sigCh
+      fmt.Println("\nShutdown signal received...")
+
+      ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+      defer cancel()
+
+      return m.Shutdown(ctx)
+  }
+
+  func (m *ShutdownManager) Shutdown(ctx context.Context) error {
+      // 1. Stop scheduler (wait for active cycle)
+      fmt.Println("Stopping scheduler...")
+      m.scheduler.Stop()
+      fmt.Println("Scheduler stopped")
+
+      // 2. Close WebSocket connections
+      fmt.Println("Closing WebSocket connections...")
+      m.server.CloseWebSockets()
+      fmt.Println("WebSocket connections closed")
+
+      // 3. Stop web server (wait for in-flight requests)
+      fmt.Println("Stopping web server...")
+      if err := m.server.Shutdown(ctx); err != nil {
+          return fmt.Errorf("web server shutdown: %w", err)
+      }
+      fmt.Println("Web server stopped")
+
+      // 4. Close database
+      fmt.Println("Closing database...")
+      if err := m.db.Close(); err != nil {
+          return fmt.Errorf("database close: %w", err)
+      }
+      fmt.Println("Database closed")
+
+      fmt.Println("Shutdown complete")
+      return nil
+  }
+  ```
+
+- [ ] Integrate shutdown manager into start/dev commands
+- [ ] Set 10-second maximum shutdown timeout
+- [ ] Exit with code 0 on clean shutdown
+- [ ] Verify: Start server, press Ctrl+C, verify clean exit
+
+### E2E Tests (Playwright)
+
+**Reference:** `tests/ui/` (existing Playwright setup)
+
+- [ ] Create `tests/e2e/setup.ts`:
+  - [ ] Start test server before suite
+  - [ ] Reset database between tests
+  - [ ] Stop server after suite
+
+- [ ] Create `tests/e2e/dashboard.spec.ts`:
+  - [ ] `test("dashboard loads")` - page loads without error
+  - [ ] `test("shows stats cards")` - stats cards visible
+  - [ ] `test("shows server list")` - server table renders
+  - [ ] `test("run now button triggers cycle")` - htmx call works
+
+- [ ] Create `tests/e2e/servers.spec.ts`:
+  - [ ] `test("add server form")` - opens modal, fills form
+  - [ ] `test("create server")` - POST creates server
+  - [ ] `test("edit server")` - opens edit modal, saves changes
+  - [ ] `test("delete server")` - confirmation, removes from list
+  - [ ] `test("test connection")` - shows success/failure
+
+- [ ] Create `tests/e2e/logs.spec.ts`:
+  - [ ] `test("logs page loads")` - page renders
+  - [ ] `test("filter by type")` - filter dropdown works
+  - [ ] `test("infinite scroll")` - loads more on scroll
+  - [ ] `test("clear logs")` - confirmation, clears list
+  - [ ] `test("real-time updates")` - WebSocket receives new logs
+
+- [ ] Create `tests/e2e/settings.spec.ts`:
+  - [ ] `test("settings page loads")` - page renders
+  - [ ] `test("save settings")` - form submits, shows toast
+  - [ ] `test("validation")` - invalid values show errors
+
+- [ ] Configure Playwright for headless mode (CI):
+
+  ```typescript
+  // playwright.config.ts
+  export default {
+    use: {
+      headless: true,
+      baseURL: "http://localhost:3434",
+    },
+  };
+  ```
+
+- [ ] Add test script to Makefile:
+
+  ```makefile
+  test-e2e:
+  	./janitarr start &
+  	sleep 2
+  	npx playwright test
+  	pkill janitarr
+  ```
+
+- [ ] Verify: `make test-e2e`
+
+### Documentation Updates
+
+- [ ] Update `CLAUDE.md` (already done in Phase 0, verify current)
+  - [ ] Go build commands
+  - [ ] Test commands
+  - [ ] Development workflow with Air
+  - [ ] Code standards for Go
+
+- [ ] Update `README.md`:
+
+  ````markdown
+  # Janitarr
+
+  Automation tool for Radarr and Sonarr media servers.
+
+  ## Quick Start
+
+  ```bash
+  # Build
+  make build
+
+  # Run in production mode
+  ./janitarr start
+
+  # Run in development mode (verbose logging)
+  ./janitarr dev
+  ```
+  ````
+
+  ## CLI Commands
+
+  | Command                  | Description                           |
+  | ------------------------ | ------------------------------------- |
+  | `janitarr start`         | Start scheduler and web server        |
+  | `janitarr dev`           | Development mode with verbose logging |
+  | `janitarr server add`    | Add a new server                      |
+  | `janitarr server list`   | List all servers                      |
+  | `janitarr run`           | Run automation cycle manually         |
+  | `janitarr run --dry-run` | Preview what would be searched        |
+  | `janitarr status`        | Show scheduler status                 |
+  | `janitarr logs`          | View activity logs                    |
+  | `janitarr config show`   | Show configuration                    |
+  | `janitarr config set`    | Update configuration                  |
+
+  ## Development
+
+  ```bash
+  direnv allow              # Load development environment
+  make dev                  # Start with hot reload
+  go test ./...             # Run tests
+  make test-e2e             # Run E2E tests
+  ```
+
+  ```
+
+  ```
+
+- [ ] Verify all CLI commands have help text:
+  ```bash
+  ./janitarr --help
+  ./janitarr start --help
+  ./janitarr dev --help
+  ./janitarr server --help
+  ./janitarr config --help
+  ./janitarr run --help
+  ./janitarr logs --help
+  ```
+
+### Final Integration Testing
+
+- [ ] Manual test checklist:
+  - [ ] `janitarr start` launches both scheduler and web server
+  - [ ] `janitarr dev` launches with verbose console output
+  - [ ] `janitarr server add` creates server with validation
+  - [ ] `janitarr server list` displays servers in table
+  - [ ] `janitarr server test <name>` shows connection result
+  - [ ] `janitarr run` executes cycle with output
+  - [ ] `janitarr run --dry-run` previews without triggering
+  - [ ] `janitarr status` shows scheduler state
+  - [ ] `janitarr config show` displays current config
+  - [ ] `janitarr config set limits.missing 20` updates value
+  - [ ] `janitarr logs` displays recent activity
+  - [ ] Web UI at http://localhost:3434 works
+  - [ ] All pages load without errors
+  - [ ] Dark mode toggle works
+  - [ ] WebSocket log streaming works
+  - [ ] Ctrl+C gracefully shuts down
+
+- [ ] Run all tests:
+
+  ```bash
+  go test -race ./...       # Unit tests
+  make test-e2e             # E2E tests
+  ```
+
+- [ ] Build release binary:
+  ```bash
+  make build
+  ls -la janitarr           # Verify binary exists
+  ./janitarr --version      # Verify version
+  ```
 
 ---
 
-### Task 2.3: Unit Tests for Metrics ✅ COMPLETE
-**Impact:** MEDIUM - Required for reliable metrics
-**Status:** ✅ COMPLETE (2026-01-17)
+## Verification Checklist
 
-**Test Cases:**
-- [x] Metrics formatting follows Prometheus spec
-- [x] All required metrics present
-- [x] Counter increment behavior
-- [x] Gauge update behavior
-- [x] Label formatting correct
-- [x] Histogram behavior
-- [x] Edge cases and error handling
+### Functional
 
-**Files Created:**
-- `tests/lib/metrics.test.ts` - Metrics utility tests (31 tests, all passing)
-- `tests/web/routes/metrics.test.ts` - Metrics endpoint tests (6 tests, all passing)
+- [ ] `janitarr start` launches scheduler + web server
+- [ ] `janitarr dev` launches with verbose logging
+- [ ] `janitarr server add` creates new server
+- [ ] `janitarr server list` shows all servers
+- [ ] `janitarr server test <name>` validates connection
+- [ ] `janitarr run` executes automation cycle
+- [ ] `janitarr run --dry-run` previews without triggering
+- [ ] `janitarr status` shows scheduler state
+- [ ] `janitarr config show` displays config
+- [ ] `janitarr config set` updates config
+- [ ] `janitarr logs` displays activity logs
 
-**Test Coverage:**
-- Prometheus text format validation
-- HELP and TYPE annotations
-- Metric naming conventions (janitarr_ prefix, snake_case labels)
-- Counter monotonic behavior
-- Gauge current state reflection
-- Histogram buckets, sum, and count
-- HTTP request duration tracking
-- Search and cycle counter increments
-- Performance validation (< 200ms response time)
+### Web UI
 
----
+- [ ] Dashboard shows accurate stats
+- [ ] Servers page allows CRUD operations
+- [ ] Logs page streams in real-time
+- [ ] Settings page saves correctly
+- [ ] Dark mode toggle works
+- [ ] Responsive on mobile
 
-## Priority 3: Documentation Updates (SHOULD DO)
+### API
 
-### Task 3.1: Update User Documentation ✅ COMPLETE
-**Impact:** MEDIUM - Required for user adoption
-**Status:** ✅ COMPLETE (2026-01-17)
+- [ ] All REST endpoints return correct data
+- [ ] WebSocket log streaming works
+- [ ] Health endpoint reports accurate status
+- [ ] Prometheus metrics endpoint works
 
-**Implementation:**
-- Updated `README.md` with new `start` and `dev` commands
-- Changed default port from 3000 to 3434 throughout documentation
-- Updated quick start section with unified service startup examples
-- Added port configuration examples (`--port`, `--host` flags)
-- Removed all references to deprecated `serve` command
-- Updated `docs/user-guide.md` with comprehensive unified startup documentation
-  - New "Start Services" section with production and development modes
-  - Port configuration examples
-  - Development workflow with Vite proxy
-  - Service lifecycle documentation (start, stop, status)
-- Updated `docs/troubleshooting.md` with new unified startup troubleshooting sections
-  - Development mode proxy issues
-  - Port conflicts
-  - Graceful shutdown timeout
-  - Health check endpoint diagnostics
-  - Metrics endpoint issues
+### Testing
 
-**Updates Completed:**
-- [x] `docs/user-guide.md` - Updated startup commands section
-- [x] `docs/troubleshooting.md` - Added unified startup issues section
-- [x] `README.md` - Updated quick start with new commands
-- [x] Removed all references to `serve` command
+- [ ] `go test ./...` passes
+- [ ] Playwright E2E tests pass
+- [ ] No race conditions (`go test -race ./...`)
 
 ---
 
-### Task 3.2: Update API Documentation ✅ COMPLETE
-**Impact:** MEDIUM - Required for API consumers
-**Status:** ✅ COMPLETE (2026-01-17)
+## Notes
 
-**Implementation:**
-- Updated `docs/api-reference.md` base URL from localhost:3000 to localhost:3434
-- Documented enhanced `/api/health` endpoint with comprehensive response format
-  - Three response states: `ok`, `degraded`, `error`
-  - Detailed service status (webServer, scheduler, database)
-  - HTTP status codes (200 for ok/degraded, 503 for error)
-  - Performance characteristics (< 100ms response time)
-  - Use cases and examples
-- Documented new `/metrics` endpoint with Prometheus text format
-  - Complete metric listing (application, scheduler, search, server, database, HTTP)
-  - Sample response showing all metric types (gauge, counter, histogram)
-  - Metric naming conventions (janitarr_ prefix, snake_case labels)
-  - Prometheus scrape configuration example
-  - Performance characteristics (< 200ms response time)
-  - Use cases for monitoring and observability
+### Breaking Changes from TypeScript Version
 
-**Updates Completed:**
-- [x] `docs/api-reference.md` - Documented enhanced `/api/health` response
-- [x] `docs/api-reference.md` - Documented new `/metrics` endpoint
-- [x] Updated base URL to reflect new default port (3434)
-- [x] Updated WebSocket endpoint URL to reflect new default port
+- Fresh database - users must re-add servers
+- New encryption key - not compatible with old encrypted data
+- React UI replaced with server-rendered HTML
+- Some API response shapes may differ slightly
 
----
+### Performance Considerations
 
-## Completed Features ✅ (Original Spec)
+- Single binary deployment (no Node.js required)
+- Lower memory footprint than Bun runtime
+- SQLite with connection pooling
+- Efficient template rendering with templ
 
-### 1. Server Configuration (100% Complete)
-**Spec:** `specs/server-configuration.md`
-- ✅ Add/edit/remove Radarr and Sonarr servers
-- ✅ URL normalization and validation
-- ✅ Connection testing with 10-15 second timeout
-- ✅ API key encryption at rest (AES-256-GCM)
+### Future Improvements (Not in Scope)
 
-### 2. Missing Content Detection (100% Complete)
-**Spec:** `specs/missing-content-detection.md`
-- ✅ Query Radarr for missing monitored movies
-- ✅ Query Sonarr for missing monitored episodes
-- ✅ Aggregate results across all servers
-
-### 3. Quality Cutoff Detection (100% Complete)
-**Spec:** `specs/quality-cutoff-detection.md`
-- ✅ Query Radarr/Sonarr for items below quality cutoff
-- ✅ Aggregate results across all servers
-
-### 4. Search Triggering with Granular Limits (100% Complete)
-**Spec:** `specs/search-triggering.md`
-- ✅ 4 independent search limits
-- ✅ Fair round-robin distribution across servers
-- ✅ Dry-run mode for previewing searches
-
-### 5. Automatic Scheduling (100% Complete)
-**Spec:** `specs/automatic-scheduling.md`
-- ✅ Configurable interval (minimum 1 hour)
-- ✅ Background daemon with persistent schedule
-- ✅ Manual trigger without affecting schedule
-
-### 6. Activity Logging (100% Complete)
-**Spec:** `specs/activity-logging.md`
-- ✅ Individual search entries with timestamps
-- ✅ 30-day automatic log retention
-- ✅ Real-time WebSocket streaming
-
-### 7. Web Backend API (100% Complete)
-**Spec:** `specs/web-frontend.md` Phase 2.1
-- ✅ All REST API endpoints
-- ✅ WebSocket server for log streaming
-
-### 8. Web Frontend (100% Complete)
-**Spec:** `specs/web-frontend.md` Phases 2.2-2.3
-- ✅ Dashboard, Servers, Logs, Settings views
-- ✅ Mobile responsive design
-- ✅ WCAG 2.1 Level AA accessibility
-
----
-
-## Test Suite Summary
-
-**Current Status:** 237 tests passing (198 unit, 36 frontend, 3 E2E)
-
-**Test Commands:**
-```bash
-bun run test          # Backend unit tests (198 tests)
-bun run test:ui       # Frontend tests (36 tests)
-bun run test:e2e      # E2E tests (3 tests)
-bun run test:all      # All unit + frontend tests
-```
-
----
-
-## Task Priority Summary
-
-| Priority | Task | Status | Impact |
-|----------|------|--------|--------|
-| P1 | 1.1 Update `start` command | ✅ Complete | HIGH |
-| P1 | 1.2 Add `dev` command | ✅ Complete | HIGH |
-| P1 | 1.3 Remove `serve` command | ✅ Complete | MEDIUM |
-| P1 | 1.4 Enhanced health check | ✅ Complete | HIGH |
-| P1 | 1.5 Prometheus metrics | ✅ Complete | HIGH |
-| P1 | 1.6 Graceful shutdown | ✅ Complete | MEDIUM |
-| P2 | 2.1 Tests for unified startup | ✅ Complete | HIGH |
-| P2 | 2.2 Tests for health check | ✅ Complete | MEDIUM |
-| P2 | 2.3 Tests for metrics | ✅ Complete | MEDIUM |
-| P3 | 3.1 Update user docs | ✅ Complete | MEDIUM |
-| P3 | 3.2 Update API docs | ✅ Complete | MEDIUM |
-
----
-
-## Recommended Implementation Order
-
-1. ~~**Task 1.4: Enhanced Health Check**~~ ✅ COMPLETE - Foundation for monitoring
-2. ~~**Task 1.5: Prometheus Metrics**~~ ✅ COMPLETE - Foundation for observability
-3. ~~**Task 1.1: Update `start` command**~~ ✅ COMPLETE - Core unified startup
-4. ~~**Task 1.2: Add `dev` command**~~ ✅ COMPLETE - Developer experience
-5. ~~**Task 1.3: Remove `serve` command**~~ ✅ COMPLETE - Cleanup
-6. ~~**Task 1.6: Graceful shutdown**~~ ✅ COMPLETE - Production reliability
-7. ~~**Task 2.1: Tests for unified startup**~~ ✅ COMPLETE - CLI command validation
-8. ~~**Task 2.2: Tests for health check**~~ ✅ COMPLETE - Health endpoint validation
-9. ~~**Task 2.3: Tests for metrics**~~ ✅ COMPLETE - Metrics validation
-10. **Task 3.x: Documentation** - User communication (OPTIONAL)
-
----
-
-## Overall Assessment
-
-**Status: ✅ 100% COMPLETE - ALL FEATURES, TESTS, AND DOCUMENTATION FINISHED**
-
-All original specifications are complete and working. The unified service startup specification has been fully implemented, tested, and documented:
-- ✅ Enhanced health check endpoint - COMPLETE with tests (6 tests) and full documentation
-- ✅ Prometheus metrics endpoint - COMPLETE with tests (37 tests) and full documentation
-- ✅ Combining scheduler and web server into single process - COMPLETE with tests (19 tests) and documentation
-- ✅ New `dev` command for development mode - COMPLETE with tests (included in 19 CLI tests) and documentation
-- ✅ Removal of `serve` command (breaking change) - COMPLETE with tests and documentation updates
-- ✅ Improved graceful shutdown - COMPLETE with tests and documentation
-- ✅ User documentation updates - COMPLETE (README, user guide, troubleshooting)
-- ✅ API documentation updates - COMPLETE (health and metrics endpoints)
-
-**Progress:** 11 of 11 major tasks complete (6 implementation + 3 testing + 2 documentation)
-**Remaining Work:** None - project fully complete
-**Breaking Changes:** Yes (`start` behavior changes, `serve` removed) - all documented
-**Test Coverage:** 198 unit tests, 36 frontend tests, 3 E2E tests (237 total)
-**Documentation:** All user and API documentation updated to reflect new features
-
----
-
-**Last Reviewed:** 2026-01-17
-**Next Action:** None - implementation complete. Ready for deployment and user adoption.
+- Docker image
+- systemd service file
+- Configuration file support
+- Multi-user authentication

@@ -1,0 +1,11 @@
+# Minified vendor JS
+static/js/*.min.js
+
+# TypeScript reference directories (not actively developed)
+src-ts/
+ui-ts/
+
+# Generated
+node_modules/
+dist/
+.devenv/

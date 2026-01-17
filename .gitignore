@@ -13,3 +13,10 @@ ui/test-results/
 .devenv/
 .devenv.flake.nix
 devenv.lock
+
+# Go build artifacts
+/janitarr
+/tmp/
+
+# Generated CSS
+static/css/app.css
