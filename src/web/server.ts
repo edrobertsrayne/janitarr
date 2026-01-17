@@ -23,6 +23,8 @@ import { handleGetLogs, handleDeleteLogs, handleExportLogs } from "./routes/logs
 import { handleTriggerAutomation, handleGetAutomationStatus } from "./routes/automation";
 import { handleGetStatsSummary, handleGetServerStats } from "./routes/stats";
 import { handleHealthCheck } from "./routes/health";
+import { handleMetrics } from "./routes/metrics";
+import { recordHttpRequest } from "../lib/metrics";
 
 /** Web server options */
 export interface WebServerOptions {
@@ -106,6 +108,7 @@ export function createWebServer(options: WebServerOptions) {
       const url = new URL(req.url);
       const path = url.pathname;
       const method = req.method;
+      const startTime = performance.now();
 
       // Handle WebSocket upgrade
       if (path === "/ws/logs") {
@@ -168,9 +171,11 @@ export function createWebServer(options: WebServerOptions) {
           response = await handleGetServerStats(path, db);
         } else if (path === "/api/health" && method === "GET") {
           response = await handleHealthCheck(db);
+        } else if (path === "/metrics" && method === "GET") {
+          response = handleMetrics();
         } else {
           // Serve static files from dist/public for non-API routes
-          if (!path.startsWith("/api/")) {
+          if (!path.startsWith("/api/") && !path.startsWith("/metrics")) {
             response = await serveStaticFile(path);
           } else {
             // 404 for unknown API routes
@@ -182,6 +187,11 @@ export function createWebServer(options: WebServerOptions) {
         for (const [key, value] of headers.entries()) {
           response.headers.set(key, value);
         }
+
+        // Track HTTP request metrics
+        const endTime = performance.now();
+        const durationMs = endTime - startTime;
+        recordHttpRequest(method, path, response.status, durationMs);
 
         return response;
       } catch (error) {
@@ -195,6 +205,11 @@ export function createWebServer(options: WebServerOptions) {
         for (const [key, value] of headers.entries()) {
           errorResponse.headers.set(key, value);
         }
+
+        // Track HTTP request metrics for errors
+        const endTime = performance.now();
+        const durationMs = endTime - startTime;
+        recordHttpRequest(method, path, errorResponse.status, durationMs);
 
         return errorResponse;
       }

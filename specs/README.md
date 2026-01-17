@@ -37,6 +37,7 @@ The specifications are implementation-agnostic and focus on _what_ the system sh
 | Spec | Code | Purpose |
 |------|------|---------|
 | [automatic-scheduling.md](./automatic-scheduling.md) | `src/lib/scheduler.ts`<br>`src/services/automation.ts` | Configuring and executing detection and search operations on a scheduled interval<br>**Includes:** Manual triggers, dry-run preview mode |
+| [unified-service-startup.md](./unified-service-startup.md) | `src/cli/commands.ts`<br>`src/web/server.ts`<br>`src/lib/metrics.ts` | Running scheduler daemon and web server together with unified startup commands<br>**Includes:** Development mode, production mode, health checks, Prometheus metrics |
 
 ### Monitoring
 
@@ -68,8 +69,9 @@ If you're new to the project, read the specifications in this recommended order:
 2. Read the detection specs: [missing-content-detection.md](./missing-content-detection.md) and [quality-cutoff-detection.md](./quality-cutoff-detection.md)
 3. Understand actions via [search-triggering.md](./search-triggering.md)
 4. Learn about automation in [automatic-scheduling.md](./automatic-scheduling.md)
-5. Review [activity-logging.md](./activity-logging.md) for visibility requirements
-6. (Optional) See [web-frontend.md](./web-frontend.md) for web UI specifications
+5. See [unified-service-startup.md](./unified-service-startup.md) for running the complete application
+6. Review [activity-logging.md](./activity-logging.md) for visibility requirements
+7. (Optional) See [web-frontend.md](./web-frontend.md) for web UI specifications
 
 ## Contributing
 

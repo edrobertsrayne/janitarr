@@ -9,6 +9,7 @@ import type { ServerType, MediaItem, DetectionResult } from "../types";
 import { RadarrClient, SonarrClient, createClient } from "../lib/api-client";
 import { getDatabase } from "../storage/database";
 import type { AggregatedResults } from "./detector";
+import { incrementSearchCounter } from "../lib/metrics";
 
 /** Result of a single search trigger attempt */
 export interface SearchTriggerResult {
@@ -216,8 +217,16 @@ export async function triggerSearches(
       if (result.success) {
         successCount++;
         missingTriggered += result.itemIds.length;
+        // Track successful search metrics
+        if (!dryRun) {
+          incrementSearchCounter(server.type as "radarr" | "sonarr", "missing", result.itemIds.length, false);
+        }
       } else {
         failureCount++;
+        // Track failed search metrics
+        if (!dryRun) {
+          incrementSearchCounter(server.type as "radarr" | "sonarr", "missing", result.itemIds.length, true);
+        }
       }
     }
   }
@@ -251,8 +260,16 @@ export async function triggerSearches(
       if (result.success) {
         successCount++;
         missingTriggered += result.itemIds.length;
+        // Track successful search metrics
+        if (!dryRun) {
+          incrementSearchCounter(server.type as "radarr" | "sonarr", "missing", result.itemIds.length, false);
+        }
       } else {
         failureCount++;
+        // Track failed search metrics
+        if (!dryRun) {
+          incrementSearchCounter(server.type as "radarr" | "sonarr", "missing", result.itemIds.length, true);
+        }
       }
     }
   }
@@ -286,8 +303,16 @@ export async function triggerSearches(
       if (result.success) {
         successCount++;
         cutoffTriggered += result.itemIds.length;
+        // Track successful search metrics
+        if (!dryRun) {
+          incrementSearchCounter(server.type as "radarr" | "sonarr", "cutoff", result.itemIds.length, false);
+        }
       } else {
         failureCount++;
+        // Track failed search metrics
+        if (!dryRun) {
+          incrementSearchCounter(server.type as "radarr" | "sonarr", "cutoff", result.itemIds.length, true);
+        }
       }
     }
   }
@@ -321,8 +346,16 @@ export async function triggerSearches(
       if (result.success) {
         successCount++;
         cutoffTriggered += result.itemIds.length;
+        // Track successful search metrics
+        if (!dryRun) {
+          incrementSearchCounter(server.type as "radarr" | "sonarr", "cutoff", result.itemIds.length, false);
+        }
       } else {
         failureCount++;
+        // Track failed search metrics
+        if (!dryRun) {
+          incrementSearchCounter(server.type as "radarr" | "sonarr", "cutoff", result.itemIds.length, true);
+        }
       }
     }
   }

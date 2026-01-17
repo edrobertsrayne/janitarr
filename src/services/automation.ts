@@ -14,6 +14,7 @@ import {
   logServerError,
   logSearchError,
 } from "../lib/logger";
+import { incrementCycleCounter } from "../lib/metrics";
 
 /** Result of a complete automation cycle */
 export interface CycleResult {
@@ -77,6 +78,8 @@ export async function runAutomationCycle(
     // Log cycle end with failure (only if not dry-run)
     if (!dryRun) {
       logCycleEnd(0, errors.length, isManual);
+      // Track failed cycle metrics
+      incrementCycleCounter(true);
     }
 
     return {
@@ -169,6 +172,8 @@ export async function runAutomationCycle(
   // Log cycle end (only if not dry-run)
   if (!dryRun) {
     logCycleEnd(totalSearches, totalFailures, isManual);
+    // Track cycle metrics
+    incrementCycleCounter(totalFailures > 0);
   }
 
   return {

@@ -180,6 +180,18 @@ export class DatabaseManager {
     this.db.close();
   }
 
+  /**
+   * Test database connection
+   */
+  testConnection(): boolean {
+    try {
+      this.db.query<{ result: number }, []>("SELECT 1 as result").get();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   // ============== Server Operations ==============
 
   /**
@@ -220,6 +232,19 @@ export class DatabaseManager {
   async getAllServers(): Promise<ServerConfig[]> {
     const rows = this.db.query<ServerRow, []>("SELECT * FROM servers ORDER BY name").all();
     return Promise.all(rows.map(row => this.rowToServer(row)));
+  }
+
+  /**
+   * Get all servers without decrypting API keys (for metrics)
+   */
+  listServers(): Array<{ id: string; name: string; type: ServerType; enabled: boolean }> {
+    const rows = this.db.query<ServerRow, []>("SELECT * FROM servers ORDER BY name").all();
+    return rows.map(row => ({
+      id: row.id,
+      name: row.name,
+      type: row.type as ServerType,
+      enabled: true, // All servers in DB are enabled for now
+    }));
   }
 
   /**
