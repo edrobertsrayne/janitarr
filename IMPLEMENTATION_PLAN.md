@@ -1,8 +1,8 @@
 # Janitarr Implementation Plan
 
 **Last Updated:** 2026-01-17
-**Status:** ✅ FEATURE COMPLETE - All Unified Service Startup Features Implemented
-**Overall Completion:** 100% (All core features and unified service startup complete)
+**Status:** ✅ COMPLETE - All Features and Documentation Finished
+**Overall Completion:** 100% (All core features, unified service startup, and documentation complete)
 
 ---
 
@@ -332,25 +332,61 @@ Janitarr is a production-ready automation tool for managing Radarr/Sonarr media 
 
 ## Priority 3: Documentation Updates (SHOULD DO)
 
-### Task 3.1: Update User Documentation
+### Task 3.1: Update User Documentation ✅ COMPLETE
 **Impact:** MEDIUM - Required for user adoption
-**Status:** ❌ NOT STARTED
+**Status:** ✅ COMPLETE (2026-01-17)
 
-**Updates Required:**
-- [ ] `docs/user-guide.md` - Update startup commands section
-- [ ] `docs/troubleshooting.md` - Add unified startup issues
-- [ ] `README.md` - Update quick start with new commands
-- [ ] Remove all references to `serve` command
+**Implementation:**
+- Updated `README.md` with new `start` and `dev` commands
+- Changed default port from 3000 to 3434 throughout documentation
+- Updated quick start section with unified service startup examples
+- Added port configuration examples (`--port`, `--host` flags)
+- Removed all references to deprecated `serve` command
+- Updated `docs/user-guide.md` with comprehensive unified startup documentation
+  - New "Start Services" section with production and development modes
+  - Port configuration examples
+  - Development workflow with Vite proxy
+  - Service lifecycle documentation (start, stop, status)
+- Updated `docs/troubleshooting.md` with new unified startup troubleshooting sections
+  - Development mode proxy issues
+  - Port conflicts
+  - Graceful shutdown timeout
+  - Health check endpoint diagnostics
+  - Metrics endpoint issues
+
+**Updates Completed:**
+- [x] `docs/user-guide.md` - Updated startup commands section
+- [x] `docs/troubleshooting.md` - Added unified startup issues section
+- [x] `README.md` - Updated quick start with new commands
+- [x] Removed all references to `serve` command
 
 ---
 
-### Task 3.2: Update API Documentation
+### Task 3.2: Update API Documentation ✅ COMPLETE
 **Impact:** MEDIUM - Required for API consumers
-**Status:** ❌ NOT STARTED
+**Status:** ✅ COMPLETE (2026-01-17)
 
-**Updates Required:**
-- [ ] `docs/api-reference.md` - Document enhanced `/api/health` response
-- [ ] `docs/api-reference.md` - Document new `/metrics` endpoint
+**Implementation:**
+- Updated `docs/api-reference.md` base URL from localhost:3000 to localhost:3434
+- Documented enhanced `/api/health` endpoint with comprehensive response format
+  - Three response states: `ok`, `degraded`, `error`
+  - Detailed service status (webServer, scheduler, database)
+  - HTTP status codes (200 for ok/degraded, 503 for error)
+  - Performance characteristics (< 100ms response time)
+  - Use cases and examples
+- Documented new `/metrics` endpoint with Prometheus text format
+  - Complete metric listing (application, scheduler, search, server, database, HTTP)
+  - Sample response showing all metric types (gauge, counter, histogram)
+  - Metric naming conventions (janitarr_ prefix, snake_case labels)
+  - Prometheus scrape configuration example
+  - Performance characteristics (< 200ms response time)
+  - Use cases for monitoring and observability
+
+**Updates Completed:**
+- [x] `docs/api-reference.md` - Documented enhanced `/api/health` response
+- [x] `docs/api-reference.md` - Documented new `/metrics` endpoint
+- [x] Updated base URL to reflect new default port (3434)
+- [x] Updated WebSocket endpoint URL to reflect new default port
 
 ---
 
@@ -432,8 +468,8 @@ bun run test:all      # All unit + frontend tests
 | P2 | 2.1 Tests for unified startup | ✅ Complete | HIGH |
 | P2 | 2.2 Tests for health check | ✅ Complete | MEDIUM |
 | P2 | 2.3 Tests for metrics | ✅ Complete | MEDIUM |
-| P3 | 3.1 Update user docs | ❌ Not Started | MEDIUM |
-| P3 | 3.2 Update API docs | ❌ Not Started | MEDIUM |
+| P3 | 3.1 Update user docs | ✅ Complete | MEDIUM |
+| P3 | 3.2 Update API docs | ✅ Complete | MEDIUM |
 
 ---
 
@@ -454,22 +490,25 @@ bun run test:all      # All unit + frontend tests
 
 ## Overall Assessment
 
-**Status: ✅ ALL FEATURES AND TESTING COMPLETE**
+**Status: ✅ 100% COMPLETE - ALL FEATURES, TESTS, AND DOCUMENTATION FINISHED**
 
-All original specifications are complete and working. The unified service startup specification has been fully implemented and tested:
-- ✅ Enhanced health check endpoint - COMPLETE with tests (6 tests)
-- ✅ Prometheus metrics endpoint - COMPLETE with tests (37 tests)
-- ✅ Combining scheduler and web server into single process - COMPLETE with tests (19 tests)
-- ✅ New `dev` command for development mode - COMPLETE with tests (included in 19 CLI tests)
-- ✅ Removal of `serve` command (breaking change) - COMPLETE with tests
-- ✅ Improved graceful shutdown - COMPLETE with tests
+All original specifications are complete and working. The unified service startup specification has been fully implemented, tested, and documented:
+- ✅ Enhanced health check endpoint - COMPLETE with tests (6 tests) and full documentation
+- ✅ Prometheus metrics endpoint - COMPLETE with tests (37 tests) and full documentation
+- ✅ Combining scheduler and web server into single process - COMPLETE with tests (19 tests) and documentation
+- ✅ New `dev` command for development mode - COMPLETE with tests (included in 19 CLI tests) and documentation
+- ✅ Removal of `serve` command (breaking change) - COMPLETE with tests and documentation updates
+- ✅ Improved graceful shutdown - COMPLETE with tests and documentation
+- ✅ User documentation updates - COMPLETE (README, user guide, troubleshooting)
+- ✅ API documentation updates - COMPLETE (health and metrics endpoints)
 
-**Progress:** 9 of 9 major tasks complete (6 implementation + 3 testing)
-**Remaining Work:** Documentation updates (Priority 3, optional)
-**Breaking Changes:** Yes (`start` behavior changes, `serve` removed)
+**Progress:** 11 of 11 major tasks complete (6 implementation + 3 testing + 2 documentation)
+**Remaining Work:** None - project fully complete
+**Breaking Changes:** Yes (`start` behavior changes, `serve` removed) - all documented
 **Test Coverage:** 198 unit tests, 36 frontend tests, 3 E2E tests (237 total)
+**Documentation:** All user and API documentation updated to reflect new features
 
 ---
 
 **Last Reviewed:** 2026-01-17
-**Next Action:** Update documentation (Task 3.1, 3.2) - optional improvements
+**Next Action:** None - implementation complete. Ready for deployment and user adoption.
