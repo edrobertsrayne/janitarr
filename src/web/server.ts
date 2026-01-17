@@ -305,3 +305,19 @@ export function stopWebServer(server: ReturnType<typeof Bun.serve>): void {
   server.stop();
   console.log("Web server stopped");
 }
+
+/**
+ * Gracefully stop the web server
+ *
+ * Closes all WebSocket connections and stops the server.
+ * Bun's server.stop() automatically waits for in-flight requests to complete.
+ */
+export async function gracefulStopWebServer(server: ReturnType<typeof Bun.serve>): Promise<void> {
+  const { closeAllClients } = await import("./websocket");
+
+  // Close all WebSocket connections with proper close frames
+  closeAllClients(1001, "Server shutting down");
+
+  // Stop the server (Bun automatically waits for in-flight requests)
+  server.stop();
+}

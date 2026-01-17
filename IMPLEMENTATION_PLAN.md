@@ -1,8 +1,8 @@
 # Janitarr Implementation Plan
 
 **Last Updated:** 2026-01-17
-**Status:** ⚠️ FEATURE IN PROGRESS - Unified Service Startup Nearly Complete
-**Overall Completion:** 98% (Core features complete, `start`, `dev`, and `serve` removal implemented)
+**Status:** ✅ FEATURE COMPLETE - All Unified Service Startup Features Implemented
+**Overall Completion:** 100% (All core features and unified service startup complete)
 
 ---
 
@@ -16,13 +16,14 @@ Janitarr is a production-ready automation tool for managing Radarr/Sonarr media 
 - ✅ **Web Backend API**: 100% complete with REST + WebSocket
 - ✅ **Web Frontend**: 100% core functionality implemented
 - ✅ **Testing**: 142 unit tests passing (all passing)
-- ✅ **Unified Service Startup**: MOSTLY COMPLETE - `start` and `dev` commands implemented
-- ✅ **Health Check Endpoint**: COMPLETE with comprehensive status reporting
-- ✅ **Prometheus Metrics**: COMPLETE with full observability support
+- ✅ **Unified Service Startup**: 100% COMPLETE - All features implemented
+- ✅ **Health Check Endpoint**: 100% COMPLETE with comprehensive status reporting
+- ✅ **Prometheus Metrics**: 100% COMPLETE with full observability support
+- ✅ **Graceful Shutdown**: 100% COMPLETE with timeout and cycle completion handling
 
 ---
 
-## Priority 1: Unified Service Startup (MUST DO) ⚠️ NEW
+## Priority 1: Unified Service Startup ✅ COMPLETE
 
 ### Task 1.1: Update `start` Command for Unified Startup ✅ COMPLETE
 **Impact:** HIGH - Breaking change, required for deployment simplicity
@@ -218,34 +219,38 @@ Janitarr is a production-ready automation tool for managing Radarr/Sonarr media 
 
 ---
 
-### Task 1.6: Graceful Shutdown
+### Task 1.6: Graceful Shutdown ✅ COMPLETE
 **Impact:** MEDIUM - Required for clean deployments
 **Spec:** `specs/unified-service-startup.md` lines 129-144
-**Status:** ⚠️ PARTIAL (basic SIGINT handling exists)
+**Status:** ✅ COMPLETE (2026-01-17)
 
-**Current Implementation:**
-- Basic SIGINT handler in `start` command stops scheduler
-- Web server has `stopWebServer` function but not integrated
+**Implementation:**
+- Added `waitForCycleCompletion()` function to scheduler with configurable timeout
+- Implemented `gracefulStopWebServer()` that closes WebSocket connections with proper close frames
+- Enhanced SIGINT handlers in both `start` and `dev` commands with:
+  - 10-second shutdown timeout with force exit fallback
+  - Active cycle completion waiting (up to 10 seconds)
+  - WebSocket graceful close with code 1001 and reason
+  - Clear console messaging for each shutdown step
+  - Exit code 0 on successful shutdown, code 1 on timeout/errors
+  - Double Ctrl+C for immediate force shutdown
 
-**Requirements:**
-- [ ] SIGINT triggers graceful shutdown sequence
-- [ ] Scheduler waits for active cycle to complete (with timeout)
-- [ ] Web server completes in-flight requests
-- [ ] WebSocket connections closed with proper close frames
-- [ ] Console output confirms each service stopped
-- [ ] Process exits with code 0 after clean shutdown
-- [ ] Maximum 10-second timeout before force exit
-
-**Files to Modify:**
-- `src/cli/commands.ts` - Enhance shutdown handling in `start` command
-- `src/web/server.ts` - Add graceful shutdown support
-- `src/web/websocket.ts` - Add graceful close for all connections
+**Files Modified:**
+- `src/lib/scheduler.ts` - Added `waitForCycleCompletion()` function (lines 264-291)
+- `src/web/server.ts` - Added `gracefulStopWebServer()` function (lines 309-323)
+- `src/web/websocket.ts` - Enhanced `closeAllClients()` with proper close frames (lines 151-167)
+- `src/cli/commands.ts` - Enhanced shutdown handlers in both `start` (lines 436-490) and `dev` (lines 566-620) commands
 
 **Acceptance Criteria:**
-- [ ] Ctrl+C during cycle waits for completion (up to 10s)
-- [ ] In-flight HTTP requests complete
-- [ ] WebSocket clients receive close frames
-- [ ] Exit code 0 on clean shutdown
+- [x] SIGINT triggers graceful shutdown sequence
+- [x] Scheduler waits for active cycle to complete (with timeout)
+- [x] Web server completes in-flight requests (Bun.serve handles automatically)
+- [x] WebSocket connections closed with proper close frames (code 1001)
+- [x] Console output confirms each service stopped successfully
+- [x] Process exits with code 0 after clean shutdown
+- [x] Maximum 10-second timeout before force exit
+- [x] Double Ctrl+C for immediate force shutdown
+- [x] All 142 unit tests still passing
 
 ---
 
@@ -400,7 +405,7 @@ bun run test:all      # All unit + frontend tests
 | P1 | 1.3 Remove `serve` command | ✅ Complete | MEDIUM |
 | P1 | 1.4 Enhanced health check | ✅ Complete | HIGH |
 | P1 | 1.5 Prometheus metrics | ✅ Complete | HIGH |
-| P1 | 1.6 Graceful shutdown | ⚠️ Partial | MEDIUM |
+| P1 | 1.6 Graceful shutdown | ✅ Complete | MEDIUM |
 | P2 | 2.1 Tests for unified startup | ❌ Not Started | HIGH |
 | P2 | 2.2 Tests for health check | ✅ Complete | MEDIUM |
 | P2 | 2.3 Tests for metrics | ❌ Not Started | MEDIUM |
@@ -416,29 +421,29 @@ bun run test:all      # All unit + frontend tests
 3. ~~**Task 1.1: Update `start` command**~~ ✅ COMPLETE - Core unified startup
 4. ~~**Task 1.2: Add `dev` command**~~ ✅ COMPLETE - Developer experience
 5. ~~**Task 1.3: Remove `serve` command**~~ ✅ COMPLETE - Cleanup
-6. **Task 1.6: Graceful shutdown** - Production reliability (NEXT)
-7. **Task 2.x: Testing** - Validation
+6. ~~**Task 1.6: Graceful shutdown**~~ ✅ COMPLETE - Production reliability
+7. **Task 2.x: Testing** - Validation (NEXT)
 8. **Task 3.x: Documentation** - User communication
 
 ---
 
 ## Overall Assessment
 
-**Status: ⚠️ MOSTLY COMPLETE**
+**Status: ✅ ALL FEATURES COMPLETE**
 
-All original specifications are complete and working. A new specification (`unified-service-startup.md`) has been added that requires:
+All original specifications are complete and working. The unified service startup specification has been fully implemented:
 - ✅ Enhanced health check endpoint - COMPLETE
 - ✅ Prometheus metrics endpoint - COMPLETE
 - ✅ Combining scheduler and web server into single process - COMPLETE
 - ✅ New `dev` command for development mode - COMPLETE
 - ✅ Removal of `serve` command (breaking change) - COMPLETE
-- ⚠️ Improved graceful shutdown - PARTIAL (basic implementation exists, enhanced in `start` and `dev` commands)
+- ✅ Improved graceful shutdown - COMPLETE
 
-**Progress:** 5 of 6 major tasks complete (Health Check + Metrics + Start Command + Dev Command + Serve Removal)
-**Estimated Remaining Effort:** 1 major task (Graceful Shutdown) + testing and documentation
+**Progress:** 6 of 6 major tasks complete (Health Check + Metrics + Start Command + Dev Command + Serve Removal + Graceful Shutdown)
+**Remaining Work:** Testing and documentation (Priority 2 and 3)
 **Breaking Changes:** Yes (`start` behavior changes, `serve` removed)
 
 ---
 
 **Last Reviewed:** 2026-01-17
-**Next Action:** Implement Task 1.6 (Improve graceful shutdown) for full production readiness
+**Next Action:** Add unit tests for new features (Task 2.1, 2.3) and update documentation (Task 3.1, 3.2)

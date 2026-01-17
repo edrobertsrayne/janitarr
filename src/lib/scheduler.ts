@@ -260,3 +260,32 @@ export function isRunning(): boolean {
 export function isCycleActive(): boolean {
   return state.isCycleActive;
 }
+
+/**
+ * Wait for any active cycle to complete
+ *
+ * @param timeoutMs - Maximum time to wait in milliseconds (default: 10000)
+ * @returns Promise that resolves when cycle completes or timeout occurs
+ */
+export async function waitForCycleCompletion(timeoutMs = 10000): Promise<boolean> {
+  if (!state.isCycleActive) {
+    return true; // No cycle active, return immediately
+  }
+
+  return new Promise((resolve) => {
+    const startTime = Date.now();
+    const checkInterval = 100; // Check every 100ms
+
+    const intervalId = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+
+      if (!state.isCycleActive) {
+        clearInterval(intervalId);
+        resolve(true); // Cycle completed
+      } else if (elapsed >= timeoutMs) {
+        clearInterval(intervalId);
+        resolve(false); // Timeout reached
+      }
+    }, checkInterval);
+  });
+}

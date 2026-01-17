@@ -149,12 +149,16 @@ export function getClientCount(): number {
 }
 
 /**
- * Close all WebSocket connections
+ * Close all WebSocket connections gracefully
+ *
+ * @param code - WebSocket close code (default: 1001 Going Away)
+ * @param reason - Human-readable close reason
  */
-export function closeAllClients(): void {
+export function closeAllClients(code = 1001, reason = "Server shutting down"): void {
   for (const client of clients) {
     try {
-      client.close();
+      // Send close frame with code and reason
+      client.close(code, reason);
     } catch (error) {
       console.error("Failed to close WebSocket client:", error);
     }

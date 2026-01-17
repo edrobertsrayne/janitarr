@@ -434,24 +434,55 @@ export function createProgram(): Command {
       console.log(fmt.info("Press Ctrl+C to stop"));
 
       // Graceful shutdown on SIGINT
-      process.on("SIGINT", () => {
+      let isShuttingDown = false;
+      process.on("SIGINT", async () => {
+        if (isShuttingDown) {
+          console.log(fmt.warning("\nForce shutdown..."));
+          process.exit(1);
+        }
+        isShuttingDown = true;
+
         console.log();
         console.log(fmt.info("Shutting down gracefully..."));
 
-        // Stop scheduler
-        if (isSchedulerRunning()) {
-          stopScheduler();
-          console.log(fmt.success("✓ Scheduler stopped"));
-        }
+        // Set shutdown timeout (10 seconds)
+        const shutdownTimeout = setTimeout(() => {
+          console.log(fmt.warning("⚠ Shutdown timeout reached, forcing exit"));
+          process.exit(1);
+        }, 10000);
 
-        // Stop web server
-        if (webServer) {
-          webServer.stop();
-          console.log(fmt.success("✓ Web server stopped"));
-        }
+        try {
+          // Stop scheduler and wait for active cycle to complete
+          if (isSchedulerRunning()) {
+            const { waitForCycleCompletion, isCycleActive } = await import("../lib/scheduler");
 
-        console.log(fmt.success("Shutdown complete"));
-        process.exit(0);
+            if (isCycleActive()) {
+              console.log(fmt.info("  Waiting for active cycle to complete..."));
+              const completed = await waitForCycleCompletion(10000);
+              if (!completed) {
+                console.log(fmt.warning("  ⚠ Cycle did not complete within timeout"));
+              }
+            }
+
+            stopScheduler();
+            console.log(fmt.success("✓ Scheduler stopped"));
+          }
+
+          // Stop web server gracefully
+          if (webServer) {
+            const { gracefulStopWebServer } = await import("../web/server");
+            await gracefulStopWebServer(webServer);
+            console.log(fmt.success("✓ Web server stopped"));
+          }
+
+          clearTimeout(shutdownTimeout);
+          console.log(fmt.success("Shutdown complete"));
+          process.exit(0);
+        } catch (error) {
+          clearTimeout(shutdownTimeout);
+          console.log(fmt.error(`Shutdown error: ${error instanceof Error ? error.message : String(error)}`));
+          process.exit(1);
+        }
       });
 
       // Keep the process running
@@ -533,24 +564,55 @@ export function createProgram(): Command {
       console.log(fmt.header("HTTP Request Log:"));
 
       // Graceful shutdown on SIGINT
-      process.on("SIGINT", () => {
+      let isShuttingDown = false;
+      process.on("SIGINT", async () => {
+        if (isShuttingDown) {
+          console.log(fmt.warning("\nForce shutdown..."));
+          process.exit(1);
+        }
+        isShuttingDown = true;
+
         console.log();
         console.log(fmt.info("Shutting down gracefully..."));
 
-        // Stop scheduler
-        if (isSchedulerRunning()) {
-          stopScheduler();
-          console.log(fmt.success("✓ Scheduler stopped"));
-        }
+        // Set shutdown timeout (10 seconds)
+        const shutdownTimeout = setTimeout(() => {
+          console.log(fmt.warning("⚠ Shutdown timeout reached, forcing exit"));
+          process.exit(1);
+        }, 10000);
 
-        // Stop web server
-        if (webServer) {
-          webServer.stop();
-          console.log(fmt.success("✓ Web server stopped"));
-        }
+        try {
+          // Stop scheduler and wait for active cycle to complete
+          if (isSchedulerRunning()) {
+            const { waitForCycleCompletion, isCycleActive } = await import("../lib/scheduler");
 
-        console.log(fmt.success("Shutdown complete"));
-        process.exit(0);
+            if (isCycleActive()) {
+              console.log(fmt.info("  Waiting for active cycle to complete..."));
+              const completed = await waitForCycleCompletion(10000);
+              if (!completed) {
+                console.log(fmt.warning("  ⚠ Cycle did not complete within timeout"));
+              }
+            }
+
+            stopScheduler();
+            console.log(fmt.success("✓ Scheduler stopped"));
+          }
+
+          // Stop web server gracefully
+          if (webServer) {
+            const { gracefulStopWebServer } = await import("../web/server");
+            await gracefulStopWebServer(webServer);
+            console.log(fmt.success("✓ Web server stopped"));
+          }
+
+          clearTimeout(shutdownTimeout);
+          console.log(fmt.success("Shutdown complete"));
+          process.exit(0);
+        } catch (error) {
+          clearTimeout(shutdownTimeout);
+          console.log(fmt.error(`Shutdown error: ${error instanceof Error ? error.message : String(error)}`));
+          process.exit(1);
+        }
       });
 
       // Keep the process running
