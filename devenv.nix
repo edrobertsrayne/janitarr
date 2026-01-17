@@ -53,7 +53,7 @@
 
                 while [ "$current_iteration" -lt "$iterations" ]; do
                   echo "Running plan iteration $((current_iteration + 1)) of $iterations"
-                  cat PROMPT_plan.md | claude -p --model opus --output-format stream-json --verbose
+                  cat PROMPT_plan.md | claude -p --model opus --output-format stream-json --verbose --dangerously-skip-permissions
                   current_iteration=$((current_iteration + 1))
                 done
       '';
