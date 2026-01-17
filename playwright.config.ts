@@ -5,8 +5,8 @@ import { defineConfig, devices } from '@playwright/test';
  * Uses headless Chromium provided by devenv
  */
 export default defineConfig({
-  // Test directory
-  testDir: './tests/',
+  // Test directory - only E2E tests
+  testDir: './tests/e2e/',
 
   // Maximum time one test can run
   timeout: 30 * 1000,
@@ -59,20 +59,20 @@ export default defineConfig({
   // Run your local dev server before starting the tests
   webServer: [
     {
-      command: 'bun run src/index.ts serve', // Correct command, no explicit port needed
+      command: 'bun src/index.ts serve', // Backend server
       url: 'http://localhost:3000', // Correct URL to match default server port
       reuseExistingServer: !process.env.CI,
       timeout: 120 * 1000,
       stderr: 'pipe',
-      output: 'ignore'
+      stdout: 'pipe'
     },
     {
-      command: 'cd ui && bun run dev', // UI dev server
+      command: 'cd ui && node_modules/.bin/vite', // UI dev server (use direct path to vite)
       url: 'http://localhost:5173', // Vite's default port
       reuseExistingServer: !process.env.CI,
       timeout: 120 * 1000,
       stderr: 'pipe',
-      output: 'ignore'
+      stdout: 'pipe'
     }
   ],
 });

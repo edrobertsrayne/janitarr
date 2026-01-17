@@ -8,7 +8,7 @@
     "test": "bun test tests/lib/ tests/services/ tests/storage/",
     "test:integration": "bun test tests/integration/",
     "test:ui": "cd ui && bunx vitest run",
-    "test:e2e": "bunx playwright test tests/e2e/",
+    "test:e2e": "bunx playwright test",
     "test:all": "bun test tests/lib/ tests/services/ tests/storage/ && cd ui && bunx vitest run",
     "typecheck": "bunx tsc --noEmit",
     "lint": "bunx eslint ."
