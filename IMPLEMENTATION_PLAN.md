@@ -182,18 +182,18 @@ janitarr/
 
 **Reference:** `src-ts/lib/crypto.ts` (lines 1-107)
 
-- [ ] Create `src/crypto/crypto_test.go` with tests:
-  - [ ] `TestGenerateKey` - verifies 32-byte output
-  - [ ] `TestEncryptDecrypt` - round-trip encryption
-  - [ ] `TestEncryptFormat` - output matches `IV_BASE64:CIPHERTEXT_BASE64`
-  - [ ] `TestDecryptWrongKey` - returns error
-  - [ ] `TestDecryptInvalidFormat` - returns error for malformed input
-- [ ] Create `src/crypto/crypto.go` implementing:
-  - [ ] `GenerateKey() ([]byte, error)` - 32 random bytes
-  - [ ] `LoadOrCreateKey(path string) ([]byte, error)` - load from file or create new
-  - [ ] `Encrypt(plaintext string, key []byte) (string, error)` - AES-256-GCM
-  - [ ] `Decrypt(ciphertext string, key []byte) (string, error)` - AES-256-GCM
-- [ ] Verify: `go test ./src/crypto/...`
+- [x] Create `src/crypto/crypto_test.go` with tests:
+  - [x] `TestGenerateKey` - verifies 32-byte output
+  - [x] `TestEncryptDecrypt` - round-trip encryption
+  - [x] `TestEncryptFormat` - output matches `IV_BASE64:CIPHERTEXT_BASE64`
+  - [x] `TestDecryptWrongKey` - returns error
+  - [x] `TestDecryptInvalidFormat` - returns error for malformed input
+- [x] Create `src/crypto/crypto.go` implementing:
+  - [x] `GenerateKey() ([]byte, error)` - 32 random bytes
+  - [x] `LoadOrCreateKey(path string) ([]byte, error)` - load from file or create new
+  - [x] `Encrypt(plaintext string, key []byte) (string, error)` - AES-256-GCM
+  - [x] `Decrypt(ciphertext string, key []byte) (string, error)` - AES-256-GCM
+- [x] Verify: `go test ./src/crypto/...`
 
 ### Database Module
 
