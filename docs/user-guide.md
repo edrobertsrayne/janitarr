@@ -82,7 +82,7 @@ Before using Janitarr, you need:
    bun run start
    ```
 
-2. Open your browser to `http://localhost:3000`
+2. Open your browser to `http://localhost:3434`
 
 3. Navigate to the **Servers** page and click **Add Server**
 
@@ -134,12 +134,32 @@ The web interface provides a modern, user-friendly way to manage Janitarr.
 
 ### Accessing the Web Interface
 
-1. Start the server:
+1. Start the server (production mode):
    ```bash
    bun run start
    ```
 
-2. Open your browser to: `http://localhost:3000`
+2. Open your browser to: `http://localhost:3434`
+
+**Custom port:**
+```bash
+bun run src/index.ts start --port 8080
+```
+
+**Remote access:**
+```bash
+bun run src/index.ts start --host 0.0.0.0 --port 3434
+```
+
+**Development mode** (with hot-reloading):
+```bash
+# Terminal 1: Start backend with Vite proxy
+bun run src/index.ts dev
+
+# Terminal 2: Start Vite dev server
+cd ui && bun run dev
+```
+Access at `http://localhost:3434` (backend proxies to Vite).
 
 The web interface is fully responsive and works on desktop, tablet, and mobile devices.
 
@@ -400,35 +420,66 @@ janitarr run --dry-run
 - Running automation on-demand (outside schedule)
 - After adding new content to your library
 
-#### Start Scheduler
+#### Start Services
 
 ```bash
 janitarr start
 ```
 
-Starts the background scheduler daemon:
+Starts both scheduler and web server in a single process:
 - Runs automation on configured interval
-- Persists across terminal sessions
+- Serves web interface at `http://localhost:3434`
 - Runs first cycle immediately on startup
+- Graceful shutdown on Ctrl+C
 
-#### Stop Scheduler
+**Options:**
+```bash
+janitarr start --port 8080              # Custom port
+janitarr start --host 0.0.0.0           # Bind to all interfaces
+janitarr start --port 3000 --host 0.0.0.0  # Both options
+```
+
+#### Start in Development Mode
+
+```bash
+janitarr dev
+```
+
+Starts services in development mode:
+- Verbose logging for all HTTP requests
+- Proxies non-API requests to Vite dev server (`http://localhost:5173`)
+- Detailed stack traces in API errors
+- Automation cycle logging with timestamps
+- Same `--port` and `--host` options as production mode
+
+**Development workflow:**
+```bash
+# Terminal 1: Start backend services
+bun run src/index.ts dev
+
+# Terminal 2: Start Vite dev server
+cd ui && bun run dev
+```
+
+#### Stop Services
 
 ```bash
 janitarr stop
 ```
 
-Stops the background scheduler daemon:
-- Current cycle completes before stopping
+Stops the running services:
+- Current cycle completes before stopping (with timeout)
+- WebSocket connections closed gracefully
 - No more automated cycles until restarted
 - Manual runs still work
 
-#### Check Scheduler Status
+#### Check Service Status
 
 ```bash
 janitarr status
 ```
 
-Shows whether scheduler is running and when next cycle will execute.
+Shows whether services are running and when next cycle will execute.
 
 ### Configuration
 

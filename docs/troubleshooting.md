@@ -337,32 +337,35 @@ Common issues and solutions for Janitarr users.
 
 ## Scheduler Issues
 
-### Scheduler not running
+### Services not running
 
 **Symptoms**:
 - `janitarr status` shows "Scheduler not running"
+- Cannot access web interface
 - No automated cycles executing
 - Next run time not displayed
 
 **Possible Causes**:
 
-1. **Scheduler not started**
+1. **Services not started**
    - Never started or was stopped
 
    **Solution**:
    ```bash
-   janitarr start
+   janitarr start  # Starts both scheduler and web server
    ```
 
 2. **Automation disabled in config**
    - `schedule.enabled` set to false
+   - Web server still runs, but scheduler won't execute cycles
 
    **Solution**:
    ```bash
    # Enable automation
    janitarr config set schedule.enabled true
 
-   # Start scheduler
+   # Restart services
+   janitarr stop
    janitarr start
    ```
 
@@ -372,7 +375,7 @@ Common issues and solutions for Janitarr users.
 
    **Solution**:
    - Check system logs for crashes
-   - Restart scheduler: `janitarr start`
+   - Restart services: `janitarr start`
    - Consider using systemd or supervisor for persistence (see Development Guide)
 
 ### Scheduler runs too frequently or infrequently
@@ -460,33 +463,33 @@ Common issues and solutions for Janitarr users.
 
 **Symptoms**:
 - Browser shows "Connection refused"
-- Cannot reach http://localhost:3000
+- Cannot reach http://localhost:3434
 
 **Possible Causes**:
 
 1. **Server not running**
-   - Janitarr server not started
+   - Janitarr services not started
 
    **Solution**:
    ```bash
-   # Start server
-   bun run start
+   # Start services (production mode)
+   janitarr start
 
    # Or in development mode
-   bun run dev
+   janitarr dev
    ```
 
 2. **Wrong port**
-   - Server running on different port
-   - Port 3000 occupied by another process
+   - Server running on different port (default changed from 3000 to 3434)
+   - Port 3434 occupied by another process
 
    **Solution**:
    ```bash
-   # Check what's on port 3000
-   lsof -i :3000
+   # Check what's on port 3434
+   lsof -i :3434
 
    # Or use different port
-   PORT=3001 bun run start
+   janitarr start --port 8080
    ```
 
 3. **Firewall blocking**
@@ -495,14 +498,18 @@ Common issues and solutions for Janitarr users.
    **Solution**:
    - Check firewall rules
    - Temporarily disable firewall to test
-   - Add exception for port 3000
+   - Add exception for port 3434
 
 4. **Accessing from remote machine**
-   - Server bound to localhost only
+   - Server bound to localhost only (default)
 
    **Solution**:
-   - Access from same machine as server
-   - Or configure server to bind to 0.0.0.0 (see Development Guide)
+   ```bash
+   # Bind to all interfaces for remote access
+   janitarr start --host 0.0.0.0 --port 3434
+
+   # Then access from remote machine at http://server-ip:3434
+   ```
 
 ### Web interface loads but API requests fail
 
@@ -519,14 +526,20 @@ Common issues and solutions for Janitarr users.
    **Solution**:
    ```bash
    # Ensure backend is running
-   bun run start
+   janitarr start
    ```
 
 2. **CORS issues** (development mode)
    - Browser blocking cross-origin requests
 
    **Solution**:
-   - Ensure using Vite proxy (dev mode) or same origin (production)
+   ```bash
+   # Use dev mode which includes Vite proxy
+   janitarr dev  # Terminal 1
+   cd ui && bun run dev  # Terminal 2
+
+   # Access at http://localhost:3434 (not http://localhost:5173)
+   ```
    - Check browser console for CORS errors
    - Verify `vite.config.ts` proxy configuration
 
@@ -548,11 +561,11 @@ Common issues and solutions for Janitarr users.
 **Possible Causes**:
 
 1. **Backend not running**
-   - WebSocket server requires backend
+   - WebSocket server requires backend services running
 
    **Solution**:
    ```bash
-   bun run start
+   janitarr start
    ```
 
 2. **WebSocket upgrade failed**
@@ -624,6 +637,138 @@ Common issues and solutions for Janitarr users.
    **Solution**:
    - Set theme again
    - Preference will persist going forward
+
+---
+
+## Unified Service Startup Issues
+
+### Development mode not proxying to Vite
+
+**Symptoms**:
+- `janitarr dev` starts but UI shows errors
+- Frontend changes not reflected in browser
+- 404 errors for UI assets
+
+**Possible Causes**:
+
+1. **Vite dev server not running**
+   - `dev` command only starts backend, Vite must be started separately
+
+   **Solution**:
+   ```bash
+   # Terminal 1: Start backend with proxy
+   janitarr dev
+
+   # Terminal 2: Start Vite dev server
+   cd ui && bun run dev
+   ```
+
+2. **Wrong port for Vite**
+   - Backend expects Vite on port 5173
+
+   **Solution**:
+   - Ensure Vite running on default port 5173
+   - Check `ui/vite.config.ts` for port configuration
+
+3. **Accessing wrong URL**
+   - Should access backend URL, not Vite URL
+
+   **Solution**:
+   - Access `http://localhost:3434` (backend with proxy)
+   - NOT `http://localhost:5173` (Vite directly)
+
+### Port already in use
+
+**Symptoms**:
+- Error: "Address already in use"
+- `janitarr start` or `janitarr dev` fails to start
+
+**Possible Causes**:
+
+1. **Port 3434 occupied**
+   - Another process using default port
+   - Previous Janitarr instance still running
+
+   **Solution**:
+   ```bash
+   # Check what's using port 3434
+   lsof -i :3434
+
+   # Kill previous instance
+   janitarr stop
+
+   # Or use different port
+   janitarr start --port 8080
+   ```
+
+### Graceful shutdown timeout
+
+**Symptoms**:
+- Ctrl+C doesn't stop services immediately
+- "Waiting for cycle to complete" message appears
+- Force exit after 10 seconds
+
+**Possible Causes**:
+
+1. **Active automation cycle**
+   - Scheduler completing current cycle before stopping (up to 10 seconds)
+
+   **Solution**:
+   - Wait for cycle to complete (automatic, max 10 seconds)
+   - Or press Ctrl+C again for immediate force shutdown
+
+2. **Slow server responses**
+   - Detection phase taking long time
+
+   **Solution**:
+   - Normal behavior, timeout will force exit after 10 seconds
+   - Check server performance if cycles consistently slow
+
+### Health check endpoint returning degraded
+
+**Symptoms**:
+- `GET /api/health` returns status "degraded"
+- HTTP 200 response but scheduler shows disabled
+
+**Possible Causes**:
+
+1. **Scheduler disabled in configuration**
+   - Web server running but scheduler not enabled
+   - This is expected behavior, not an error
+
+   **Solution**:
+   ```bash
+   # Enable scheduler
+   janitarr config set schedule.enabled true
+
+   # Restart services
+   janitarr stop
+   janitarr start
+   ```
+
+### Metrics endpoint not updating
+
+**Symptoms**:
+- `GET /metrics` returns same values
+- Counters not incrementing
+- Gauges not reflecting current state
+
+**Possible Causes**:
+
+1. **No activity occurring**
+   - Metrics only update when events happen
+
+   **Solution**:
+   - Trigger automation cycle: `janitarr run`
+   - Check if scheduler is running: `janitarr status`
+   - Verify servers configured: `janitarr server list`
+
+2. **Accessing stale metrics**
+   - Browser caching response
+
+   **Solution**:
+   - Hard refresh browser (Ctrl+Shift+R)
+   - Use curl for testing: `curl http://localhost:3434/metrics`
 
 ---
 

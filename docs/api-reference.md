@@ -13,6 +13,7 @@ Complete reference for the Janitarr REST API and WebSocket protocol.
   - [Automation](#automation)
   - [Statistics](#statistics)
   - [Health](#health)
+  - [Metrics](#prometheus-metrics)
 - [WebSocket Protocol](#websocket-protocol)
 - [Error Handling](#error-handling)
 - [Rate Limiting](#rate-limiting)
@@ -21,15 +22,15 @@ Complete reference for the Janitarr REST API and WebSocket protocol.
 
 ## Overview
 
-**Base URL**: `http://localhost:3000/api`
+**Base URL**: `http://localhost:3434/api`
 
 **Protocol**: HTTP/1.1
 
-**Data Format**: JSON
+**Data Format**: JSON (REST endpoints), Prometheus text format (metrics endpoint)
 
 **CORS**: Enabled for all origins (development mode)
 
-**Content Type**: `application/json` for request/response bodies
+**Content Type**: `application/json` for request/response bodies (except `/metrics`)
 
 ---
 
@@ -729,31 +730,270 @@ GET /api/stats/servers/550e8400-e29b-41d4-a716-446655440000
 
 ### Health
 
-Health check endpoint for monitoring.
+Health check and metrics endpoints for monitoring and observability.
 
 #### Health Check
 
-Check if the API is running.
+Check the status of all Janitarr services.
 
 **Endpoint**: `GET /api/health`
 
-**Response**: `200 OK`
+**Response**: `200 OK` (when healthy or degraded), `503 Service Unavailable` (when error)
 
+**Healthy Response** (all services running):
 ```json
 {
   "status": "ok",
-  "timestamp": "2024-01-15T12:30:00.000Z"
+  "timestamp": "2026-01-17T12:30:00.000Z",
+  "services": {
+    "webServer": {
+      "status": "ok"
+    },
+    "scheduler": {
+      "status": "ok",
+      "isRunning": true,
+      "isCycleActive": false,
+      "nextRun": "2026-01-17T13:30:00.000Z"
+    }
+  },
+  "database": {
+    "status": "ok"
+  }
+}
+```
+
+**Degraded Response** (scheduler disabled):
+```json
+{
+  "status": "degraded",
+  "timestamp": "2026-01-17T12:30:00.000Z",
+  "services": {
+    "webServer": {
+      "status": "ok"
+    },
+    "scheduler": {
+      "status": "disabled",
+      "isRunning": false,
+      "isCycleActive": false,
+      "nextRun": null
+    }
+  },
+  "database": {
+    "status": "ok"
+  }
+}
+```
+
+**Error Response** (critical component failing):
+```json
+{
+  "status": "error",
+  "timestamp": "2026-01-17T12:30:00.000Z",
+  "services": {
+    "webServer": {
+      "status": "ok"
+    },
+    "scheduler": {
+      "status": "error",
+      "isRunning": false,
+      "isCycleActive": false,
+      "nextRun": null
+    }
+  },
+  "database": {
+    "status": "error"
+  }
 }
 ```
 
 **Response Fields**:
-- `status` (string): Always `"ok"` if server is running
+- `status` (string): Overall health status - `"ok"`, `"degraded"`, or `"error"`
+  - `"ok"`: All services healthy
+  - `"degraded"`: Web server running but scheduler disabled (expected in some configurations)
+  - `"error"`: Critical component failing (database or enabled scheduler not running)
 - `timestamp` (string): Current server time in ISO 8601 format
+- `services.webServer.status` (string): Web server status (always `"ok"` if responding)
+- `services.scheduler.status` (string): Scheduler status - `"ok"`, `"disabled"`, or `"error"`
+- `services.scheduler.isRunning` (boolean): Whether scheduler daemon is active
+- `services.scheduler.isCycleActive` (boolean): Whether automation cycle currently executing
+- `services.scheduler.nextRun` (string | null): ISO 8601 timestamp of next scheduled run, or `null` if disabled
+- `database.status` (string): Database connectivity status - `"ok"` or `"error"`
+
+**HTTP Status Codes**:
+- `200 OK`: Status is `"ok"` or `"degraded"`
+- `503 Service Unavailable`: Status is `"error"`
+
+**Performance**: Response time < 100ms (lightweight check with no expensive operations)
 
 **Use Cases**:
-- Load balancer health checks
-- Monitoring systems
-- Uptime verification
+- Kubernetes/Docker health checks
+- Load balancer health probes
+- Monitoring systems (Nagios, Datadog, etc.)
+- Deployment verification
+- Service readiness checks
+
+---
+
+#### Prometheus Metrics
+
+Expose metrics in Prometheus text format for monitoring and alerting.
+
+**Endpoint**: `GET /metrics`
+
+**Response**: `200 OK`
+
+**Content-Type**: `text/plain; version=0.0.4; charset=utf-8`
+
+**Sample Response**:
+```
+# HELP janitarr_info Application information
+# TYPE janitarr_info gauge
+janitarr_info{version="1.0.0"} 1
+
+# HELP janitarr_uptime_seconds Time since application start
+# TYPE janitarr_uptime_seconds counter
+janitarr_uptime_seconds 3600.5
+
+# HELP janitarr_scheduler_enabled Whether scheduler is enabled in configuration
+# TYPE janitarr_scheduler_enabled gauge
+janitarr_scheduler_enabled 1
+
+# HELP janitarr_scheduler_running Whether scheduler is currently running
+# TYPE janitarr_scheduler_running gauge
+janitarr_scheduler_running 1
+
+# HELP janitarr_scheduler_cycle_active Whether an automation cycle is currently active
+# TYPE janitarr_scheduler_cycle_active gauge
+janitarr_scheduler_cycle_active 0
+
+# HELP janitarr_scheduler_cycles_total Total automation cycles executed
+# TYPE janitarr_scheduler_cycles_total counter
+janitarr_scheduler_cycles_total 42
+
+# HELP janitarr_scheduler_cycles_failed_total Total automation cycles that failed
+# TYPE janitarr_scheduler_cycles_failed_total counter
+janitarr_scheduler_cycles_failed_total 2
+
+# HELP janitarr_scheduler_next_run_timestamp Unix timestamp of next scheduled run
+# TYPE janitarr_scheduler_next_run_timestamp gauge
+janitarr_scheduler_next_run_timestamp 1705500000
+
+# HELP janitarr_searches_triggered_total Total searches triggered by type and category
+# TYPE janitarr_searches_triggered_total counter
+janitarr_searches_triggered_total{server_type="radarr",category="missing"} 150
+janitarr_searches_triggered_total{server_type="radarr",category="cutoff"} 75
+janitarr_searches_triggered_total{server_type="sonarr",category="missing"} 200
+janitarr_searches_triggered_total{server_type="sonarr",category="cutoff"} 100
+
+# HELP janitarr_searches_failed_total Total searches that failed by type and category
+# TYPE janitarr_searches_failed_total counter
+janitarr_searches_failed_total{server_type="radarr",category="missing"} 5
+janitarr_searches_failed_total{server_type="radarr",category="cutoff"} 2
+janitarr_searches_failed_total{server_type="sonarr",category="missing"} 3
+janitarr_searches_failed_total{server_type="sonarr",category="cutoff"} 1
+
+# HELP janitarr_servers_configured Number of configured servers by type
+# TYPE janitarr_servers_configured gauge
+janitarr_servers_configured{type="radarr"} 2
+janitarr_servers_configured{type="sonarr"} 1
+
+# HELP janitarr_servers_enabled Number of enabled servers by type
+# TYPE janitarr_servers_enabled gauge
+janitarr_servers_enabled{type="radarr"} 2
+janitarr_servers_enabled{type="sonarr"} 1
+
+# HELP janitarr_database_connected Database connection status (1=connected, 0=error)
+# TYPE janitarr_database_connected gauge
+janitarr_database_connected 1
+
+# HELP janitarr_logs_total Total number of log entries in database
+# TYPE janitarr_logs_total gauge
+janitarr_logs_total 1250
+
+# HELP janitarr_http_requests_total Total HTTP requests by method, path, and status
+# TYPE janitarr_http_requests_total counter
+janitarr_http_requests_total{method="GET",path="/api/config",status="200"} 50
+janitarr_http_requests_total{method="GET",path="/api/servers",status="200"} 35
+janitarr_http_requests_total{method="POST",path="/api/automation/run",status="200"} 10
+
+# HELP janitarr_http_request_duration_seconds HTTP request duration in seconds
+# TYPE janitarr_http_request_duration_seconds histogram
+janitarr_http_request_duration_seconds_bucket{method="GET",path="/api/config",le="0.005"} 45
+janitarr_http_request_duration_seconds_bucket{method="GET",path="/api/config",le="0.01"} 48
+janitarr_http_request_duration_seconds_bucket{method="GET",path="/api/config",le="0.025"} 50
+janitarr_http_request_duration_seconds_bucket{method="GET",path="/api/config",le="0.05"} 50
+janitarr_http_request_duration_seconds_bucket{method="GET",path="/api/config",le="0.1"} 50
+janitarr_http_request_duration_seconds_bucket{method="GET",path="/api/config",le="0.25"} 50
+janitarr_http_request_duration_seconds_bucket{method="GET",path="/api/config",le="0.5"} 50
+janitarr_http_request_duration_seconds_bucket{method="GET",path="/api/config",le="1"} 50
+janitarr_http_request_duration_seconds_bucket{method="GET",path="/api/config",le="2.5"} 50
+janitarr_http_request_duration_seconds_bucket{method="GET",path="/api/config",le="5"} 50
+janitarr_http_request_duration_seconds_bucket{method="GET",path="/api/config",le="10"} 50
+janitarr_http_request_duration_seconds_bucket{method="GET",path="/api/config",le="+Inf"} 50
+janitarr_http_request_duration_seconds_sum{method="GET",path="/api/config"} 0.125
+janitarr_http_request_duration_seconds_count{method="GET",path="/api/config"} 50
+```
+
+**Metric Descriptions**:
+
+**Application Metrics:**
+- `janitarr_info{version}` (gauge): Application version information (always 1)
+- `janitarr_uptime_seconds` (counter): Seconds since process started
+
+**Scheduler Metrics:**
+- `janitarr_scheduler_enabled` (gauge): 1 if scheduler enabled in config, 0 otherwise
+- `janitarr_scheduler_running` (gauge): 1 if scheduler daemon running, 0 otherwise
+- `janitarr_scheduler_cycle_active` (gauge): 1 if automation cycle active, 0 otherwise
+- `janitarr_scheduler_cycles_total` (counter): Total automation cycles executed
+- `janitarr_scheduler_cycles_failed_total` (counter): Total failed automation cycles
+- `janitarr_scheduler_next_run_timestamp` (gauge): Unix timestamp of next run (0 if disabled)
+
+**Search Metrics:**
+- `janitarr_searches_triggered_total{server_type,category}` (counter): Total searches triggered
+  - Labels: `server_type` (radarr/sonarr), `category` (missing/cutoff)
+- `janitarr_searches_failed_total{server_type,category}` (counter): Total failed searches
+  - Labels: `server_type` (radarr/sonarr), `category` (missing/cutoff)
+
+**Server Metrics:**
+- `janitarr_servers_configured{type}` (gauge): Number of configured servers by type
+- `janitarr_servers_enabled{type}` (gauge): Number of enabled servers by type
+
+**Database Metrics:**
+- `janitarr_database_connected` (gauge): 1 if database connected, 0 if error
+- `janitarr_logs_total` (gauge): Total log entries in database
+
+**HTTP Metrics:**
+- `janitarr_http_requests_total{method,path,status}` (counter): Total HTTP requests
+  - Labels: `method` (GET/POST/etc), `path` (API endpoint), `status` (HTTP status code)
+- `janitarr_http_request_duration_seconds{method,path}` (histogram): Request duration distribution
+  - Labels: `method`, `path`
+  - Buckets: 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10, +Inf
+
+**Performance**: Response time < 200ms (efficient in-memory metric collection)
+
+**Naming Conventions**:
+- All metrics prefixed with `janitarr_`
+- Labels use `snake_case`
+- Counters never decrease (monotonic)
+- Gauges reflect current state
+
+**Use Cases**:
+- Prometheus scraping and alerting
+- Grafana dashboards
+- Performance monitoring
+- Capacity planning
+- Trend analysis
+- SLO/SLA monitoring
+
+**Prometheus Configuration**:
+```yaml
+scrape_configs:
+  - job_name: 'janitarr'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['localhost:3434']
+    metrics_path: '/metrics'
+```
 
 ---
 
@@ -763,7 +1003,7 @@ Real-time log streaming via WebSocket.
 
 ### Connection
 
-**Endpoint**: `ws://localhost:3000/ws/logs`
+**Endpoint**: `ws://localhost:3434/ws/logs`
 
 **Protocol**: WebSocket (RFC 6455)
 

@@ -40,7 +40,7 @@ bun install
 bun run start
 ```
 
-2. **Open your browser to:** `http://localhost:3000`
+2. **Open your browser to:** `http://localhost:3434`
 
 3. **Add servers** via the web UI, configure settings, and monitor activity
 
@@ -64,9 +64,15 @@ bun run src/index.ts config set limits.cutoff.episodes 5
 bun run src/index.ts run
 ```
 
-4. **Start the scheduler:**
+4. **Start both scheduler and web server:**
 ```bash
 bun run src/index.ts start
+```
+
+For development with hot-reloading UI:
+```bash
+bun run src/index.ts dev  # Start backend services
+cd ui && bun run dev      # Start Vite dev server (separate terminal)
 ```
 
 ## Web Interface
@@ -90,9 +96,16 @@ Janitarr includes a modern, responsive web interface for easy management.
    bun run start
    ```
 
-2. Open your browser to: `http://localhost:3000`
+2. Open your browser to: `http://localhost:3434`
 
 3. Navigate between views using the sidebar menu
+
+**Development mode** (with Vite hot-reloading):
+```bash
+bun run src/index.ts dev      # Backend at http://localhost:3434
+cd ui && bun run dev          # Vite at http://localhost:5173
+```
+Access the app at `http://localhost:3434` (proxies to Vite for UI).
 
 ### Building the Web UI
 
@@ -149,11 +162,23 @@ janitarr scan --json
 # Execute a full automation cycle immediately
 janitarr run
 
-# Start the scheduler daemon
+# Start scheduler + web server (unified service)
 janitarr start
 
-# Stop the running scheduler
+# Start in development mode (with verbose logging and Vite proxy)
+janitarr dev
+
+# Stop the running services
 janitarr stop
+```
+
+**Port configuration:**
+```bash
+# Start on custom port
+janitarr start --port 8080
+
+# Bind to all interfaces (for remote access)
+janitarr start --host 0.0.0.0 --port 3434
 ```
 
 ### Configuration
@@ -241,14 +266,14 @@ bunx eslint .
 
 **UI testing:**
 
-Manual testing is recommended for the web UI. Start both the UI dev server and backend:
+Manual testing is recommended for the web UI. Start in development mode:
 
 ```bash
-cd ui && bun run dev                    # Start UI dev server
-cd .. && bun run start                  # Start backend (in separate terminal)
+bun run src/index.ts dev                # Start backend with Vite proxy
+cd ui && bun run dev                    # Start Vite dev server (separate terminal)
 ```
 
-Then test functionality at http://localhost:5173 in your browser.
+Then test functionality at http://localhost:3434 in your browser (proxies to Vite).
 
 See `ui/README.md` for detailed UI documentation and `UI_VALIDATION_REPORT.md` for validation results.
 
@@ -314,11 +339,12 @@ Authentication is handled via the `X-Api-Key` header.
 - Review logs for errors (`janitarr logs`)
 - Ensure scheduler is enabled (`janitarr config show`)
 
-### Scheduler not running
+### Services not running
 
-- Start the scheduler with `janitarr start`
+- Start services with `janitarr start` (runs scheduler + web server)
 - Check scheduler status with `janitarr status`
 - Verify `schedule.enabled` is set to `true` in configuration
+- Use `janitarr dev` for development mode with verbose logging
 
 ## Documentation
 
