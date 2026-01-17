@@ -28,6 +28,7 @@
         install.enable = true;
       };
     };
+    go.enable = true;
     nix.enable = true;
   };
 
@@ -43,57 +44,65 @@
     };
   };
 
+  git-hooks.hooks = {
+    alejandra.enable = true;
+    shellcheck.enable = true;
+    eslint.enable = true;
+    gofmt.enable = true;
+    prettier.enable = true;
+  };
+
   # Optional: Helpful scripts for common workflows
   scripts = {
     plan = {
       description = "Run the planning agent against the codebase";
       exec = ''
-                iterations="''${1:-1}"
-                current_iteration=0
+        iterations="''${1:-1}"
+        current_iteration=0
 
-                while [ "$current_iteration" -lt "$iterations" ]; do
-                  echo "Running plan iteration $((current_iteration + 1)) of $iterations"
-                  cat PROMPT_plan.md | claude -p --model opus --output-format stream-json --verbose --dangerously-skip-permissions
-                  current_iteration=$((current_iteration + 1))
-                done
+        while [ "$current_iteration" -lt "$iterations" ]; do
+          echo "Running plan iteration $((current_iteration + 1)) of $iterations"
+          cat PROMPT_plan.md | claude -p --model opus --output-format stream-json --verbose --dangerously-skip-permissions
+          current_iteration=$((current_iteration + 1))
+        done
       '';
     };
     build = {
       description = "Run the build agent against the codebase. Use --gemini to run with Gemini.";
       exec = ''
-                iterations_arg=""
-                gemini_mode=false
+        iterations_arg=""
+        gemini_mode=false
 
-                # Parse arguments
-                while (( "$#" )); do
-                  case "$1" in
-                    --gemini)
-                      gemini_mode=true
-                      shift
-                      ;;
-                    *)
-                      iterations_arg="$1"
-                      shift
-                      ;;
-                  esac
-                done
+        # Parse arguments
+        while (( "$#" )); do
+          case "$1" in
+            --gemini)
+              gemini_mode=true
+              shift
+              ;;
+            *)
+              iterations_arg="$1"
+              shift
+              ;;
+          esac
+        done
 
-                iterations=''${iterations_arg:-5}
-                current_iteration=0
+        iterations=''${iterations_arg:-5}
+        current_iteration=0
 
-                while [ "$current_iteration" -lt "$iterations" ]; do
-                  echo "Running build iteration $((current_iteration + 1)) of $iterations"
+        while [ "$current_iteration" -lt "$iterations" ]; do
+          echo "Running build iteration $((current_iteration + 1)) of $iterations"
 
-                  if [ "$gemini_mode" = true ]; then
-                    echo "Using gemini --yolo"
-                    cat PROMPT_build.md | bunx gemini --output-format stream-json --yolo
-                  else
-                    echo "Using claude"
-                    cat PROMPT_build.md | claude -p --output-format stream-json --verbose --dangerously-skip-permissions
-                  fi
+          if [ "$gemini_mode" = true ]; then
+            echo "Using gemini --yolo"
+            cat PROMPT_build.md | bunx gemini --output-format stream-json --yolo
+          else
+            echo "Using claude"
+            cat PROMPT_build.md | claude -p --output-format stream-json --verbose --dangerously-skip-permissions
+          fi
 
-                  current_iteration=$((current_iteration + 1))
-                done
+          current_iteration=$((current_iteration + 1))
+        done
       '';
     };
   };
