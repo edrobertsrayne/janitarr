@@ -290,20 +290,33 @@ Janitarr is a production-ready automation tool for managing Radarr/Sonarr media 
 
 ---
 
-### Task 2.3: Unit Tests for Metrics
+### Task 2.3: Unit Tests for Metrics ✅ COMPLETE
 **Impact:** MEDIUM - Required for reliable metrics
-**Status:** ❌ NOT STARTED
+**Status:** ✅ COMPLETE (2026-01-17)
 
 **Test Cases:**
-- [ ] Metrics formatting follows Prometheus spec
-- [ ] All required metrics present
-- [ ] Counter increment behavior
-- [ ] Gauge update behavior
-- [ ] Label formatting correct
+- [x] Metrics formatting follows Prometheus spec
+- [x] All required metrics present
+- [x] Counter increment behavior
+- [x] Gauge update behavior
+- [x] Label formatting correct
+- [x] Histogram behavior
+- [x] Edge cases and error handling
 
-**Files to Create:**
-- `tests/lib/metrics.test.ts` - Metrics utility tests
-- `tests/web/routes/metrics.test.ts` - Metrics endpoint tests
+**Files Created:**
+- `tests/lib/metrics.test.ts` - Metrics utility tests (31 tests, all passing)
+- `tests/web/routes/metrics.test.ts` - Metrics endpoint tests (6 tests, all passing)
+
+**Test Coverage:**
+- Prometheus text format validation
+- HELP and TYPE annotations
+- Metric naming conventions (janitarr_ prefix, snake_case labels)
+- Counter monotonic behavior
+- Gauge current state reflection
+- Histogram buckets, sum, and count
+- HTTP request duration tracking
+- Search and cycle counter increments
+- Performance validation (< 200ms response time)
 
 ---
 
@@ -384,11 +397,11 @@ Janitarr is a production-ready automation tool for managing Radarr/Sonarr media 
 
 ## Test Suite Summary
 
-**Current Status:** 181 tests passing (142 unit, 36 frontend, 3 E2E)
+**Current Status:** 218 tests passing (179 unit, 36 frontend, 3 E2E)
 
 **Test Commands:**
 ```bash
-bun run test          # Backend unit tests (142 tests)
+bun run test          # Backend unit tests (179 tests)
 bun run test:ui       # Frontend tests (36 tests)
 bun run test:e2e      # E2E tests (3 tests)
 bun run test:all      # All unit + frontend tests
@@ -408,7 +421,7 @@ bun run test:all      # All unit + frontend tests
 | P1 | 1.6 Graceful shutdown | ✅ Complete | MEDIUM |
 | P2 | 2.1 Tests for unified startup | ❌ Not Started | HIGH |
 | P2 | 2.2 Tests for health check | ✅ Complete | MEDIUM |
-| P2 | 2.3 Tests for metrics | ❌ Not Started | MEDIUM |
+| P2 | 2.3 Tests for metrics | ✅ Complete | MEDIUM |
 | P3 | 3.1 Update user docs | ❌ Not Started | MEDIUM |
 | P3 | 3.2 Update API docs | ❌ Not Started | MEDIUM |
 
@@ -446,4 +459,4 @@ All original specifications are complete and working. The unified service startu
 ---
 
 **Last Reviewed:** 2026-01-17
-**Next Action:** Add unit tests for new features (Task 2.1, 2.3) and update documentation (Task 3.1, 3.2)
+**Next Action:** Add unit tests for unified startup (Task 2.1) and update documentation (Task 3.1, 3.2)
