@@ -199,7 +199,7 @@ janitarr/
 
 **Reference:** `src-ts/storage/database.ts`
 
-- [ ] Create `migrations/001_initial_schema.sql` (copy exactly):
+- [x] Create `migrations/001_initial_schema.sql` (copy exactly):
 
   ```sql
   CREATE TABLE IF NOT EXISTS servers (
@@ -233,26 +233,26 @@ janitarr/
   CREATE INDEX IF NOT EXISTS idx_logs_timestamp ON logs(timestamp DESC);
   ```
 
-- [ ] Create `src/database/types.go` with structs:
-  - [ ] `Server` struct matching table columns
-  - [ ] `LogEntry` struct matching table columns
-  - [ ] `AppConfig` struct with schedule and limits
-- [ ] Create `src/database/database_test.go` with tests:
-  - [ ] `TestNew` - database creation and migration
-  - [ ] `TestServerCRUD` - add, get, update, delete server
-  - [ ] `TestConfigGetSet` - configuration persistence
-  - [ ] `TestLogsInsertRetrieve` - log operations
-  - [ ] `TestLogsPagination` - offset and limit
-  - [ ] `TestLogsPurge` - delete old entries
-- [ ] Create `src/database/database.go`:
-  - [ ] `type DB struct { conn *sql.DB, crypto *crypto.Crypto }`
-  - [ ] `New(dbPath, keyPath string) (*DB, error)` - open and migrate
-  - [ ] `Close() error`
-  - [ ] Embed migrations using `//go:embed`
-- [ ] Create `src/database/servers.go` - server CRUD with API key encryption
-- [ ] Create `src/database/config.go` - config get/set with defaults
-- [ ] Create `src/database/logs.go` - log operations with pagination
-- [ ] Verify: `go test ./src/database/...`
+- [x] Create `src/database/types.go` with structs:
+  - [x] `Server` struct matching table columns
+  - [x] `LogEntry` struct matching table columns
+  - [x] `AppConfig` struct with schedule and limits
+- [x] Create `src/database/database_test.go` with tests:
+  - [x] `TestNew` - database creation and migration
+  - [x] `TestServerCRUD` - add, get, update, delete server
+  - [x] `TestConfigGetSet` - configuration persistence
+  - [x] `TestLogsInsertRetrieve` - log operations
+  - [x] `TestLogsPagination` - offset and limit
+  - [x] `TestLogsPurge` - delete old entries
+- [x] Create `src/database/database.go`:
+  - [x] `type DB struct { conn *sql.DB, crypto *crypto.Crypto }`
+  - [x] `New(dbPath, keyPath string) (*DB, error)` - open and migrate
+  - [x] `Close() error`
+  - [x] Embed migrations using `//go:embed`
+- [x] Create `src/database/servers.go` - server CRUD with API key encryption
+- [x] Create `src/database/config.go` - config get/set with defaults
+- [x] Create `src/database/logs.go` - log operations with pagination
+- [x] Verify: `go test ./src/database/...`
 
 ### CLI Skeleton
 
