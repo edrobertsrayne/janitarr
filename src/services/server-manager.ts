@@ -12,7 +12,7 @@ import {
   createClient,
   validateUrl,
 } from "../lib/api-client";
-import { getDatabase } from "../storage/database";
+import { getDatabase, DatabaseManager } from "../storage/database"; // Import DatabaseManager
 
 /** Result of a server operation */
 export type ServerResult<T> =
@@ -56,6 +56,63 @@ function toServerInfo(server: ServerConfig): ServerInfo {
     createdAt: server.createdAt,
     updatedAt: server.updatedAt,
   };
+}
+
+/**
+ * Get all configured servers (ServerConfig objects)
+ */
+export async function getServers(db: DatabaseManager): Promise<ServerResult<ServerConfig[]>> {
+  const allServers = await db.getAllServers();
+  return { success: true, data: allServers };
+}
+
+/**
+ * Get all configured servers for display (ServerInfo objects)
+ */
+export async function listServers(): Promise<ServerInfo[]> {
+  const db = getDatabase();
+  const allServers = await db.getAllServers();
+  return allServers.map(toServerInfo);
+}
+
+/**
+ * Get a server by ID (ServerConfig object)
+ */
+export async function getServerById(db: DatabaseManager, id: string): Promise<ServerResult<ServerConfig>> {
+  const server = await db.getServer(id);
+  if (!server) {
+    return { success: false, error: `Server with ID "${id}" not found` };
+  }
+  return { success: true, data: server };
+}
+
+/**
+ * Get a server by ID or name (ServerConfig object)
+ */
+export async function getServer(idOrName: string): Promise<ServerResult<ServerConfig>> {
+  const db = getDatabase();
+
+  // Try by ID first
+  let server = await db.getServer(idOrName);
+
+  // Then try by name
+  if (!server) {
+    server = await db.getServerByName(idOrName);
+  }
+
+  if (!server) {
+    return { success: false, error: `Server "${idOrName}" not found` };
+  }
+
+  return { success: true, data: server };
+}
+
+/**
+ * Get servers by type
+ */
+export async function getServersByType(type: ServerType): Promise<ServerConfig[]> {
+  const db = getDatabase();
+  return await db.getServersByType(type);
 }
 
 /**
@@ -113,7 +170,7 @@ export async function addServer(
   }
 
   // Save to database
-  const server = await db.addServer({ // Await addServer
+  const server = await db.addServer({
     id: crypto.randomUUID(),
     name,
     url: normalizedUrl,
@@ -125,61 +182,27 @@ export async function addServer(
 }
 
 /**
- * Get all configured servers
+ * Update a server with connection re-validation
  */
-export async function listServers(): Promise<ServerInfo[]> {
-  const db = getDatabase();
-  const allServers = await db.getAllServers();
-  return allServers.map(toServerInfo);
-}
-
-/**
- * Get a server by ID or name
- */
-export async function getServer(idOrName: string): Promise<ServerResult<ServerConfig>> {
-  const db = getDatabase();
-
-  // Try by ID first
-  let server = await db.getServer(idOrName);
-
-  // Then try by name
-  if (!server) {
-    server = await db.getServerByName(idOrName);
-  }
-
-  if (!server) {
-    return { success: false, error: `Server "${idOrName}" not found` };
-  }
-
-  return { success: true, data: server };
-}
-
-/**
- * Get servers by type
- */
-export async function getServersByType(type: ServerType): Promise<ServerConfig[]> {
-  const db = getDatabase();
-  return await db.getServersByType(type);
-}
-
-/**
- * Edit a server with connection re-validation
- */
-export async function editServer(
-  idOrName: string,
-  updates: { name?: string; url?: string; apiKey?: string }
+export async function updateServer(
+  db: DatabaseManager, // Pass db explicitly for web routes
+  id: string,
+  updates: { name?: string; url?: string; apiKey?: string; enabled?: boolean; type?: ServerType }
 ): Promise<ServerResult<ServerInfo>> {
-  const serverResult = await getServer(idOrName); // Await getServer
+  const serverResult = await getServerById(db, id);
   if (!serverResult.success) {
     return serverResult;
   }
 
   const server = serverResult.data;
-  const db = getDatabase();
 
   // Determine final values for validation
   let newUrl = server.url;
   const newApiKey = updates.apiKey ?? server.apiKey;
+  const newName = updates.name ?? server.name;
+  const newType = updates.type ?? server.type;
+  const newEnabled = updates.enabled !== undefined ? updates.enabled : server.enabled;
+
 
   // Validate and normalize URL if changed
   if (updates.url) {
@@ -190,30 +213,28 @@ export async function editServer(
     newUrl = urlResult.data;
 
     // Check for duplicates with new URL
-    if (db.serverExists(newUrl, server.type, server.id)) {
+    if (db.serverExists(newUrl, newType, id)) { // Use newType
       return {
         success: false,
-        error: `A ${server.type} server with this URL already exists`,
+        error: `A ${newType} server with this URL already exists`,
       };
     }
   }
 
   // Check for duplicate name
-  if (updates.name && updates.name !== server.name) {
-    const existing = await db.getServerByName(updates.name); // Await db.getServerByName
-    if (existing && existing.id !== server.id) {
+  if (newName !== server.name) {
+    const existing = await db.getServerByName(newName);
+    if (existing && existing.id !== id) {
       return {
         success: false,
-        error: `A server named "${updates.name}" already exists`,
+        error: `A server named "${newName}" already exists`,
       };
     }
   }
 
-  // Test connection if URL or API key changed
-  if (updates.url || updates.apiKey) {
-    const client = createClient(newUrl, newApiKey, server.type);
-    const connectionResult = await client.testConnection();
-
+  // Test connection if URL, API key or Type changed
+  if (newUrl !== server.url || newApiKey !== server.apiKey || newType !== server.type) {
+    const connectionResult = await testConnection(newUrl, newApiKey, newType); // Use the global testConnection
     if (!connectionResult.success) {
       return {
         success: false,
@@ -223,10 +244,12 @@ export async function editServer(
   }
 
   // Apply updates
-  const updated = await db.updateServer(server.id, { // Await db.updateServer
-    name: updates.name,
-    url: updates.url ? newUrl : undefined,
-    apiKey: updates.apiKey,
+  const updated = await db.updateServer(id, {
+    name: newName,
+    url: newUrl,
+    apiKey: newApiKey,
+    type: newType,
+    enabled: newEnabled,
   });
 
   if (!updated) {
@@ -256,7 +279,7 @@ export async function removeServer(idOrName: string): Promise<ServerResult<void>
 }
 
 /**
- * Test connection to a specific server
+ * Test connection to a specific server (by ID or Name)
  */
 export async function testServerConnection(
   idOrName: string
@@ -278,7 +301,7 @@ export async function testServerConnection(
 }
 
 /**
- * Test connection to any URL/API key combination (for validation before add/edit)
+ * Test connection to a given server configuration (not necessarily saved in DB)
  */
 export async function testConnection(
   url: string,
@@ -292,4 +315,33 @@ export async function testConnection(
 
   const client = createClient(urlResult.data, apiKey, type);
   return client.testConnection();
+}
+
+/**
+ * Validate a server configuration against rules (e.g. name uniqueness, URL format).
+ * Does not test connection.
+ */
+export async function validateServerConfig(
+  config: Partial<ServerConfig>,
+  excludeId?: string
+): Promise<ServerResult<true>> {
+  const db = getDatabase();
+
+  if (config.url) {
+    const urlResult = validateUrl(config.url);
+    if (!urlResult.success) {
+      return urlResult;
+    }
+  }
+
+  if (config.name) {
+    const existing = await db.getServerByName(config.name);
+    if (existing && existing.id !== excludeId) {
+      return {
+        success: false,
+        error: `A server named "${config.name}" already exists`,
+      };
+    }
+  }
+  return { success: true, data: true };
 }

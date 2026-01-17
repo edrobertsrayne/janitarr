@@ -1,77 +1,37 @@
-/**
- * Server management API routes
- */
+import { jsonError, jsonSuccess, HttpStatus } from "../types";
+import { CreateServerRequest, ServerTestResponse, ServerUpdateRequest, ServerConfig } from "../../types";
+import { DatabaseManager } from "../../storage/database";
+import {
+  addServer,
+  updateServer,
+  deleteServer,
+  getServerById,
+  getServers,
+  testServerConnection as testExistingServerConnection, // Renamed to avoid conflict
+  testConnection, // For testing new/updated credentials
+} from "../../services/server-manager";
 
-import type { DatabaseManager } from "../../storage/database";
-import { jsonSuccess, jsonError, parseJsonBody, extractPathParam, HttpStatus } from "../types";
-import type { CreateServerRequest, UpdateServerRequest, ServerTestResponse } from "../types";
-import type { ServerType } from "../../types";
-
-/**
- * Handle GET /api/servers
- */
-export async function handleGetServers(url: URL, db: DatabaseManager): Promise<Response> {
+// Helper to parse JSON body
+async function parseJsonBody<T>(req: Request): Promise<T | undefined> {
   try {
-    const typeFilter = url.searchParams.get("type") as ServerType | null;
-
-    let servers;
-    if (typeFilter && (typeFilter === "radarr" || typeFilter === "sonarr")) {
-      servers = await db.getServersByType(typeFilter);
-    } else {
-      servers = await db.getAllServers();
-    }
-
-    return jsonSuccess(servers);
-  } catch (error) {
-    return jsonError(
-      `Failed to retrieve servers: ${error instanceof Error ? error.message : String(error)}`,
-      HttpStatus.INTERNAL_SERVER_ERROR
-    );
+    return (await req.json()) as T;
+  } catch {
+    return undefined;
   }
 }
 
 /**
- * Handle GET /api/servers/:id
+ * Handle POST /api/servers/test (for new, unsaved servers)
  */
-export async function handleGetServer(path: string, db: DatabaseManager): Promise<Response> {
-  try {
-    const serverId = extractPathParam(path, /^\/api\/servers\/([^/]+)$/);
-    if (!serverId) {
-      return jsonError("Invalid server ID", HttpStatus.BAD_REQUEST);
-    }
-
-    const server = await db.getServer(serverId);
-    if (!server) {
-      return jsonError("Server not found", HttpStatus.NOT_FOUND);
-    }
-
-    return jsonSuccess(server);
-  } catch (error) {
-    return jsonError(
-      `Failed to retrieve server: ${error instanceof Error ? error.message : String(error)}`,
-      HttpStatus.INTERNAL_SERVER_ERROR
-    );
-  }
-}
-
-/**
- * Handle POST /api/servers
- */
-export async function handleCreateServer(req: Request, db: DatabaseManager): Promise<Response> {
+export async function handleTestNewServer(req: Request): Promise<Response> {
   try {
     const body = await parseJsonBody<CreateServerRequest>(req);
     if (!body) {
       return jsonError("Invalid JSON body", HttpStatus.BAD_REQUEST);
     }
 
-    // Validate required fields
     if (!body.name || !body.type || !body.url || !body.apiKey) {
       return jsonError("Missing required fields: name, type, url, apiKey", HttpStatus.BAD_REQUEST);
-    }
-
-    // Validate type
-    if (body.type !== "radarr" && body.type !== "sonarr") {
-      return jsonError("Invalid server type. Must be 'radarr' or 'sonarr'", HttpStatus.BAD_REQUEST);
     }
 
     // Normalize URL
@@ -81,128 +41,13 @@ export async function handleCreateServer(req: Request, db: DatabaseManager): Pro
     }
     normalizedUrl = normalizedUrl.replace(/\/$/, ""); // Remove trailing slash
 
-    // Check for duplicate server
-    if (db.serverExists(normalizedUrl, body.type)) {
-      return jsonError("A server with this URL and type already exists", HttpStatus.BAD_REQUEST);
-    }
-
-    // Create server
-    const newServer = await db.addServer({
-      id: crypto.randomUUID(),
-      name: body.name,
-      type: body.type,
-      url: normalizedUrl,
-      apiKey: body.apiKey,
-    });
-
-    return jsonSuccess(newServer, HttpStatus.CREATED);
-  } catch (error) {
-    return jsonError(
-      `Failed to create server: ${error instanceof Error ? error.message : String(error)}`,
-      HttpStatus.INTERNAL_SERVER_ERROR
-    );
-  }
-}
-
-/**
- * Handle PUT /api/servers/:id
- */
-export async function handleUpdateServer(req: Request, path: string, db: DatabaseManager): Promise<Response> {
-  try {
-    const serverId = extractPathParam(path, /^\/api\/servers\/([^/]+)$/);
-    if (!serverId) {
-      return jsonError("Invalid server ID", HttpStatus.BAD_REQUEST);
-    }
-
-    const body = await parseJsonBody<UpdateServerRequest>(req);
-    if (!body) {
-      return jsonError("Invalid JSON body", HttpStatus.BAD_REQUEST);
-    }
-
-    // Check server exists
-    const existing = await db.getServer(serverId);
-    if (!existing) {
-      return jsonError("Server not found", HttpStatus.NOT_FOUND);
-    }
-
-    // Normalize URL if provided
-    if (body.url) {
-      let normalizedUrl = body.url.trim();
-      if (!normalizedUrl.startsWith("http://") && !normalizedUrl.startsWith("https://")) {
-        normalizedUrl = `http://${normalizedUrl}`;
-      }
-      normalizedUrl = normalizedUrl.replace(/\/$/, "");
-      body.url = normalizedUrl;
-
-      // Check for duplicate URL (excluding this server)
-      if (db.serverExists(normalizedUrl, existing.type, serverId)) {
-        return jsonError("Another server with this URL and type already exists", HttpStatus.BAD_REQUEST);
-      }
-    }
-
-    // Update server
-    const updated = await db.updateServer(serverId, body);
-    if (!updated) {
-      return jsonError("Failed to update server", HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    return jsonSuccess(updated);
-  } catch (error) {
-    return jsonError(
-      `Failed to update server: ${error instanceof Error ? error.message : String(error)}`,
-      HttpStatus.INTERNAL_SERVER_ERROR
-    );
-  }
-}
-
-/**
- * Handle DELETE /api/servers/:id
- */
-export async function handleDeleteServer(path: string, db: DatabaseManager): Promise<Response> {
-  try {
-    const serverId = extractPathParam(path, /^\/api\/servers\/([^/]+)$/);
-    if (!serverId) {
-      return jsonError("Invalid server ID", HttpStatus.BAD_REQUEST);
-    }
-
-    const deleted = db.deleteServer(serverId);
-    if (!deleted) {
-      return jsonError("Server not found", HttpStatus.NOT_FOUND);
-    }
-
-    return new Response(null, { status: HttpStatus.NO_CONTENT });
-  } catch (error) {
-    return jsonError(
-      `Failed to delete server: ${error instanceof Error ? error.message : String(error)}`,
-      HttpStatus.INTERNAL_SERVER_ERROR
-    );
-  }
-}
-
-/**
- * Handle POST /api/servers/:id/test
- */
-export async function handleTestServer(path: string, db: DatabaseManager): Promise<Response> {
-  try {
-    const serverId = extractPathParam(path, /^\/api\/servers\/([^/]+)\/test$/);
-    if (!serverId) {
-      return jsonError("Invalid server ID", HttpStatus.BAD_REQUEST);
-    }
-
-    const server = await db.getServer(serverId);
-    if (!server) {
-      return jsonError("Server not found", HttpStatus.NOT_FOUND);
-    }
-
     // Test connection using API client
-    const { createClient } = await import("../../lib/api-client");
-    const client = createClient(server.url, server.apiKey, server.type);
-    const status = await client.testConnection();
+    const testResult = await testConnection(normalizedUrl, body.apiKey, body.type);
 
-    if (!status.success) {
+    if (!testResult.success) {
       const response: ServerTestResponse = {
         success: false,
-        message: status.error ?? "Failed to connect to server",
+        message: testResult.error ?? "Failed to connect to server",
       };
       return jsonSuccess(response);
     }
@@ -210,7 +55,7 @@ export async function handleTestServer(path: string, db: DatabaseManager): Promi
     const response: ServerTestResponse = {
       success: true,
       message: "Connection successful",
-      status: status.data,
+      status: testResult.data,
     };
     return jsonSuccess(response);
   } catch (error) {
@@ -218,5 +63,121 @@ export async function handleTestServer(path: string, db: DatabaseManager): Promi
       `Failed to test server: ${error instanceof Error ? error.message : String(error)}`,
       HttpStatus.INTERNAL_SERVER_ERROR
     );
+  }
+}
+
+/**
+ * Placeholder for GET /api/servers
+ */
+export async function handleGetServers(url: URL, db: DatabaseManager): Promise<Response> {
+  return jsonError("Not Implemented", HttpStatus.NOT_IMPLEMENTED);
+}
+
+/**
+ * Placeholder for GET /api/servers/:id
+ */
+export async function handleGetServer(path: string, db: DatabaseManager): Promise<Response> {
+  return jsonError("Not Implemented", HttpStatus.NOT_IMPLEMENTED);
+}
+
+/**
+ * Placeholder for POST /api/servers
+ */
+export async function handleCreateServer(req: Request, db: DatabaseManager): Promise<Response> {
+  return jsonError("Not Implemented", HttpStatus.NOT_IMPLEMENTED);
+}
+
+/**
+ * Placeholder for DELETE /api/servers/:id
+ */
+export async function handleDeleteServer(path: string, db: DatabaseManager): Promise<Response> {
+  return jsonError("Not Implemented", HttpStatus.NOT_IMPLEMENTED);
+}
+
+/**
+ * Placeholder for POST /api/servers/:id/test
+ */
+export async function handleTestServer(path: string, db: DatabaseManager): Promise<Response> {
+  return jsonError("Not Implemented", HttpStatus.NOT_IMPLEMENTED);
+}
+
+/**
+ * Handle PUT /api/servers/:id
+ */
+export async function handleUpdateServer(req: Request, path: string, db: DatabaseManager): Promise<Response> {
+  try {
+    const serverId = path.split('/').pop();
+    if (!serverId) {
+      return jsonError("Server ID not found in path", HttpStatus.BAD_REQUEST);
+    }
+
+    const body = await parseJsonBody<ServerUpdateRequest>(req);
+    if (!body) {
+      return jsonError("Invalid JSON body", HttpStatus.BAD_REQUEST);
+    }
+
+    // Retrieve existing server to get its properties if not provided in update request
+    const existingServerResult = await getServerById(db, serverId);
+    if (!existingServerResult.success || !existingServerResult.data) {
+      return jsonError("Server not found", HttpStatus.NOT_FOUND);
+    }
+    const existingServer = existingServerResult.data;
+
+    // Use existing server's properties if not provided in update request
+    const newName = body.name ?? existingServer.name;
+    const newUrl = body.url ?? existingServer.url;
+    const newApiKey = body.apiKey ?? existingServer.apiKey;
+    const newType = body.type ?? existingServer.type;
+    const newEnabled = body.enabled !== undefined ? body.enabled : existingServer.enabled;
+
+    // Validate if name uniqueness is maintained (if name is changed)
+    if (newName !== existingServer.name) {
+      const allServersResult = await getServers(db);
+      if (allServersResult.success && allServersResult.data) {
+        const nameExists = allServersResult.data.some(s => s.name === newName && s.id !== serverId);
+        if (nameExists) {
+          return jsonError("Server name already exists", HttpStatus.BAD_REQUEST);
+        }
+      }
+    }
+
+    // Test connection if URL, API key, or Type changed
+    if (newUrl !== existingServer.url || newApiKey !== existingServer.apiKey || newType !== existingServer.type) {
+      const testResult = await testConnection(newUrl, newApiKey, newType);
+      if (!testResult.success) {
+        return jsonError(testResult.error || "Connection test failed with new credentials", HttpStatus.BAD_REQUEST);
+      }
+    }
+
+    // Update the server in the database
+    const updateResult = await updateServer(db, serverId, {
+      name: newName,
+      url: newUrl,
+      apiKey: newApiKey,
+      type: newType,
+      enabled: newEnabled,
+    });
+
+    if (!updateResult.success) {
+      return jsonError(updateResult.error || "Failed to update server", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    return jsonSuccess({ message: "Server updated successfully", server: updateResult.data });
+  } catch (error) {
+    console.error("Error updating server:", error);
+    return jsonError(
+      `Failed to update server: ${error instanceof Error ? error.message : String(error)}`,
+      HttpStatus.INTERNAL_SERVER_ERROR
+    );
+  }
+}
+
+
+// Helper to parse JSON body
+async function parseJsonBody<T>(req: Request): Promise<T | undefined> {
+  try {
+    return (await req.json()) as T;
+  } catch {
+    return undefined;
   }
 }

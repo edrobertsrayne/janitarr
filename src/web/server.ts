@@ -17,6 +17,7 @@ import {
   handleUpdateServer,
   handleDeleteServer,
   handleTestServer,
+  handleTestNewServer,
 } from "./routes/servers";
 import { handleGetLogs, handleDeleteLogs, handleExportLogs } from "./routes/logs";
 import { handleTriggerAutomation, handleGetAutomationStatus } from "./routes/automation";
@@ -148,6 +149,8 @@ export function createWebServer(options: WebServerOptions) {
           response = await handleDeleteServer(path, db);
         } else if (path.match(/^\/api\/servers\/[^/]+\/test$/) && method === "POST") {
           response = await handleTestServer(path, db);
+        } else if (path === "/api/servers/test" && method === "POST") {
+          response = await handleTestNewServer(req);
         } else if (path === "/api/logs" && method === "GET") {
           response = await handleGetLogs(url, db);
         } else if (path === "/api/logs" && method === "DELETE") {

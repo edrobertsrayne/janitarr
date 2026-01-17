@@ -112,6 +112,15 @@ export async function deleteServer(id: string): Promise<ApiResponse<void>> {
 }
 
 export async function testServer(
+  server: CreateServerRequest
+): Promise<ApiResponse<ServerTestResponse>> {
+  return apiFetch<ServerTestResponse>(`/servers/test`, {
+    method: 'POST',
+    body: JSON.stringify(server),
+  });
+}
+
+export async function testServerConnectionById(
   id: string
 ): Promise<ApiResponse<ServerTestResponse>> {
   return apiFetch<ServerTestResponse>(`/servers/${id}/test`, {

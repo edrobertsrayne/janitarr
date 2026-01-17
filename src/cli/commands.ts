@@ -11,7 +11,7 @@ import type { ServerType } from "../types";
 import {
   addServer,
   listServers,
-  editServer,
+  updateServer, // Changed from editServer
   removeServer,
   testServerConnection,
   getServer,
@@ -180,7 +180,7 @@ export function createProgram(): Command {
         console.log();
         fmt.showProgress("Testing connection");
 
-        const result = await editServer(server.id, { url: newUrl, apiKey: newApiKey });
+        const result = await updateServer(getDatabase(), server.id, { url: newUrl, apiKey: newApiKey });
 
         fmt.clearLine();
 

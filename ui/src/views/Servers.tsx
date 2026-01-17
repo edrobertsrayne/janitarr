@@ -52,7 +52,8 @@ import {
   createServer,
   updateServer,
   deleteServer,
-  testServer,
+  testServer, // For testing new server configurations (CreateServerRequest)
+  testServerConnectionById, // For testing existing servers by ID
 } from '../services/api';
 import type {
   ServerConfig,
@@ -193,54 +194,33 @@ export default function Servers() {
   };
 
   const handleTestConnection = async (server?: ServerConfig) => {
-    const serverToTest = server || (editingServer ? { ...editingServer, ...formData } : null);
+    setTesting(server ? server.id : 'temp'); // Set testing state
 
-    if (!serverToTest) {
-      // Test from dialog - validate first
+    let testResult;
+    if (server) {
+      // Testing an existing server from the list
+      testResult = await testServerConnectionById(server.id);
+    } else {
+      // Testing a new server from the dialog
       if (!validateForm()) {
+        setTesting(null);
         return;
       }
-      // Create temporary server for testing
-      setTesting('temp');
-      const result = await createServer({ ...formData, enabled: false });
-      if (result.success && result.data) {
-        const testResult = await testServer(result.data.id);
-        await deleteServer(result.data.id);
-        setTesting(null);
-
-        if (testResult.success) {
-          setSnackbar({
-            open: true,
-            message: testResult.data?.message || 'Connection successful',
-            severity: 'success',
-          });
-        } else {
-          setSnackbar({
-            open: true,
-            message: testResult.error || 'Connection failed',
-            severity: 'error',
-          });
-        }
-      }
-      setTesting(null);
-      return;
+      testResult = await testServer(formData);
     }
 
-    // Test existing server
-    setTesting(serverToTest.id);
-    const result = await testServer(serverToTest.id);
-    setTesting(null);
+    setTesting(null); // Clear testing state
 
-    if (result.success) {
+    if (testResult.success) {
       setSnackbar({
         open: true,
-        message: result.data?.message || 'Connection successful',
+        message: testResult.data?.message || 'Connection successful',
         severity: 'success',
       });
     } else {
       setSnackbar({
         open: true,
-        message: result.error || 'Connection failed',
+        message: testResult.error || 'Connection failed',
         severity: 'error',
       });
     }

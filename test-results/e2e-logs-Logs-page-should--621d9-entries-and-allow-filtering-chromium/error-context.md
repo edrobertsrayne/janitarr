@@ -1,0 +1,69 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - link "Skip to main content" [ref=e4] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]: Logs
+      - button "Toggle theme" [ref=e8] [cursor=pointer]:
+        - img [ref=e9]
+  - navigation [ref=e11]:
+    - generic [ref=e13]:
+      - generic [ref=e15]: Janitarr
+      - navigation "Main navigation" [ref=e16]:
+        - listitem [ref=e17]:
+          - button "Dashboard" [ref=e18] [cursor=pointer]:
+            - img [ref=e20]
+            - generic [ref=e23]: Dashboard
+        - listitem [ref=e24]:
+          - button "Servers" [ref=e25] [cursor=pointer]:
+            - img [ref=e27]
+            - generic [ref=e30]: Servers
+        - listitem [ref=e31]:
+          - button "Logs" [ref=e32] [cursor=pointer]:
+            - img [ref=e34]
+            - generic [ref=e37]: Logs
+        - listitem [ref=e38]:
+          - button "Settings" [ref=e39] [cursor=pointer]:
+            - img [ref=e41]
+            - generic [ref=e44]: Settings
+  - main [ref=e45]:
+    - generic [ref=e47]:
+      - generic [ref=e48]:
+        - heading "Logs" [level=4] [ref=e49]
+        - generic [ref=e50]:
+          - 'generic "WebSocket connection status: connected" [ref=e51]':
+            - img [ref=e52]
+            - generic [ref=e54]: connected
+          - button "JSON" [ref=e55] [cursor=pointer]:
+            - img [ref=e57]
+            - text: JSON
+          - button "CSV" [ref=e59] [cursor=pointer]:
+            - img [ref=e61]
+            - text: CSV
+          - button "Refresh logs" [ref=e63] [cursor=pointer]:
+            - img [ref=e64]
+          - button "Clear all logs" [ref=e66] [cursor=pointer]:
+            - img [ref=e67]
+      - generic [ref=e70]:
+        - generic [ref=e71]:
+          - generic "Search logs" [ref=e72]:
+            - generic [ref=e73]:
+              - img [ref=e74]
+              - textbox "Search logs..." [ref=e76]
+              - group
+          - generic [ref=e77]:
+            - generic [ref=e78]: Type Filter
+            - generic [ref=e79]:
+              - combobox [ref=e80] [cursor=pointer]: All Types
+              - textbox: all
+              - img
+              - group:
+                - generic: Type Filter
+        - generic [ref=e81]: 0 of 0 logs
+      - alert [ref=e82]:
+        - img [ref=e84]
+        - generic [ref=e86]: No logs found
+```

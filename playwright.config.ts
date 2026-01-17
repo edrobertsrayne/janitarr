@@ -6,7 +6,7 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   // Test directory
-  testDir: './tests/e2e',
+  testDir: './tests/',
 
   // Maximum time one test can run
   timeout: 30 * 1000,
@@ -29,7 +29,7 @@ export default defineConfig({
   // Shared settings for all the projects below
   use: {
     // Base URL for page.goto('/')
-    baseURL: 'http://localhost:5173',
+    baseURL: 'http://localhost:3001', // Changed baseURL to 3001
 
     // Collect trace when retrying the failed test
     trace: 'on-first-retry',
@@ -44,7 +44,6 @@ export default defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        headless: true,
         // Use devenv's Chromium if CHROMIUM_PATH is set
         // Otherwise Playwright will download its own
         ...(process.env.CHROMIUM_PATH && {
@@ -60,14 +59,12 @@ export default defineConfig({
   // Run your local dev server before starting the tests
   webServer: [
     {
-      command: 'bun run start',
-      url: 'http://localhost:3000',
+      command: 'bun run src/index.ts serve -p 3001', // Changed command to specify port 3001
+      url: 'http://localhost:3001', // Changed URL to 3001
       reuseExistingServer: !process.env.CI,
-    },
-    {
-      command: 'cd ui && bun run dev',
-      url: 'http://localhost:5173',
-      reuseExistingServer: !process.env.CI,
+      timeout: 120 * 1000, // Increased timeout
+      stderr: 'pipe',      // Capture stderr
+      output: 'ignore'     // Ignore output
     },
   ],
 });

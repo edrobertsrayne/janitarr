@@ -7,7 +7,7 @@ import {
   createServer,
   updateServer,
   deleteServer,
-  testServer,
+  testServerConnectionById, // For testing existing server by ID
   getLogs,
   deleteLogs,
   getStatsSummary,
@@ -203,7 +203,7 @@ describe('API Service', () => {
         json: async () => ({ success: true, data: mockResponse }),
       } as Response);
 
-      const result = await testServer('1');
+      const result = await testServerConnectionById('1');
 
       expect(result.success).toBe(true);
       expect(result.data).toEqual(mockResponse);
