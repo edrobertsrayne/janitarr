@@ -1,6 +1,6 @@
 # Janitarr Implementation Plan
 
-**Last Updated:** 2026-01-16
+**Last Updated:** 2026-01-17
 **Status:** Production Ready - All Features Complete - Documentation Complete - Test Suite Fixed
 **Overall Completion:** 100% (All core features, specs, mobile responsiveness, accessibility, frontend testing, and comprehensive documentation complete)
 
@@ -661,7 +661,7 @@ Janitarr is a production-ready automation tool for managing Radarr/Sonarr media 
 
 ## Test Suite Summary
 
-**Current Status:** 132 tests passing, 12 skipped, 0 failures
+**Current Status:** 136 unit tests passing, 36 frontend tests passing, 0 failures
 
 **Test Files:**
 ```
@@ -673,7 +673,7 @@ tests/lib/
 
 tests/services/
 ├── automation.test.ts           # Automation cycle tests
-├── detector.test.ts             # Detection logic tests
+├── detector.test.ts             # Detection logic tests (unit tests only)
 ├── search-trigger.test.ts       # Search triggering tests
 └── server-manager.test.ts       # Server management tests
 
@@ -681,10 +681,23 @@ tests/storage/
 └── database.test.ts             # Database operations tests
 
 tests/integration/
-└── api-client.integration.test.ts  # Real API integration tests
+├── api-client.integration.test.ts  # Real API integration tests
+└── detector.integration.test.ts    # Detector integration tests
+
+tests/e2e/
+├── add-server.spec.ts           # E2E test for adding servers
+├── logs.spec.ts                 # E2E test for logs view
+└── servers.spec.ts              # E2E test for servers view
 ```
 
 **Test Coverage:** >80% for critical paths
+
+**Recent Fixes (2026-01-17):**
+- ✅ Fixed test organization: Moved integration tests from `detector.test.ts` to separate integration file
+- ✅ Updated test scripts to properly separate unit, integration, and E2E tests
+- ✅ `bun test` now runs only unit tests (136 tests)
+- ✅ `bun run test:integration` runs integration tests (requires real servers)
+- ✅ `bunx playwright test` runs E2E tests separately
 
 **Recent Fixes (2026-01-16):**
 - ✅ Fixed Bun runtime compatibility for UI tests (replaced `vi.mocked` with direct type assertions)
@@ -738,7 +751,7 @@ tests/integration/
 ✅ **Core Features**: Server management, detection, search triggering, scheduling, logging
 ✅ **Web UI**: Full-featured frontend with 4 views, real-time updates, responsive design
 ✅ **CLI**: Complete command-line interface for all operations
-✅ **Testing**: 149 passing backend tests, 36 passing frontend tests (all compatibility issues resolved)
+✅ **Testing**: 136 passing unit tests, 36 passing frontend tests, properly organized test suite
 ✅ **Mobile**: Fully responsive for screens ≥320px with touch-friendly interactions
 ✅ **Accessibility**: WCAG 2.1 Level AA foundation with ARIA, keyboard nav, semantic HTML
 ✅ **Documentation**: Comprehensive guides for users, developers, API, and troubleshooting (2,800+ lines)
@@ -747,6 +760,6 @@ The application is ready for production deployment, personal/internal use, mobil
 
 ---
 
-**Last Reviewed:** 2026-01-16
+**Last Reviewed:** 2026-01-17
 **Implementation Status:** Core Features 100%, Mobile Responsiveness 100%, Accessibility 100%, Frontend Testing 100%, Documentation 100%
 **Status:** PRODUCTION READY - All milestones complete
