@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Logs page', () => {
   test('should display log entries and allow filtering', async ({ page }) => {
     // Mock the API endpoint for fetching logs
-    await page.route('**/api/logs*', (route) => {
+    await page.route('**/api/logs*', async (route) => { // Make handler async
       const url = new URL(route.request().url());
       const searchParam = url.searchParams.get('search') || '';
 
@@ -44,21 +44,24 @@ test.describe('Logs page', () => {
 
       const filteredLogs = allLogs.filter(log => log.message.toLowerCase().includes(searchParam.toLowerCase()));
 
-      route.fulfill({
+      await route.fulfill({ // Use await here
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          logs: filteredLogs,
-          total: filteredLogs.length,
-          page: 1,
-          pageSize: 10,
+          success: true,
+          data: filteredLogs,
         }),
       });
+    });
+
+    page.on('console', msg => {
+      console.log(`PAGE CONSOLE: ${msg.text()}`);
     });
 
     await page.goto('/logs');
     // Wait for the GET /api/logs?... request to complete
     await page.waitForResponse(response => response.url().includes('/api/logs') && response.request().method() === 'GET');
+    await page.waitForLoadState('domcontentloaded'); // Ensure DOM is fully parsed
     await page.waitForLoadState('domcontentloaded'); // Ensure DOM is fully parsed
 
     // Expect the logs heading to be visible

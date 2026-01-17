@@ -5,7 +5,7 @@ test.describe('Add Server flow', () => {
     let serverAdded = false;
 
     // Mock the API endpoints
-    await page.route('**/api/servers**', (route) => {
+    await page.route('**/api/servers**', async (route) => { // Use async route handler
       const request = route.request();
       const method = request.method();
       const url = request.url();
@@ -13,39 +13,23 @@ test.describe('Add Server flow', () => {
       console.log('Intercepted:', method, url, 'serverAdded:', serverAdded);
 
       if (url.endsWith('/test')) {
-        return route.fulfill({
+        await route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify({ success: true, message: 'Connection successful' }),
+          body: JSON.stringify({ success: true, data: { success: true, message: 'Connection successful' } }),
         });
+        return;
       }
 
       if (method === 'POST') {
         serverAdded = true;
         console.log('Server added, serverAdded is now true');
-        return route.fulfill({
+        await route.fulfill({
           status: 201,
           contentType: 'application/json',
           body: JSON.stringify({
-            id: 'test-id',
-            name: 'Test Server',
-            type: 'radarr',
-            url: 'http://localhost:7878',
-            apiKey: 'test-api-key',
-            enabled: true,
-          }),
-        });
-      }
-
-      if (method === 'GET') {
-        // Simplified: Always return the new server once a POST has occurred.
-        // This simulates a persistent server state for the E2E test.
-        console.log('Returning new server list');
-        return route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify([
-            {
+            success: true,
+            data: {
               id: 'test-id',
               name: 'Test Server',
               type: 'radarr',
@@ -53,11 +37,41 @@ test.describe('Add Server flow', () => {
               apiKey: 'test-api-key',
               enabled: true,
             },
-          ]),
+          }),
         });
+        return;
       }
 
-      return route.continue();
+      if (method === 'GET') {
+        // Return an empty array if no server has been added yet,
+        // otherwise return the new server.
+        console.log('Returning server list based on serverAdded:', serverAdded);
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            success: true,
+            data: serverAdded ? [
+              {
+                id: 'test-id',
+                name: 'Test Server',
+                type: 'radarr',
+                url: 'http://localhost:7878',
+                apiKey: 'test-api-key',
+                enabled: true,
+              },
+            ] : [],
+          }),
+        });
+        return;
+      }
+
+      // Important: if no conditions are met, continue the request to the network
+      await route.continue();
+    });
+
+    page.on('console', msg => {
+      console.log(`PAGE CONSOLE: ${msg.text()}`);
     });
 
     await page.goto('/servers');
@@ -75,6 +89,9 @@ test.describe('Add Server flow', () => {
     await expect(page.getByText('Connection successful')).toBeVisible({ timeout: 15000 }); // Increased timeout
 
     await page.getByRole('button', { name: 'Create' }).click();
+
+    // Switch to Card view for better heading detection
+    await page.getByRole('button', { name: 'Card view' }).click();
     // Wait for the UI to re-fetch the server list after creation.
     // This needs to be robust as networkidle was problematic.
     // Instead of waiting for a specific network response, wait for the UI element to appear.
