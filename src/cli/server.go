@@ -1,9 +1,11 @@
 package cli
 
 import (
+	"bufio" // Added for bufio.NewScanner
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -37,7 +39,72 @@ func init() {
 }
 
 func runServerAdd(cmd *cobra.Command, args []string) error {
-	return fmt.Errorf("not implemented")
+	ctx := context.Background()
+	reader := bufio.NewReader(os.Stdin)
+
+	fmt.Println(header("Add New Server"))
+	fmt.Println("--------------------")
+
+	// Name
+	fmt.Print(info("Enter server name: "))
+	name, _ := reader.ReadString('\n')
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return fmt.Errorf(errorMsg("Server name cannot be empty"))
+	}
+
+	// Type
+	serverType := ""
+	for {
+		fmt.Print(info("Enter server type (radarr/sonarr): "))
+		typeInput, _ := reader.ReadString('\n')
+		typeInput = strings.ToLower(strings.TrimSpace(typeInput))
+		if typeInput == "radarr" || typeInput == "sonarr" {
+			serverType = typeInput
+			break
+		}
+		fmt.Println(errorMsg("Invalid server type. Must be 'radarr' or 'sonarr'"))
+	}
+
+	// URL
+	fmt.Print(info("Enter server URL (e.g., http://localhost:7878): "))
+	url, _ := reader.ReadString('\n')
+	url = strings.TrimSpace(url)
+	if url == "" {
+		return fmt.Errorf(errorMsg("Server URL cannot be empty"))
+	}
+
+	// API Key
+	fmt.Print(info("Enter API Key: "))
+	apiKey, _ := reader.ReadString('\n')
+	apiKey = strings.TrimSpace(apiKey)
+	if apiKey == "" {
+		return fmt.Errorf(errorMsg("API Key cannot be empty"))
+	}
+
+	db, err := database.New(dbPath, "./data/.janitarr.key")
+	if err != nil {
+		return fmt.Errorf("failed to open database: %w", err)
+	}
+	defer db.Close()
+
+	serverManager := services.NewServerManagerFunc(db) // Use NewServerManagerFunc
+
+	hideCursor()
+	showProgress("Testing connection")
+	
+	// Test connection and add server
+	addedServer, err := serverManager.AddServer(ctx, name, url, apiKey, serverType)
+	
+	clearLine()
+	showCursor()
+
+	if err != nil {
+		return fmt.Errorf("failed to add server: %w", err)
+	}
+
+	fmt.Println(success(fmt.Sprintf("Server '%s' (%s) added successfully!", addedServer.Name, addedServer.Type)))
+	return nil
 }
 
 func runServerList(cmd *cobra.Command, args []string) error {
@@ -49,7 +116,7 @@ func runServerList(cmd *cobra.Command, args []string) error {
 	}
 	defer db.Close()
 
-	serverManager := services.NewServerManager(db)
+	serverManager := services.NewServerManagerFunc(db) // Use NewServerManagerFunc
 	servers, err := serverManager.ListServers()
 	if err != nil {
 		return fmt.Errorf("failed to list servers: %w", err)
