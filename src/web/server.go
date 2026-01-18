@@ -10,6 +10,7 @@ import (
 	chiMiddleware "github.com/go-chi/chi/v5/middleware" // Renamed to avoid conflict
 	"github.com/user/janitarr/src/database"
 	"github.com/user/janitarr/src/logger"
+	"github.com/user/janitarr/src/web/handlers/api" // Import api package
 	webMiddleware "github.com/user/janitarr/src/web/middleware" // Custom middleware package
 	"github.com/user/janitarr/src/services"
 )
@@ -74,10 +75,13 @@ func (s *Server) setupRoutes() {
 	}
 	r.Use(s.metrics.MetricsMiddleware) // Use custom metrics middleware
 
+	// Handlers
+	configHandlers := api.NewConfigHandlers(s.config.DB)
+
 	// API routes
 	r.Route("/api", func(r chi.Router) {
 		r.Get("/health", s.handleHealth)
-		// r.Get("/config", s.handleGetConfig)
+		r.Get("/config", configHandlers.GetConfig) // Register config route
 		// r.Patch("/config", s.handlePatchConfig)
 		// ... more routes
 	})

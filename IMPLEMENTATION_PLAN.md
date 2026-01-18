@@ -978,7 +978,7 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
 
 **Reference:** `src-ts/web/routes/config.ts`
 
-- [ ] Create `src/web/handlers/api/config.go`:
+- [x] Create `src/web/handlers/api/config.go`:
   - [ ] `GET /api/config` - return current config as JSON
   - [ ] `PATCH /api/config` - update config fields
   - [ ] `PUT /api/config/reset` - reset to defaults
