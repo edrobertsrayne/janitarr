@@ -31,6 +31,17 @@ func (m *MockAutomation) RunCycle(ctx context.Context, isManual, dryRun bool) (*
 	return args.Get(0).(*services.CycleResult), args.Error(1)
 }
 
+// MockDetector for testing CLI commands related to scanning
+type MockDetector struct {
+	mock.Mock
+}
+
+func (m *MockDetector) DetectAll(ctx context.Context) (*services.DetectionResults, error) {
+	args := m.Called(ctx)
+	return args.Get(0).(*services.DetectionResults), args.Error(1)
+}
+
+
 // MockLogger for testing Automation related CLI commands
 type MockLoggerCLI struct {
 	mock.Mock
@@ -224,5 +235,133 @@ func TestRunCommand(t *testing.T) {
 		assert.Equal(cycleResult.TotalSearches, actualResult.TotalSearches)
 		assert.Equal(cycleResult.TotalFailures, actualResult.TotalFailures)
 		mockAutomation.AssertExpectations(t)
+	})
+}
+
+func TestScanCommand(t *testing.T) {
+	assert := assert.New(t)
+
+	// Override services.NewDetector for testing
+	originalNewDetector := services.NewDetector
+	defer func() { services.NewDetector = originalNewDetector }()
+
+	mockDetector := new(MockDetector)
+	services.NewDetector = func(db *database.DB) services.DetectorInterface {
+		return mockDetector
+	}
+
+	rootCmd := NewRootCmd()
+	rootCmd.AddCommand(scanCmd)
+
+	// Temporarily override database.New to return a mock DB
+	originalNewDB := database.New
+	defer func() { database.New = originalNewDB }()
+	database.New = func(dbPath, keyPath string) (*database.DB, error) {
+		return createTestDBAutomation(t), nil
+	}
+
+	t.Run("scan command - success", func(t *testing.T) {
+		detectionResults := &services.DetectionResults{
+			Results: []services.DetectionResult{
+				{ServerName: "Radarr", ServerType: "radarr", Missing: []int{101, 102}, Cutoff: []int{201}},
+				{ServerName: "Sonarr", ServerType: "sonarr", Missing: []int{301}, Cutoff: []int{401, 402}},
+			},
+			TotalMissing: 3,
+			TotalCutoff:  3,
+			SuccessCount: 2,
+			FailureCount: 0,
+		}
+		mockDetector.On("DetectAll", mock.Anything).Return(detectionResults, nil).Once()
+
+		output, err := executeCommand(rootCmd, "scan")
+		assert.NoError(err)
+		assert.Contains(output, "Scan Results:")
+		assert.Contains(output, "Successful Scans: 2")
+		assert.Contains(output, "Failed Scans: 0")
+		assert.Contains(output, "Total Missing Items: 3")
+		assert.Contains(output, "Total Cutoff Unmet Items: 3")
+		assert.Contains(output, success("Server Radarr (radarr) Scan Successful:"))
+		assert.Contains(output, success("Server Sonarr (sonarr) Scan Successful:"))
+		mockDetector.AssertExpectations(t)
+	})
+
+	t.Run("scan command - partial failure", func(t *testing.T) {
+		detectionResults := &services.DetectionResults{
+			Results: []services.DetectionResult{
+				{ServerName: "Radarr", ServerType: "radarr", Missing: []int{101}, Cutoff: []int{}, Error: "API error"},
+				{ServerName: "Sonarr", ServerType: "sonarr", Missing: []int{301}, Cutoff: []int{401, 402}},
+			},
+			TotalMissing: 2,
+			TotalCutoff:  2,
+			SuccessCount: 1,
+			FailureCount: 1,
+		}
+		mockDetector.On("DetectAll", mock.Anything).Return(detectionResults, nil).Once()
+
+		output, err := executeCommand(rootCmd, "scan")
+		assert.NoError(err) // Command itself should not error if detection results contain errors
+		assert.Contains(output, "Scan Results:")
+		assert.Contains(output, "Successful Scans: 1")
+		assert.Contains(output, "Failed Scans: 1")
+		assert.Contains(output, errorMsg("Server Radarr (radarr) Scan Failed: API error"))
+		assert.Contains(output, success("Server Sonarr (sonarr) Scan Successful:"))
+		mockDetector.AssertExpectations(t)
+	})
+
+	t.Run("scan command - all failure", func(t *testing.T) {
+		detectionResults := &services.DetectionResults{
+			Results: []services.DetectionResult{
+				{ServerName: "Radarr", ServerType: "radarr", Missing: []int{}, Cutoff: []int{}, Error: "Auth failed"},
+				{ServerName: "Sonarr", ServerType: "sonarr", Missing: []int{}, Cutoff: []int{}, Error: "Network issue"},
+			},
+			TotalMissing: 0,
+			TotalCutoff:  0,
+			SuccessCount: 0,
+			FailureCount: 2,
+		}
+		mockDetector.On("DetectAll", mock.Anything).Return(detectionResults, nil).Once()
+
+		output, err := executeCommand(rootCmd, "scan")
+		assert.NoError(err) // Command itself should not error if detection results contain errors
+		assert.Contains(output, "Scan Results:")
+		assert.Contains(output, "Successful Scans: 0")
+		assert.Contains(output, "Failed Scans: 2")
+		assert.Contains(output, errorMsg("Server Radarr (radarr) Scan Failed: Auth failed"))
+		assert.Contains(output, errorMsg("Server Sonarr (sonarr) Scan Failed: Network issue"))
+		mockDetector.AssertExpectations(t)
+	})
+
+	t.Run("scan command - detector returns error", func(t *testing.T) {
+		mockDetector.On("DetectAll", mock.Anything).Return((*services.DetectionResults)(nil), errors.New("database unavailable")).Once()
+
+		output, err := executeCommand(rootCmd, "scan")
+		assert.Error(err)
+		assert.Contains(output, errorMsg("Error during scan: database unavailable"))
+		mockDetector.AssertExpectations(t)
+	})
+
+	t.Run("scan command - json output", func(t *testing.T) {
+		detectionResults := &services.DetectionResults{
+			Results: []services.DetectionResult{
+				{ServerName: "Radarr", ServerType: "radarr", Missing: []int{101}, Cutoff: []int{}},
+				{ServerName: "Sonarr", ServerType: "sonarr", Missing: []int{}, Cutoff: []int{401}},
+			},
+			TotalMissing: 1,
+			TotalCutoff:  1,
+			SuccessCount: 2,
+			FailureCount: 0,
+		}
+		mockDetector.On("DetectAll", mock.Anything).Return(detectionResults, nil).Once()
+
+		output, err := executeCommand(rootCmd, "scan", "--json")
+		assert.NoError(err)
+
+		var actualResults services.DetectionResults
+		err = json.Unmarshal([]byte(output), &actualResults)
+		assert.NoError(err)
+		assert.Equal(detectionResults.TotalMissing, actualResults.TotalMissing)
+		assert.Equal(detectionResults.TotalCutoff, actualResults.TotalCutoff)
+		assert.Equal(len(detectionResults.Results), len(actualResults.Results))
+		mockDetector.AssertExpectations(t)
 	})
 }

@@ -776,10 +776,10 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
       RunE:  runScan,
   }
   ```
-- [ ] Implement `scan`:
-  - [ ] Run detection only (no searches)
-  - [ ] Display results per server
-  - [ ] `--json` flag for JSON output
+- [x] Implement `scan`:
+  - [x] Run detection only (no searches)
+  - [x] Display results per server
+  - [x] `--json` flag for JSON output
 - [ ] Create `src/cli/status.go`:
   ```go
   var statusCmd = &cobra.Command{
@@ -796,7 +796,7 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
 - [x] Create `src/cli/automation_test.go`:
   - [x] `TestRun_DryRun` - no API calls made
   - [x] `TestRun_JSON` - verifies JSON format
-  - [ ] `TestScan_JSON` - verifies JSON format
+  - [x] `TestScan_JSON` - verifies JSON format
   - [ ] `TestStatus_JSON` - verifies JSON format
 - [ ] Verify: `go build ./src && ./janitarr run --help`
 
