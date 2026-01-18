@@ -87,7 +87,7 @@ func (s *Server) setupRoutes() {
 
 	// API routes
 	r.Route("/api", func(r chi.Router) {
-		r.Get("/health", s.handleHealth)
+		r.Get("/health", healthHandlers.GetHealth) // Register Health endpoint
 		r.Get("/config", configHandlers.GetConfig)
 		r.Patch("/config", configHandlers.PatchConfig)
 		r.Put("/config/reset", configHandlers.ResetConfig)

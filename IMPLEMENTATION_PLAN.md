@@ -1070,23 +1070,23 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
 
 **Reference:** `src-ts/web/routes/health.ts`
 
-- [ ] Create `src/web/handlers/api/health.go`:
-  - [ ] `GET /api/health` - comprehensive health check
+- [x] Create `src/web/handlers/api/health.go`:
+  - [x] `GET /api/health` - comprehensive health check
     ```go
     type HealthResponse struct {
         Status    string                 `json:"status"` // ok, degraded, error
         Timestamp time.Time              `json:"timestamp"`
-        Services  map[string]interface{} `json:"services"`
+        Services  map[string]interface{} `json:"json:"services"`
         Database  map[string]string      `json:"database"`
     }
     ```
-  - [ ] Check database connectivity (`SELECT 1`)
-  - [ ] Check scheduler status
-  - [ ] Return 200 for ok/degraded, 503 for error
-- [ ] Create `src/web/handlers/api/health_test.go`:
-  - [ ] `TestHealth_AllOK` - returns ok status
-  - [ ] `TestHealth_SchedulerDisabled` - returns degraded
-  - [ ] `TestHealth_DatabaseError` - returns error
+  - [x] Check database connectivity (`SELECT 1`)
+  - [x] Check scheduler status
+  - [x] Return 200 for ok/degraded, 503 for error
+- [x] Create `src/web/handlers/api/health_test.go`:
+  - [x] `TestHealth_AllOK` - returns ok status
+  - [x] `TestHealth_SchedulerDisabled` - returns degraded
+  - [x] `TestHealth_DatabaseError` - returns error
 
 #### Metrics Endpoint
 
