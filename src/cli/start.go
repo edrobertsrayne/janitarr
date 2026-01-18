@@ -25,7 +25,7 @@ var startCmd = &cobra.Command{
 
 func init() {
 	startCmd.Flags().IntP("port", "p", 3434, "Web server port")
-	startCmd.Flags().String("host", "localhost", "Web server host")
+	startCmd.Flags().String("host", "0.0.0.0", "Web server host")
 }
 
 func runStart(cmd *cobra.Command, args []string) error {
