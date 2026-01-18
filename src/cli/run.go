@@ -1,15 +1,21 @@
 package cli
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	"os"
+	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/user/janitarr/src/database"
+	"github.com/user/janitarr/src/logger"
+	"github.com/user/janitarr/src/services"
 )
 
 var runCmd = &cobra.Command{
 	Use:   "run",
 	Short: "Execute automation cycle manually",
-	Long:  `Run the full automation cycle: detect missing/cutoff content and trigger searches.`,
 	RunE:  runAutomation,
 }
 
@@ -19,6 +25,53 @@ func init() {
 }
 
 func runAutomation(cmd *cobra.Command, args []string) error {
-	fmt.Println("not implemented")
+	ctx := context.Background()
+
+	dryRun, _ := cmd.Flags().GetBool("dry-run")
+	outputJSON, _ := cmd.Flags().GetBool("json")
+
+	db, err := database.New(dbPath, "./data/.janitarr.key")
+	if err != nil {
+		return fmt.Errorf("failed to open database: %w", err)
+	}
+	defer db.Close()
+
+	// Initialize services
+	detector := services.NewDetector(db)
+	trigger := services.NewSearchTrigger(db)
+	appLogger := logger.NewLogger(db) // Renamed to avoid conflict with `logger` package name
+
+	automation := services.NewAutomation(db, detector, trigger, appLogger)
+
+	if dryRun {
+		hideCursor()
+		showProgress("Running automation cycle (DRY RUN - no searches will be triggered)")
+	} else {
+		hideCursor()
+		showProgress("Running automation cycle")
+	}
+
+	cycleResult, err := automation.RunCycle(ctx, true, dryRun) // isManual = true for CLI run
+
+	clearLine()
+	showCursor()
+
+	if err != nil && !outputJSON {
+		fmt.Println(errorMsg(fmt.Sprintf("Automation cycle completed with errors: %s", err.Error())))
+		if len(cycleResult.Errors) > 0 {
+			fmt.Println(errorMsg("Details:"))
+			for _, e := range cycleResult.Errors {
+				fmt.Println(errorMsg(fmt.Sprintf("  - %s", e)))
+			}
+		}
+	}
+
+	if outputJSON {
+		encoder := json.NewEncoder(cmd.OutOrStdout())
+		encoder.SetIndent("", "  ")
+		return encoder.Encode(cycleResult)
+	}
+
+	fmt.Println(services.FormatCycleResult(cycleResult))
 	return nil
 }

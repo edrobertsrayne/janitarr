@@ -762,12 +762,12 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
   }
   ```
 
-- [ ] Implement `run`:
-  - [ ] Execute full automation cycle
-  - [ ] Show progress: "Detecting...", "Triggering searches..."
-  - [ ] Display cycle summary
-  - [ ] `--dry-run` flag: show what would be searched
-  - [ ] `--json` flag: JSON output
+- [x] Implement `run`:
+  - [x] Execute full automation cycle
+  - [x] Show progress: "Detecting...", "Triggering searches..."
+  - [x] Display cycle summary
+  - [x] `--dry-run` flag: show what would be searched
+  - [x] `--json` flag: JSON output
 - [ ] Create `src/cli/scan.go`:
   ```go
   var scanCmd = &cobra.Command{
@@ -793,9 +793,9 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
   - [ ] Show server count by type
   - [ ] Show last cycle summary
   - [ ] `--json` flag for JSON output
-- [ ] Create `src/cli/automation_test.go`:
-  - [ ] `TestRun_DryRun` - no API calls made
-  - [ ] `TestRun_JSON` - verifies JSON format
+- [x] Create `src/cli/automation_test.go`:
+  - [x] `TestRun_DryRun` - no API calls made
+  - [x] `TestRun_JSON` - verifies JSON format
   - [ ] `TestScan_JSON` - verifies JSON format
   - [ ] `TestStatus_JSON` - verifies JSON format
 - [ ] Verify: `go build ./src && ./janitarr run --help`
