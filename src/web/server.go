@@ -82,8 +82,8 @@ func (s *Server) setupRoutes() {
 	r.Route("/api", func(r chi.Router) {
 		r.Get("/health", s.handleHealth)
 		r.Get("/config", configHandlers.GetConfig) // Register config route
-		// r.Patch("/config", s.handlePatchConfig)
-		// ... more routes
+		r.Patch("/config", configHandlers.PatchConfig)
+		r.Put("/config/reset", configHandlers.ResetConfig)
 	})
 
 	// Prometheus metrics

@@ -979,15 +979,15 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
 **Reference:** `src-ts/web/routes/config.ts`
 
 - [x] Create `src/web/handlers/api/config.go`:
-  - [ ] `GET /api/config` - return current config as JSON
-  - [ ] `PATCH /api/config` - update config fields
-  - [ ] `PUT /api/config/reset` - reset to defaults
-- [ ] Create `src/web/handlers/api/config_test.go`:
-  - [ ] `TestGetConfig_ReturnsJSON` - verifies structure
-  - [ ] `TestPatchConfig_UpdatesValue` - modifies field
-  - [ ] `TestPatchConfig_InvalidKey` - returns 400
-  - [ ] `TestResetConfig_RestoresDefaults` - resets all
-  - [ ] Use `httptest.NewRecorder()` for testing
+  - [x] `GET /api/config` - return current config as JSON
+  - [x] `PATCH /api/config` - update config fields
+  - [x] `PUT /api/config/reset` - reset to defaults
+- [x] Create `src/web/handlers/api/config_test.go`:
+  - [x] `TestGetConfig_ReturnsJSON` - verifies structure
+  - [x] `TestPatchConfig_UpdatesValue` - modifies field
+  - [x] `TestPatchConfig_InvalidKey` - returns 400
+  - [x] `TestResetConfig_RestoresDefaults` - resets all
+  - [x] Use `httptest.NewRecorder()` for testing
 
 #### Servers Endpoints
 
