@@ -15,6 +15,17 @@ func NewRootCmd() *cobra.Command {
 		Version: version,
 	}
 	cmd.PersistentFlags().StringVar(&dbPath, "db-path", "./data/janitarr.db", "Database path")
+
+	// Register commands
+	cmd.AddCommand(startCmd)
+	cmd.AddCommand(devCmd)
+	cmd.AddCommand(serverCmd)
+	cmd.AddCommand(configCmd)
+	cmd.AddCommand(runCmd)
+	cmd.AddCommand(scanCmd)
+	cmd.AddCommand(statusCmd)
+	cmd.AddCommand(logsCmd)
+
 	return cmd
 }
 

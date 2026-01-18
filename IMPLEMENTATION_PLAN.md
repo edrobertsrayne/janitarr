@@ -258,7 +258,7 @@ janitarr/
 
 **Reference:** `src-ts/cli/commands.ts` (lines 64-809)
 
-- [ ] Create `src/cli/root.go`:
+- [x] Create `src/cli/root.go`:
 
   ```go
   package cli
@@ -285,17 +285,17 @@ janitarr/
   }
   ```
 
-- [ ] Create stub commands (each returns `fmt.Println("not implemented")`):
-  - [ ] `src/cli/start.go` - `start` command
-  - [ ] `src/cli/dev.go` - `dev` command
-  - [ ] `src/cli/server.go` - `server add|list|edit|remove|test` subcommands
-  - [ ] `src/cli/config.go` - `config show|set` subcommands
-  - [ ] `src/cli/run.go` - `run` command with `--dry-run` flag
-  - [ ] `src/cli/scan.go` - `scan` command
-  - [ ] `src/cli/status.go` - `status` command
-  - [ ] `src/cli/logs.go` - `logs` command
-- [ ] Add all commands to root in `root.go`
-- [ ] Verify: `go run ./src --help` shows all commands
+- [x] Create stub commands (each returns `fmt.Println("not implemented")`):
+  - [x] `src/cli/start.go` - `start` command
+  - [x] `src/cli/dev.go` - `dev` command
+  - [x] `src/cli/server.go` - `server add|list|edit|remove|test` subcommands
+  - [x] `src/cli/config.go` - `config show|set` subcommands
+  - [x] `src/cli/run.go` - `run` command with `--dry-run` flag
+  - [x] `src/cli/scan.go` - `scan` command
+  - [x] `src/cli/status.go` - `status` command
+  - [x] `src/cli/logs.go` - `logs` command
+- [x] Add all commands to root in `root.go`
+- [x] Verify: `go run ./src --help` shows all commands
 
 ---
 
