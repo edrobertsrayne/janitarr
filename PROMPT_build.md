@@ -22,3 +22,4 @@ Step 5: Commit changes atomically and push, following the convential commits spe
 Important: Implement ONE task only. Don't try to do everything at once.
 Important: Run tests frequently to catch issues early.
 Important: If you find bugs unrelated to your task, fix them too—single source of truth and commit separately.
+IMPORTANT: Keep @CLAUDE.md operational only — status updates and progress notes belong in `IMPLEMENTATION_PLAN.md`. A bloate CLAUDE.md pollutes every future loop's context.

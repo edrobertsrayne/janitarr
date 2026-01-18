@@ -1930,7 +1930,7 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
 
 ## Air Hot Reload Removal
 
-**Status:** Planned
+**Status:** [x] Completed
 
 **Decision:** Remove Air hot reload tool from the development environment.
 
@@ -1938,16 +1938,16 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
 
 ### Changes to Make
 
-- [ ] Delete `.air.toml` configuration file
-- [ ] Remove `pkgs.air` from `devenv.nix` packages
-- [ ] Remove `make dev` target from `Makefile`
-- [ ] Remove Air from enterShell message in `devenv.nix`
-- [ ] Update `CLAUDE.md` to remove Air documentation
-- [ ] Update `specs/go-architecture.md` to remove Air references
-- [ ] Update `specs/unified-service-startup.md` to remove Air requirements
+- [x] Delete `.air.toml` configuration file
+- [x] Remove `pkgs.air` from `devenv.nix` packages
+- [x] Remove `make dev` target from `Makefile`
+- [x] Remove Air from enterShell message in `devenv.nix`
+- [x] Update `CLAUDE.md` to remove Air documentation
+- [x] Update `specs/go-architecture.md` to remove Air references
+- [x] Update `specs/unified-service-startup.md` to remove Air requirements
 
 ### Impact
 
-- The `make dev` command will no longer be available
+- The `make dev` command is no longer available
 - Use `make build` to rebuild the application
 - The `./janitarr dev` command (verbose logging mode) remains unchanged

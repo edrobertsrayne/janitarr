@@ -1,0 +1,24 @@
+linters:
+  enable:
+    - errcheck # Check for unchecked errors
+    - gosimple # Simplification suggestions
+    - govet # Go vet checks
+    - ineffassign # Ineffectual assignments
+    - staticcheck # Static analysis
+    - unused # Unused code detection
+    - gofmt # Formatting
+    - goimports # Import organization
+
+linters-settings:
+  govet:
+    check-shadowing: true
+
+issues:
+  exclude-rules:
+    # Allow unchecked errors in test files
+    - path: _test\.go
+      linters:
+        - errcheck
+
+run:
+  timeout: 5m

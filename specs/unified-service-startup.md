@@ -11,7 +11,7 @@ Currently, these services must be started separately using different commands (`
 
 The system provides two startup modes:
 
-- **Development mode** (`dev` command) - Optimized for local development with verbose logging and hot reload via Air
+- **Development mode** (`dev` command) - Optimized for local development with verbose logging
 - **Production mode** (`start` command) - Optimized for deployed environments with minimal logging
 
 ## Requirements
@@ -46,7 +46,6 @@ The system provides two startup modes:
 - [ ] API error responses include detailed stack traces and debugging information
 - [ ] Command accepts same `--port` and `--host` flags as production mode
 - [ ] Clear indication in console output that development mode is active
-- [ ] Air provides hot reload for Go and templ file changes
 
 ### Story: Health Check Endpoint
 
@@ -187,10 +186,9 @@ The system provides two startup modes:
 
 ### Development Mode Requirements
 
-- Development mode uses Air for hot reload of Go and templ files
-- Run `air` in project root to start development server with auto-rebuild
-- Tailwind CSS watches for changes via `make watch-css` or integrated into Air config
-- Templates are re-generated automatically on `.templ` file changes
+- Development mode provides verbose logging for debugging
+- Rebuild the application using `make build` after making changes
+- The `./janitarr dev` command runs the application with enhanced logging output
 
 ### Logging Behavior
 

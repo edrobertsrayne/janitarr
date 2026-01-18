@@ -24,3 +24,6 @@ devenv.lock
 
 # Generated CSS
 static/css/app.css
+
+# Nix build outputs
+result/

@@ -66,8 +66,7 @@ janitarr/
 ├── tests/                        # Integration/E2E tests
 ├── go.mod
 ├── go.sum
-├── Makefile
-└── .air.toml
+└── Makefile
 ```
 
 ## Core Patterns
@@ -605,48 +604,17 @@ func (m *Metrics) Render() string {
 ### Makefile
 
 ```makefile
-.PHONY: dev build test lint generate
+.PHONY: build test generate
 
 generate:
 	templ generate
 	npx tailwindcss -i ./static/css/input.css -o ./static/css/app.css
-
-dev:
-	air
 
 build: generate
 	go build -ldflags "-s -w" -o janitarr ./src
 
 test:
 	go test -race ./...
-
-lint:
-	golangci-lint run
-
-install-tools:
-	go install github.com/air-verse/air@latest
-	go install github.com/a-h/templ/cmd/templ@latest
-```
-
-### Air Configuration
-
-```toml
-# .air.toml
-[build]
-  cmd = "templ generate && go build -o ./tmp/main ./src"
-  bin = "./tmp/main"
-  include_ext = ["go", "templ"]
-  exclude_dir = ["tmp", "vendor", "node_modules", "src-ts", "ui-ts"]
-  delay = 1000
-
-[build.env]
-  JANITARR_DEV = "true"
-
-[log]
-  time = false
-
-[misc]
-  clean_on_exit = true
 ```
 
 ## Security Considerations

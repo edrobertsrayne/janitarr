@@ -12,7 +12,7 @@ The project uses [devenv](https://devenv.sh) with direnv for automatic environme
 direnv allow                          # Authorize the development environment
 ```
 
-This provides Go, templ, Air, Tailwind CSS, and Playwright. The environment loads automatically when entering the project directory.
+This provides Go, templ, Tailwind CSS, and Playwright. The environment loads automatically when entering the project directory.
 
 ## Build Commands
 
@@ -24,10 +24,6 @@ make build
 ./janitarr --help
 ./janitarr start                      # Production mode
 ./janitarr dev                        # Development mode with verbose logging
-
-# Development with hot reload
-make dev                              # Runs Air for auto-rebuild on file changes
-air                                   # Alternative: run Air directly
 
 # Generate templates only
 templ generate
