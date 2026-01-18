@@ -677,10 +677,10 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
   - [x] Prompt with current values as defaults
   - [x] Test connection before saving
   - [x] Skip if no changes made
-- [ ] Implement `server remove <id-or-name>`:
-  - [ ] Look up server by ID or name
-  - [ ] Prompt for confirmation (y/N)
-  - [ ] `--force` flag to skip confirmation
+- [x] Implement `server remove <id-or-name>`:
+  - [x] Look up server by ID or name
+  - [x] Prompt for confirmation (y/N)
+  - [x] `--force` flag to skip confirmation
 - [ ] Implement `server test <id-or-name>`:
   - [ ] Look up server by ID or name
   - [ ] Test connection and display version/app name
@@ -689,7 +689,7 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
   - [x] `TestServerList_JSON` - verifies JSON format
   - [x] `TestServerList_Table` - verifies table format
   - [x] `TestServerEdit` - verifies edit functionality
-  - [ ] `TestServerRemove_Confirmation` - tests y/N prompt
+  - [x] `TestServerRemove_Confirmation` - tests y/N prompt
 - [ ] Verify: `go build ./src && ./janitarr server --help`
 
 NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pre-commit hook, preventing successful runs of `go test ./src/cli/...`. This is an environmental issue beyond the scope of this task.
