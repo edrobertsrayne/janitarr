@@ -79,7 +79,10 @@ func (s *Server) setupRoutes() {
 	configHandlers := api.NewConfigHandlers(s.config.DB)
 	serverManager := services.NewServerManager(s.config.DB)
 	serverHandlers := api.NewServerHandlers(serverManager, s.config.DB)
-	logHandlers := api.NewLogHandlers(s.config.DB) // Instantiate LogHandlers
+	logHandlers := api.NewLogHandlers(s.config.DB)
+	
+	automationService := services.NewAutomation(s.config.DB, services.NewDetector(s.config.DB), services.NewSearchTrigger(s.config.DB), s.config.Logger)
+	automationHandlers := api.NewAutomationHandlers(s.config.DB, automationService, s.config.Scheduler, s.config.Logger)
 
 	// API routes
 	r.Route("/api", func(r chi.Router) {
@@ -101,6 +104,9 @@ func (s *Server) setupRoutes() {
 		r.Get("/logs", logHandlers.ListLogs)      // List logs
 		r.Delete("/logs", logHandlers.ClearLogs)  // Clear logs
 		r.Get("/logs/export", logHandlers.ExportLogs) // Export logs
+
+		r.Post("/automation/trigger", automationHandlers.TriggerAutomationCycle)
+		r.Get("/automation/status", automationHandlers.GetSchedulerStatus)
 	})
 
 	// Prometheus metrics

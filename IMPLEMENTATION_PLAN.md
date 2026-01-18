@@ -1033,18 +1033,18 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
 
 **Reference:** `src-ts/web/routes/automation.ts`
 
-- [ ] Create `src/web/handlers/api/automation.go`:
-  - [ ] `POST /api/automation/trigger` - trigger manual cycle
+- [x] Create `src/web/handlers/api/automation.go`:
+  - [x] `POST /api/automation/trigger` - trigger manual cycle
     - Body: `{ "dryRun": bool }`
     - Returns: CycleResult
-  - [ ] `GET /api/automation/status` - get scheduler status
+  - [x] `GET /api/automation/status` - get scheduler status
     - Returns: SchedulerStatus
-- [ ] Create `src/web/handlers/api/automation_test.go`:
-  - [ ] `TestTrigger_Success` - runs cycle
-  - [ ] `TestTrigger_DryRun` - preview mode
-  - [ ] `TestTrigger_AlreadyRunning` - returns 409
-  - [ ] `TestGetStatus_Running` - shows running state
-  - [ ] `TestGetStatus_Stopped` - shows stopped state
+- [x] Create `src/web/handlers/api/automation_test.go`:
+  - [x] `TestTrigger_Success` - runs cycle
+  - [x] `TestTrigger_DryRun` - preview mode
+  - [x] `TestTrigger_AlreadyRunning` - returns 409
+  - [x] `TestGetStatus_Running` - shows running state
+  - [x] `TestGetStatus_Stopped` - shows stopped state
 
 #### Stats Endpoints
 
