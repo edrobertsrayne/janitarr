@@ -13,6 +13,7 @@ import (
 	"github.com/user/janitarr/src/metrics"
 	"github.com/user/janitarr/src/services"
 	"github.com/user/janitarr/src/web/handlers/api"             // Import api package
+	"github.com/user/janitarr/src/web/handlers/pages"           // Import pages package
 	webMiddleware "github.com/user/janitarr/src/web/middleware" // Custom middleware package
 	"github.com/user/janitarr/src/web/websocket"
 )
@@ -107,6 +108,9 @@ func (s *Server) setupRoutes() {
 	statsHandlers := api.NewStatsHandlers(s.config.DB)             // Instantiate StatsHandlers
 	metricsHandlers := api.NewMetricsHandlers(s.prometheusMetrics) // Instantiate MetricsHandlers
 
+	// Page handlers
+	pageHandlers := pages.NewPageHandlers(s.config.DB, s.config.Scheduler, s.config.Logger)
+
 	// API routes
 	r.Route("/api", func(r chi.Router) {
 		r.Get("/health", healthHandlers.GetHealth) // Register Health endpoint
@@ -141,7 +145,19 @@ func (s *Server) setupRoutes() {
 	// WebSocket
 	r.Get("/ws/logs", s.wsHub.ServeWS)
 
-	// Static files and pages
+	// Page routes
+	r.Get("/", pageHandlers.HandleDashboard)
+	r.Get("/servers", pageHandlers.HandleServers)
+	r.Get("/servers/new", pageHandlers.HandleNewServerForm)
+	r.Get("/servers/{id}/edit", pageHandlers.HandleEditServerForm)
+	r.Get("/logs", pageHandlers.HandleLogs)
+	r.Get("/settings", pageHandlers.HandleSettings)
+
+	// Partial routes for htmx
+	r.Get("/partials/stats", pageHandlers.HandleStatsPartial)
+	r.Get("/partials/recent-activity", pageHandlers.HandleRecentActivityPartial)
+	r.Get("/partials/log-entries", pageHandlers.HandleLogEntriesPartial)
+
+	// Static files
 	r.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
-	// r.Get("/*", s.handlePage) // Placeholder for templ pages
 }

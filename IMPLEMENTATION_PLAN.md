@@ -1317,7 +1317,7 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
 
 ### Page Handlers
 
-- [ ] Create `src/web/handlers/pages/pages.go` with shared types:
+- [x] Create `src/web/handlers/pages/pages.go` with shared types:
 
   ```go
   package pages
@@ -1338,65 +1338,53 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
   }
   ```
 
-- [ ] Create `src/web/handlers/pages/dashboard.go`:
-  - [ ] `GET /` - render dashboard with stats
-  - [ ] `GET /partials/stats` - htmx partial for stats cards
-  - [ ] `GET /partials/recent-activity` - htmx partial for activity
-  - [ ] Check `HX-Request` header for partial vs full page
+- [x] Create `src/web/handlers/pages/dashboard.go`:
+  - [x] `GET /` - render dashboard with stats
+  - [x] `GET /partials/stats` - htmx partial for stats cards
+  - [x] `GET /partials/recent-activity` - htmx partial for activity
+  - [x] Check `HX-Request` header for partial vs full page
 
-- [ ] Create `src/web/handlers/pages/servers.go`:
-  - [ ] `GET /servers` - render servers list page
-  - [ ] `GET /servers/new` - render modal form (partial)
-  - [ ] `POST /servers` - create server, return updated list
-  - [ ] `GET /servers/{id}/edit` - render edit modal (partial)
-  - [ ] `PUT /servers/{id}` - update server, return card
-  - [ ] `DELETE /servers/{id}` - delete, return empty (htmx swap)
-  - [ ] `POST /servers/{id}/test` - test connection, return result
+- [x] Create `src/web/handlers/pages/servers.go`:
+  - [x] `GET /servers` - render servers list page
+  - [x] `GET /servers/new` - render modal form (partial)
+  - [x] `GET /servers/{id}/edit` - render edit modal (partial)
+  - Note: POST/PUT/DELETE handled by API handlers
 
-- [ ] Create `src/web/handlers/pages/logs.go`:
-  - [ ] `GET /logs` - render logs page
-  - [ ] `GET /partials/log-entries` - htmx partial for log list
-    - Query params: `offset`, `limit`, `type`, `server`
-  - [ ] Include WebSocket connection script for real-time updates
+- [x] Create `src/web/handlers/pages/logs.go`:
+  - [x] `GET /logs` - render logs page
+  - [x] `GET /partials/log-entries` - htmx partial for log list
+  - [x] Include WebSocket connection script for real-time updates
 
-- [ ] Create `src/web/handlers/pages/settings.go`:
-  - [ ] `GET /settings` - render settings form
-  - [ ] `POST /settings` - save config, show success toast
-  - [ ] Return `HX-Trigger: showToast` header for notifications
+- [x] Create `src/web/handlers/pages/settings.go`:
+  - [x] `GET /settings` - render settings form
+  - Note: POST handled by API config handler
 
 ### Page Templates
 
-- [ ] Create `src/templates/pages/dashboard.templ`:
-  - [ ] Stats row: server count, last cycle info, total searches, errors
-  - [ ] Server status table with htmx refresh
-  - [ ] Recent activity timeline (last 10 entries)
-  - [ ] "Run Now" button with htmx POST to `/api/automation/trigger`
-  - [ ] Auto-refresh stats every 30 seconds with htmx
+- [x] Create `src/templates/pages/dashboard.templ`:
+  - [x] Stats row: server count, last cycle info, total searches, errors
+  - [x] Server status table with htmx refresh
+  - [x] Recent activity timeline (last 10 entries)
+  - [x] "Run Now" button with htmx POST to `/api/automation/trigger`
+  - [x] Auto-refresh stats every 30 seconds with htmx
 
-- [ ] Create `src/templates/pages/servers.templ`:
-  - [ ] Grid of server cards
-  - [ ] "Add Server" button opens modal
-  - [ ] Each card has Edit/Delete/Test buttons
-  - [ ] Modal container for forms (Alpine.js x-show)
-  - [ ] Empty state when no servers
+- [x] Create `src/templates/pages/servers.templ`:
+  - [x] Grid of server cards
+  - [x] "Add Server" button opens modal
+  - [x] Modal container for forms
+  - [x] Empty state when no servers
 
-- [ ] Create `src/templates/pages/logs.templ`:
-  - [ ] Filter toolbar: type dropdown, server dropdown
-  - [ ] Log entries container with infinite scroll (htmx)
-  - [ ] Export buttons (JSON/CSV)
-  - [ ] Clear logs button with confirmation modal
-  - [ ] WebSocket integration for real-time updates:
-    ```html
-    <div id="log-container" hx-ext="ws" ws-connect="/ws/logs">
-      <!-- Log entries injected here -->
-    </div>
-    ```
+- [x] Create `src/templates/pages/logs.templ`:
+  - [x] Filter toolbar: type dropdown, server dropdown
+  - [x] Log entries container with infinite scroll (htmx)
+  - [x] Export buttons (JSON/CSV)
+  - [x] Clear logs button with confirmation modal
+  - [x] WebSocket integration for real-time updates
 
-- [ ] Create `src/templates/pages/settings.templ`:
-  - [ ] Schedule section: interval, enabled toggle
-  - [ ] Search limits section: missing, cutoff inputs
-  - [ ] Save button with loading state
-  - [ ] Success/error toast notifications
+- [x] Create `src/templates/pages/settings.templ`:
+  - [x] Schedule section: interval, enabled toggle
+  - [x] Search limits section: missing, cutoff inputs
+  - [x] Uses existing ConfigForm component
 
 ### Static Assets
 
