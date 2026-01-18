@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/user/janitarr/src/logger"
 	"github.com/user/janitarr/src/templates/pages"
 )
 
@@ -25,14 +26,14 @@ func (h *PageHandlers) HandleDashboard(w http.ResponseWriter, r *http.Request) {
 	for i, srv := range servers {
 		serverDisplays[i] = pages.ServerDisplay{
 			Name:    srv.Name,
-			Type:    srv.Type,
-			URL:     srv.URL,
+			Type:    string(srv.Type),
+			URL:     "",
 			Enabled: srv.Enabled,
 		}
 	}
 
 	// Get recent logs (last 10)
-	logs, err := h.db.GetLogs(10, 0)
+	logs, err := h.db.GetLogs(r.Context(), 10, 0, nil, nil)
 	if err != nil {
 		http.Error(w, "Failed to load logs", http.StatusInternalServerError)
 		return
@@ -41,10 +42,9 @@ func (h *PageHandlers) HandleDashboard(w http.ResponseWriter, r *http.Request) {
 	// Convert logs to display format
 	logDisplays := make([]pages.LogDisplay, len(logs))
 	for i, log := range logs {
-		timestamp, _ := time.Parse(time.RFC3339, log.Timestamp)
 		logDisplays[i] = pages.LogDisplay{
-			Timestamp: formatRelativeTime(timestamp),
-			Type:      log.Type,
+			Timestamp: formatRelativeTime(log.Timestamp),
+			Type:      string(log.Type),
 			Message:   log.Message,
 			IsError:   log.Type == "error",
 		}
@@ -69,7 +69,7 @@ func (h *PageHandlers) HandleDashboard(w http.ResponseWriter, r *http.Request) {
 // HandleStatsPartial handles the htmx stats refresh
 func (h *PageHandlers) HandleStatsPartial(w http.ResponseWriter, r *http.Request) {
 	// Get scheduler status
-	schedulerStatus := h.scheduler.GetStatus()
+	_ = h.scheduler.GetStatus()
 
 	// Get server count
 	servers, err := h.db.ListServers()
@@ -78,8 +78,10 @@ func (h *PageHandlers) HandleStatsPartial(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	_ = servers // Use servers variable to avoid "declared and not used" error
+
 	// Get recent logs to calculate stats
-	logs, err := h.db.GetLogs(100, 0)
+	logs, err := h.db.GetLogs(r.Context(), 100, 0, nil, nil)
 	if err != nil {
 		http.Error(w, "Failed to load logs", http.StatusInternalServerError)
 		return
@@ -92,15 +94,15 @@ func (h *PageHandlers) HandleStatsPartial(w http.ResponseWriter, r *http.Request
 	w.Header().Set("Content-Type", "text/html")
 	fmt.Fprintf(w, `
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" hx-get="/partials/stats" hx-trigger="every 30s" hx-swap="outerHTML">
-			<!-- Stats cards would go here -->
+			<!-- Stats: %d searches, %d failures -->
 		</div>
-	`)
+	`, totalSearches, totalFailures)
 }
 
 // HandleRecentActivityPartial handles the htmx recent activity refresh
 func (h *PageHandlers) HandleRecentActivityPartial(w http.ResponseWriter, r *http.Request) {
 	// Get recent logs (last 10)
-	logs, err := h.db.GetLogs(10, 0)
+	logs, err := h.db.GetLogs(r.Context(), 10, 0, nil, nil)
 	if err != nil {
 		http.Error(w, "Failed to load logs", http.StatusInternalServerError)
 		return
@@ -109,10 +111,9 @@ func (h *PageHandlers) HandleRecentActivityPartial(w http.ResponseWriter, r *htt
 	// Convert logs to display format
 	logDisplays := make([]pages.LogDisplay, len(logs))
 	for i, log := range logs {
-		timestamp, _ := time.Parse(time.RFC3339, log.Timestamp)
 		logDisplays[i] = pages.LogDisplay{
-			Timestamp: formatRelativeTime(timestamp),
-			Type:      log.Type,
+			Timestamp: formatRelativeTime(log.Timestamp),
+			Type:      string(log.Type),
 			Message:   log.Message,
 			IsError:   log.Type == "error",
 		}
@@ -165,11 +166,7 @@ func pluralize(count int) string {
 	return "s"
 }
 
-type logWithType interface {
-	GetType() string
-}
-
-func calculateStats(logs []interface{}) (totalSearches, totalFailures int) {
+func calculateStats(logs []logger.LogEntry) (totalSearches, totalFailures int) {
 	// This is a simplified calculation - in reality, you'd want to:
 	// 1. Query specific log types (search, error)
 	// 2. Sum counts from log entries
@@ -181,12 +178,10 @@ func calculateStats(logs []interface{}) (totalSearches, totalFailures int) {
 
 	// Count based on log types
 	for _, log := range logs {
-		if logEntry, ok := log.(logWithType); ok {
-			if logEntry.GetType() == "search" {
-				totalSearches++
-			} else if logEntry.GetType() == "error" {
-				totalFailures++
-			}
+		if log.Type == "search" {
+			totalSearches++
+		} else if log.Type == "error" {
+			totalFailures++
 		}
 	}
 

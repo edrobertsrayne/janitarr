@@ -1444,7 +1444,7 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
 
 **Reference:** `specs/unified-service-startup.md` (Production Mode section)
 
-- [ ] Create `src/cli/start.go`:
+- [x] Create `src/cli/start.go`:
 
   ```go
   var startCmd = &cobra.Command{
@@ -1502,19 +1502,19 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
   }
   ```
 
-- [ ] Implement production logging:
-  - [ ] Log level: INFO
-  - [ ] Log scheduler events (cycle start/end)
-  - [ ] Log errors only (no HTTP request logging)
-- [ ] Validate port range (1-65535)
-- [ ] Display startup banner with URLs
-- [ ] Verify: `go build ./src && ./janitarr start --help`
+- [x] Implement production logging:
+  - [x] Log level: INFO
+  - [x] Log scheduler events (cycle start/end)
+  - [x] Log errors only (no HTTP request logging)
+- [x] Validate port range (1-65535)
+- [x] Display startup banner with URLs
+- [x] Verify: `go build ./src && ./janitarr start --help`
 
 ### Dev Command (Development)
 
 **Reference:** `specs/unified-service-startup.md` (Development Mode section)
 
-- [ ] Create `src/cli/dev.go`:
+- [x] Create `src/cli/dev.go`:
 
   ```go
   var devCmd = &cobra.Command{
@@ -1552,20 +1552,20 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
   }
   ```
 
-- [ ] Implement development logging:
-  - [ ] Log level: DEBUG
-  - [ ] Log all HTTP requests with timing
-  - [ ] Log WebSocket messages
-  - [ ] Include stack traces in error responses
-  - [ ] Log scheduler events with details
-- [ ] Display clear "DEVELOPMENT MODE" banner
-- [ ] Verify: `go build ./src && ./janitarr dev --help`
+- [x] Implement development logging:
+  - [x] Log level: DEBUG
+  - [x] Log all HTTP requests with timing
+  - [x] Log WebSocket messages
+  - [x] Include stack traces in error responses
+  - [x] Log scheduler events with details
+- [x] Display clear "DEVELOPMENT MODE" banner
+- [x] Verify: `go build ./src && ./janitarr dev --help`
 
 ### Graceful Shutdown
 
 **Reference:** `specs/unified-service-startup.md` (Graceful Shutdown section)
 
-- [ ] Create `src/shutdown/shutdown.go`:
+- [x] Create graceful shutdown (implemented inline in start.go and dev.go):
 
   ```go
   package shutdown
@@ -1628,10 +1628,10 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
   }
   ```
 
-- [ ] Integrate shutdown manager into start/dev commands
-- [ ] Set 10-second maximum shutdown timeout
-- [ ] Exit with code 0 on clean shutdown
-- [ ] Verify: Start server, press Ctrl+C, verify clean exit
+- [x] Integrate shutdown manager into start/dev commands
+- [x] Set 10-second maximum shutdown timeout
+- [x] Exit with code 0 on clean shutdown
+- [x] Verify: Start server, press Ctrl+C, verify clean exit
 
 ### E2E Tests (Playwright)
 

@@ -11,7 +11,7 @@ import (
 
 // HandleServers renders the servers list page
 func (h *PageHandlers) HandleServers(w http.ResponseWriter, r *http.Request) {
-	servers, err := h.db.ListServers()
+	servers, err := h.db.GetAllServers()
 	if err != nil {
 		http.Error(w, "Failed to load servers", http.StatusInternalServerError)
 		return
@@ -24,7 +24,7 @@ func (h *PageHandlers) HandleServers(w http.ResponseWriter, r *http.Request) {
 			ID:        srv.ID,
 			Name:      srv.Name,
 			URL:       srv.URL,
-			Type:      srv.Type,
+			Type:      string(srv.Type),
 			Enabled:   srv.Enabled,
 			CreatedAt: srv.CreatedAt,
 			UpdatedAt: srv.UpdatedAt,
@@ -43,7 +43,7 @@ func (h *PageHandlers) HandleNewServerForm(w http.ResponseWriter, r *http.Reques
 func (h *PageHandlers) HandleEditServerForm(w http.ResponseWriter, r *http.Request) {
 	serverID := chi.URLParam(r, "id")
 
-	server, err := h.db.GetServerByID(serverID)
+	server, err := h.db.GetServer(serverID)
 	if err != nil {
 		http.Error(w, "Server not found", http.StatusNotFound)
 		return
@@ -53,7 +53,7 @@ func (h *PageHandlers) HandleEditServerForm(w http.ResponseWriter, r *http.Reque
 		ID:        server.ID,
 		Name:      server.Name,
 		URL:       server.URL,
-		Type:      server.Type,
+		Type:      string(server.Type),
 		Enabled:   server.Enabled,
 		CreatedAt: server.CreatedAt,
 		UpdatedAt: server.UpdatedAt,
