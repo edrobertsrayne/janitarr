@@ -1770,10 +1770,11 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
   - [x] `janitarr server test <name>` shows connection result
   - [x] `janitarr run` executes cycle with output
   - [x] `janitarr run --dry-run` previews without triggering
-  - [x] `janitarr status` shows scheduler state
+  - [x] `janitarr status` shows scheduler state (fixed bug: now correctly shows scheduler not running when accessed from CLI)
   - [x] `janitarr config show` displays current config
   - [x] `janitarr config set limits.missing 20` updates value
   - [x] `janitarr logs` displays recent activity
+  - [x] `janitarr scan` runs detection only
   - [ ] Web UI at http://localhost:3434 works (not tested in this session)
   - [ ] All pages load without errors (not tested in this session)
   - [ ] Dark mode toggle works (not tested in this session)

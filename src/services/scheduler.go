@@ -88,15 +88,14 @@ func (s *Scheduler) TriggerManual(ctx context.Context) error {
 // GetSchedulerStatusFunc is a variable that holds the function to retrieve the current status of the scheduler.
 // It can be overridden in tests to inject mock implementations.
 var GetSchedulerStatusFunc = func(db *database.DB) SchedulerStatus {
-	// In a real application, you would ideally get the actual scheduler instance from a global manager
-	// or pass it around. For now, this mockable function assumes it can construct the status
-	// from the DB config (which holds interval) and some global state (which we'll mock).
-	// This approach is simplified for CLI status display.
-	// We'll rely on the mock in tests.
-	config := db.GetAppConfig() // Assuming this fetches interval and enabled status
+	// When called from CLI commands without an active scheduler instance,
+	// we cannot determine if the scheduler is actually running.
+	// The scheduler is only running when 'janitarr start' or 'janitarr dev' is active.
+	// This function returns default values indicating the scheduler is NOT running.
+	config := db.GetAppConfig()
 	return SchedulerStatus{
-		IsRunning:     config.Schedule.Enabled, // Simplified: assume enabled in config means running
-		IsCycleActive: false,                   // Cannot determine from config alone
+		IsRunning:     false, // Cannot determine actual running state without the scheduler instance
+		IsCycleActive: false, // Cannot determine from config alone
 		NextRun:       nil,
 		LastRun:       nil,
 		IntervalHours: config.Schedule.IntervalHours,
