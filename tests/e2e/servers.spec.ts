@@ -3,7 +3,9 @@ import { test, expect } from "./setup";
 test.describe("Servers page", () => {
   test('should display "Servers" heading', async ({ page }) => {
     await page.goto("/servers");
-    await expect(page.getByRole("heading", { name: /Servers/i })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Servers", exact: true }),
+    ).toBeVisible();
   });
 
   test("add server form opens", async ({ page }) => {

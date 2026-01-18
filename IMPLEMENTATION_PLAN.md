@@ -1841,9 +1841,9 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
 
 ### Testing
 
-- [ ] `go test ./...` passes
-- [ ] Playwright E2E tests pass
-- [ ] No race conditions (`go test -race ./...`)
+- [x] `go test ./...` passes
+- [x] Playwright E2E tests pass (38 tests passing)
+- [x] No race conditions (`go test -race ./...`)
 
 ---
 

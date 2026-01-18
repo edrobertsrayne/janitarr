@@ -8,16 +8,39 @@ import (
 
 templ Servers(servers []services.ServerInfo) {
 	@layouts.Base("Servers") {
-		<div class="max-w-7xl mx-auto">
+		<div class="max-w-7xl mx-auto" x-data="{ viewMode: 'card' }">
 			<div class="mb-6 flex justify-between items-center">
 				<h1 class="text-3xl font-bold text-gray-900 dark:text-white">Servers</h1>
-				<button
-					hx-get="/servers/new"
-					hx-target="#modal-container"
-					hx-swap="innerHTML"
-					class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600">
-					Add Server
-				</button>
+				<div class="flex gap-2">
+					if len(servers) > 0 {
+						<!-- View mode toggle -->
+						<div class="inline-flex rounded-md shadow-sm" role="group">
+							<button
+								type="button"
+								@click="viewMode = 'list'"
+								:class="viewMode === 'list' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 dark:bg-gray-700 dark:text-gray-300'"
+								class="px-3 py-2 text-sm font-medium rounded-l-lg border border-gray-200 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-600">
+								List view
+							</button>
+							<button
+								type="button"
+								@click="viewMode = 'card'"
+								:class="viewMode === 'card' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 dark:bg-gray-700 dark:text-gray-300'"
+								class="px-3 py-2 text-sm font-medium rounded-r-lg border border-gray-200 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-600">
+								Card view
+							</button>
+						</div>
+					}
+					if len(servers) > 0 {
+						<button
+							hx-get="/servers/new"
+							hx-target="#modal-container"
+							hx-swap="innerHTML"
+							class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600">
+							Add Server
+						</button>
+					}
+				</div>
 			</div>
 			<!-- Modal container for forms -->
 			<div id="modal-container"></div>
