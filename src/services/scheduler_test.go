@@ -18,7 +18,7 @@ func TestScheduler_StartStop(t *testing.T) {
 		return nil
 	}
 
-	scheduler := NewScheduler(1, cb)
+	scheduler := NewScheduler(nil, 1, cb)
 	ctx := context.Background()
 
 	err := scheduler.Start(ctx)
@@ -53,7 +53,7 @@ func TestScheduler_IntervalConfig(t *testing.T) {
 		return nil
 	}
 
-	scheduler := NewScheduler(2, cb)
+	scheduler := NewScheduler(nil, 2, cb)
 	ctx := context.Background()
 	_ = scheduler.Start(ctx)
 	defer scheduler.Stop()
@@ -83,7 +83,7 @@ func TestScheduler_PreventsConcurrent(t *testing.T) {
 		return nil
 	}
 
-	scheduler := NewScheduler(1, cb)
+	scheduler := NewScheduler(nil, 1, cb)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -109,7 +109,7 @@ func TestScheduler_ManualTrigger(t *testing.T) {
 		return nil
 	}
 
-	scheduler := NewScheduler(1, cb)
+	scheduler := NewScheduler(nil, 1, cb)
 	ctx := context.Background()
 	_ = scheduler.Start(ctx)
 	defer scheduler.Stop()
@@ -132,7 +132,7 @@ func TestScheduler_CallbackError(t *testing.T) {
 		return expectedErr
 	}
 
-	scheduler := NewScheduler(1, cb)
+	scheduler := NewScheduler(nil, 1, cb)
 	ctx := context.Background()
 	_ = scheduler.Start(ctx)
 	defer scheduler.Stop()
@@ -148,7 +148,7 @@ func TestScheduler_StatusUpdates(t *testing.T) {
 		return nil
 	}
 
-	scheduler := NewScheduler(1, cb)
+	scheduler := NewScheduler(nil, 1, cb)
 	ctx := context.Background()
 
 	status := scheduler.GetStatus()
@@ -176,7 +176,7 @@ func TestScheduler_GracefulShutdown(t *testing.T) {
 		return nil
 	}
 
-	scheduler := NewScheduler(1, cb)
+	scheduler := NewScheduler(nil, 1, cb)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 

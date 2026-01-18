@@ -12,12 +12,14 @@ Automation tool for managing Radarr and Sonarr media servers. Automatically dete
 - **Web interface**: Modern, responsive web UI with real-time updates
 - **CLI interface**: Simple, intuitive command-line interface for all operations
 - **Dry-run mode**: Preview automation cycles before executing searches
+- **Single binary**: No runtime dependencies, compiled to native code
+- **Secure**: API keys encrypted at rest with AES-256-GCM
 
 ## Quick Start
 
 ### Prerequisites
 
-- [Bun](https://bun.sh/) runtime (v1.0 or later)
+- Go 1.22+ (for building from source)
 - At least one Radarr or Sonarr instance with API access
 
 ### Installation
@@ -27,8 +29,14 @@ Automation tool for managing Radarr and Sonarr media servers. Automatically dete
 git clone <repository-url>
 cd janitarr
 
-# Install dependencies
-bun install
+# Build
+make build
+
+# Run in production mode
+./janitarr start
+
+# Run in development mode (verbose logging)
+./janitarr dev
 ```
 
 ### Basic Usage
@@ -36,8 +44,9 @@ bun install
 #### Using the Web Interface
 
 1. **Start the server:**
+
 ```bash
-bun run start
+./janitarr start
 ```
 
 2. **Open your browser to:** `http://localhost:3434`
@@ -47,32 +56,36 @@ bun run start
 #### Using the CLI
 
 1. **Add a media server:**
+
 ```bash
-bun run src/index.ts server add
+./janitarr server add
 ```
 
 2. **Configure search limits:**
+
 ```bash
-bun run src/index.ts config set limits.missing.movies 10
-bun run src/index.ts config set limits.missing.episodes 10
-bun run src/index.ts config set limits.cutoff.movies 5
-bun run src/index.ts config set limits.cutoff.episodes 5
+./janitarr config set limits.missing.movies 10
+./janitarr config set limits.missing.episodes 10
+./janitarr config set limits.cutoff.movies 5
+./janitarr config set limits.cutoff.episodes 5
 ```
 
 3. **Run a manual cycle:**
+
 ```bash
-bun run src/index.ts run
+./janitarr run
 ```
 
 4. **Start both scheduler and web server:**
+
 ```bash
-bun run src/index.ts start
+./janitarr start
 ```
 
-For development with hot-reloading UI:
+For development with hot-reloading:
+
 ```bash
-bun run src/index.ts dev  # Start backend services
-cd ui && bun run dev      # Start Vite dev server (separate terminal)
+make dev  # Runs Air for auto-rebuild on file changes
 ```
 
 ## Web Interface
@@ -85,139 +98,165 @@ Janitarr includes a modern, responsive web interface for easy management.
 - **Server Management**: Add, edit, test, and manage Radarr/Sonarr servers
 - **Activity Logs**: View and filter automation logs with real-time streaming
 - **Settings**: Configure automation schedule and search limits
-- **Responsive Design**: Works on desktop, tablet, and mobile devices (≥320px)
-- **Accessibility**: WCAG 2.1 Level AA compliant with keyboard navigation and screen reader support
-- **Dark/Light/System Themes**: Automatic theme detection with manual override
+- **Responsive Design**: Works on desktop, tablet, and mobile devices
+- **Dark/Light Mode**: Manual dark mode toggle with localStorage persistence
 
 ### Accessing the Web UI
 
 1. Start the Janitarr server:
+
    ```bash
-   bun run start
+   ./janitarr start
    ```
 
 2. Open your browser to: `http://localhost:3434`
 
 3. Navigate between views using the sidebar menu
 
-**Development mode** (with Vite hot-reloading):
-```bash
-bun run src/index.ts dev      # Backend at http://localhost:3434
-cd ui && bun run dev          # Vite at http://localhost:5173
-```
-Access the app at `http://localhost:3434` (proxies to Vite for UI).
-
-### Building the Web UI
-
-The web interface is built with React and Vite. To build for production:
+**Development mode** (with hot-reloading):
 
 ```bash
-cd ui
-bun install
-bun run build
-cd ..
+make dev  # Runs Air for auto-rebuild
 ```
 
-Built files are placed in `dist/public/` and served automatically by the backend.
-
-For more details, see [ui/README.md](ui/README.md).
+Access the app at `http://localhost:3434`.
 
 ## CLI Commands
+
+| Command                             | Description                           |
+| ----------------------------------- | ------------------------------------- |
+| `janitarr start`                    | Start scheduler and web server        |
+| `janitarr dev`                      | Development mode with verbose logging |
+| `janitarr server add`               | Add a new server                      |
+| `janitarr server list`              | List all servers                      |
+| `janitarr server test <id\|name>`   | Test connection to a server           |
+| `janitarr server edit <id\|name>`   | Edit server configuration             |
+| `janitarr server remove <id\|name>` | Remove a server                       |
+| `janitarr run`                      | Run automation cycle manually         |
+| `janitarr run --dry-run`            | Preview what would be searched        |
+| `janitarr scan`                     | Scan for missing/cutoff content       |
+| `janitarr status`                   | Show scheduler status                 |
+| `janitarr logs`                     | View activity logs                    |
+| `janitarr logs -n 50`               | Show last 50 log entries              |
+| `janitarr logs --clear`             | Clear all logs                        |
+| `janitarr config show`              | Show configuration                    |
+| `janitarr config set <key> <value>` | Update configuration                  |
 
 ### Server Management
 
 ```bash
 # Add a new server (interactive)
-janitarr server add
+./janitarr server add
 
 # List all configured servers
-janitarr server list
+./janitarr server list
+
+# List servers as JSON
+./janitarr server list --json
 
 # Test connection to a server
-janitarr server test <name|id>
+./janitarr server test <name|id>
 
 # Edit server configuration
-janitarr server edit <name|id>
+./janitarr server edit <name|id>
 
 # Remove a server
-janitarr server remove <name|id>
+./janitarr server remove <name|id>
+
+# Remove server without confirmation
+./janitarr server remove <name|id> --force
 ```
 
 ### Detection & Status
 
 ```bash
 # Show current status (scheduler state, config, next run time)
-janitarr status
+./janitarr status
+
+# Show status as JSON
+./janitarr status --json
 
 # Scan for missing/cutoff content without triggering searches
-janitarr scan
+./janitarr scan
 
 # Show detailed scan results
-janitarr scan --json
+./janitarr scan --json
 ```
 
 ### Automation
 
 ```bash
 # Execute a full automation cycle immediately
-janitarr run
+./janitarr run
 
-# Start scheduler + web server (unified service)
-janitarr start
+# Preview what would be searched (dry-run)
+./janitarr run --dry-run
 
-# Start in development mode (with verbose logging and Vite proxy)
-janitarr dev
+# Run and output as JSON
+./janitarr run --json
 
-# Stop the running services
-janitarr stop
+# Start scheduler + web server (production mode)
+./janitarr start
+
+# Start in development mode (with verbose logging)
+./janitarr dev
 ```
 
 **Port configuration:**
+
 ```bash
 # Start on custom port
-janitarr start --port 8080
+./janitarr start --port 8080
 
 # Bind to all interfaces (for remote access)
-janitarr start --host 0.0.0.0 --port 3434
+./janitarr start --host 0.0.0.0 --port 3434
 ```
 
 ### Configuration
 
 ```bash
 # Display current configuration
-janitarr config show
+./janitarr config show
+
+# Display configuration as JSON
+./janitarr config show --json
 
 # Set configuration values
-janitarr config set schedule.interval 6    # hours between cycles
-janitarr config set schedule.enabled true  # enable/disable scheduler
-janitarr config set limits.missing 10      # max missing content searches
-janitarr config set limits.cutoff 5        # max quality upgrade searches
+./janitarr config set schedule.interval 6              # hours between cycles
+./janitarr config set schedule.enabled true            # enable/disable scheduler
+./janitarr config set limits.missing.movies 10         # max missing movie searches
+./janitarr config set limits.missing.episodes 10       # max missing episode searches
+./janitarr config set limits.cutoff.movies 5           # max cutoff movie searches
+./janitarr config set limits.cutoff.episodes 5         # max cutoff episode searches
 ```
 
 ### Activity Logs
 
 ```bash
-# Display recent logs (default: 50 entries)
-janitarr logs
+# Display recent logs (default: 20 entries)
+./janitarr logs
 
-# Display all logs with pagination
-janitarr logs --all
+# Display specific number of logs
+./janitarr logs -n 50
+
+# Display all logs
+./janitarr logs --all
 
 # Display logs as JSON
-janitarr logs --json
+./janitarr logs --json
 
 # Clear all logs (with confirmation)
-janitarr logs --clear
+./janitarr logs --clear
 ```
 
 ## Configuration
 
 ### Environment Variables
 
-| Variable | Purpose | Default |
-|----------|---------|---------|
-| `JANITARR_DB_PATH` | SQLite database location | `./data/janitarr.db` |
-| `JANITARR_LOG_LEVEL` | Logging verbosity | `info` |
+| Variable             | Purpose                  | Default              |
+| -------------------- | ------------------------ | -------------------- |
+| `JANITARR_DB_PATH`   | SQLite database location | `./data/janitarr.db` |
+| `JANITARR_LOG_LEVEL` | Logging verbosity        | `info`               |
 
 ### Default Settings
 
@@ -250,57 +289,85 @@ All configuration, server credentials, and logs are stored in a SQLite database 
 
 ## Development
 
+### Environment Setup
+
+The project uses [devenv](https://devenv.sh) with direnv for automatic environment loading:
+
+```bash
+direnv allow              # Authorize the development environment
+```
+
+This provides Go, templ, Air, Tailwind CSS, and Playwright. The environment loads automatically when entering the project directory.
+
+### Building
+
+```bash
+# Generate templates and build
+make build
+
+# Run the application
+./janitarr --help
+
+# Development with hot reload
+make dev                  # Runs Air for auto-rebuild on file changes
+
+# Generate templates only
+templ generate
+
+# Build Tailwind CSS
+npx tailwindcss -i ./static/css/input.css -o ./static/css/app.css
+```
+
 ### Running Tests
 
-**Backend tests:**
 ```bash
-# Run all tests
-bun test
+# Run all Go tests
+go test ./...
 
-# Type checking
-bunx tsc --noEmit
+# Run tests with race detection
+go test -race ./...
 
-# Linting
-bunx eslint .
+# Run tests with coverage
+go test -cover ./...
+
+# Run specific package tests
+go test ./src/crypto/...
+go test ./src/database/...
+go test ./src/api/...
+go test ./src/services/...
+
+# Run E2E tests (requires running server)
+bunx playwright test --headless
+bunx playwright show-report  # View test report
 ```
 
-**UI testing:**
-
-Manual testing is recommended for the web UI. Start in development mode:
+**Before running E2E tests**, start the server:
 
 ```bash
-bun run src/index.ts dev                # Start backend with Vite proxy
-cd ui && bun run dev                    # Start Vite dev server (separate terminal)
+./janitarr start                      # Terminal 1
+bunx playwright test --headless       # Terminal 2
 ```
-
-Then test functionality at http://localhost:3434 in your browser (proxies to Vite).
-
-See `ui/README.md` for detailed UI documentation and `UI_VALIDATION_REPORT.md` for validation results.
 
 ### Project Structure
 
 ```
 janitarr/
-├── src/
-│   ├── lib/              # Shared utilities
-│   │   ├── api-client.ts # Radarr/Sonarr API client
-│   │   ├── logger.ts     # Activity logging
-│   │   └── scheduler.ts  # Scheduling engine
-│   ├── services/         # Business logic
-│   │   ├── server-manager.ts # Server CRUD operations
-│   │   ├── detector.ts       # Content detection
-│   │   ├── search-trigger.ts # Search execution
-│   │   └── automation.ts     # Cycle orchestration
-│   ├── storage/          # Data persistence
-│   │   └── database.ts   # SQLite interface
-│   ├── cli/              # CLI interface
-│   │   ├── commands.ts   # Command definitions
-│   │   └── formatters.ts # Output formatting
-│   ├── types.ts          # TypeScript types
-│   └── index.ts          # Entry point
-├── tests/                # Test files
-├── specs/                # Requirements documentation
-└── data/                 # Database storage (gitignored)
+├── src/                    # All Go source code
+│   ├── main.go             # Entry point
+│   ├── cli/                # Cobra CLI commands
+│   ├── api/                # Radarr/Sonarr API clients
+│   ├── database/           # SQLite operations
+│   ├── services/           # Business logic
+│   ├── web/                # HTTP server and handlers
+│   ├── templates/          # templ HTML templates
+│   ├── logger/             # Activity logging
+│   └── metrics/            # Prometheus metrics
+├── static/                 # CSS and JS assets
+├── migrations/             # SQL migration files
+├── tests/                  # E2E tests
+├── src-ts/                 # Original TypeScript (reference)
+├── ui-ts/                  # Original React UI (reference)
+└── specs/                  # Requirements documentation
 ```
 
 ## Architecture
@@ -346,20 +413,46 @@ Authentication is handled via the `X-Api-Key` header.
 - Verify `schedule.enabled` is set to `true` in configuration
 - Use `janitarr dev` for development mode with verbose logging
 
+## Technology Stack
+
+| Component     | Technology          | Purpose                  |
+| ------------- | ------------------- | ------------------------ |
+| Language      | Go 1.22+            | Main application         |
+| Web Framework | Chi (go-chi/chi/v5) | HTTP routing             |
+| Database      | modernc.org/sqlite  | SQLite (pure Go, no CGO) |
+| CLI           | Cobra (spf13/cobra) | Command-line interface   |
+| Templates     | templ (a-h/templ)   | Type-safe HTML templates |
+| Interactivity | htmx + Alpine.js    | Dynamic UI               |
+| CSS           | Tailwind CSS        | Utility-first styling    |
+| Hot Reload    | Air                 | Development workflow     |
+
+## Security Notes
+
+- API keys are encrypted at rest using AES-256-GCM
+- Encryption key stored in `data/.janitarr.key`
+- Default host binding is `localhost` (prevents external access)
+- No authentication in v1 - relies on network-level access control
+
+## Migration from TypeScript Version
+
+This is a complete rewrite from TypeScript to Go. Key changes:
+
+- **Fresh database** - users must re-add servers
+- **New encryption key** - not compatible with old encrypted data
+- **Server-rendered HTML** - React UI replaced with templ + htmx + Alpine.js
+- **Single binary** - no Node.js/Bun runtime required
+- **Better performance** - lower memory footprint, faster startup
+
 ## Documentation
 
-Comprehensive documentation is available in the `docs/` directory:
-
-- **[User Guide](docs/user-guide.md)** - Complete guide to using Janitarr, including web UI and CLI workflows
-- **[API Reference](docs/api-reference.md)** - REST API and WebSocket protocol documentation
-- **[Troubleshooting Guide](docs/troubleshooting.md)** - Common issues and solutions
-- **[Development Guide](docs/development.md)** - Contributing and development setup
+- **[CLAUDE.md](CLAUDE.md)** - AI assistant guidelines and development workflow
+- **[specs/](specs/)** - Feature specifications and requirements
+- **[IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md)** - Migration roadmap and task tracking
 
 ## Support
 
-- **Issues**: Report bugs or request features on [GitHub Issues](https://github.com/yourusername/janitarr/issues)
-- **Documentation**: See guides in the `docs/` directory
-- **Web UI**: See [ui/README.md](ui/README.md) for frontend-specific documentation
+- **Issues**: Report bugs or request features on GitHub Issues
+- **Specifications**: See detailed specs in the `specs/` directory
 
 ## License
 

@@ -104,9 +104,27 @@ var GetSchedulerStatusFunc = func(db *database.DB) SchedulerStatus {
 }
 
 // GetStatus returns the current status of the scheduler.
-// This calls the globally exposed GetSchedulerStatusFunc.
 func (s *Scheduler) GetStatus() SchedulerStatus {
-	return GetSchedulerStatusFunc(s.db)
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	var nextRun *time.Time
+	var lastRun *time.Time
+
+	if !s.nextRun.IsZero() {
+		nextRun = &s.nextRun
+	}
+	if !s.lastRun.IsZero() {
+		lastRun = &s.lastRun
+	}
+
+	return SchedulerStatus{
+		IsRunning:     s.running,
+		IsCycleActive: s.cycleActive,
+		NextRun:       nextRun,
+		LastRun:       lastRun,
+		IntervalHours: s.intervalHrs,
+	}
 }
 
 // IsRunning returns true if the scheduler is running.

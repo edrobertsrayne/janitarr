@@ -67,9 +67,9 @@ type MockDB struct {
 	mock.Mock
 }
 
-func (m *MockDB) GetAppConfig() (*database.AppConfig, error) {
+func (m *MockDB) GetAppConfig() database.AppConfig {
 	args := m.Called()
-	return args.Get(0).(*database.AppConfig), args.Error(1)
+	return args.Get(0).(database.AppConfig)
 }
 
 func (m *MockDB) AddLogEntry(entry *database.LogEntry) error {
@@ -152,7 +152,7 @@ func TestRunCycle_Success(t *testing.T) {
 	appConfig := defaultAppConfig()
 
 	// Mock DB calls
-	mockDB.On("GetAppConfig").Return(appConfig, nil).Once()
+	mockDB.On("GetAppConfig").Return(*appConfig).Once()
 
 	// Mock Logger calls (Note: AddLogEntry is mocked directly as a function of the DB mock for the logger)
 	mockLogger.On("LogCycleStart", true).Return(&logger.LogEntry{Type: logger.LogTypeCycleStart}).Once()
@@ -238,7 +238,7 @@ func TestRunCycle_DetectionFailure(t *testing.T) {
 	mockLogger := new(MockLogger)
 
 	appConfig := defaultAppConfig()
-	mockDB.On("GetAppConfig").Return(appConfig, nil).Once()
+	mockDB.On("GetAppConfig").Return(*appConfig).Once()
 
 	// Mock Logger calls
 	mockLogger.On("LogCycleStart", false).Return(&logger.LogEntry{Type: logger.LogTypeCycleStart}).Once()
@@ -299,7 +299,7 @@ func TestRunCycle_TriggerFailure(t *testing.T) {
 	mockLogger := new(MockLogger)
 
 	appConfig := defaultAppConfig()
-	mockDB.On("GetAppConfig").Return(appConfig, nil).Once()
+	mockDB.On("GetAppConfig").Return(*appConfig).Once()
 
 	// Mock Logger calls
 	mockLogger.On("LogCycleStart", true).Return(&logger.LogEntry{Type: logger.LogTypeCycleStart}).Once()
@@ -376,7 +376,7 @@ func TestRunCycle_DryRun(t *testing.T) {
 	mockLogger := new(MockLogger)
 
 	appConfig := defaultAppConfig()
-	mockDB.On("GetAppConfig").Return(appConfig, nil).Once()
+	mockDB.On("GetAppConfig").Return(*appConfig).Once()
 
 	// Mock Logger calls - only LogCycleStart and LogCycleEnd should be called, but with dryRun=true
 	mockLogger.On("LogCycleStart", true).Return(&logger.LogEntry{Type: logger.LogTypeCycleStart}).Once()
@@ -463,7 +463,7 @@ func TestRunCycle_ManualScheduledLogging(t *testing.T) {
 			mockLogger := new(MockLogger)
 
 			appConfig := defaultAppConfig()
-			mockDB.On("GetAppConfig").Return(appConfig, nil).Once()
+			mockDB.On("GetAppConfig").Return(*appConfig).Once()
 
 			// Mock Logger calls, checking isManual flag
 			mockLogger.On("LogCycleStart", tt.isManual).Return(&logger.LogEntry{Type: logger.LogTypeCycleStart}).Once()
@@ -528,7 +528,7 @@ func TestRunCycle_EmptyResults(t *testing.T) {
 	mockLogger := new(MockLogger)
 
 	appConfig := defaultAppConfig()
-	mockDB.On("GetAppConfig").Return(appConfig, nil).Once()
+	mockDB.On("GetAppConfig").Return(*appConfig).Once()
 
 	// Mock Logger calls - only cycle start/end
 	mockLogger.On("LogCycleStart", false).Return(&logger.LogEntry{Type: logger.LogTypeCycleStart}).Once()

@@ -1694,13 +1694,13 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
 
 ### Documentation Updates
 
-- [ ] Update `CLAUDE.md` (already done in Phase 0, verify current)
-  - [ ] Go build commands
-  - [ ] Test commands
-  - [ ] Development workflow with Air
-  - [ ] Code standards for Go
+- [x] Update `CLAUDE.md` (already done in Phase 0, verify current)
+  - [x] Go build commands
+  - [x] Test commands
+  - [x] Development workflow with Air
+  - [x] Code standards for Go
 
-- [ ] Update `README.md`:
+- [x] Update `README.md`:
 
   ````markdown
   # Janitarr
@@ -1749,7 +1749,7 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
 
   ```
 
-- [ ] Verify all CLI commands have help text:
+- [x] Verify all CLI commands have help text:
   ```bash
   ./janitarr --help
   ./janitarr start --help
