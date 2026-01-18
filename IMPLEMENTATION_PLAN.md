@@ -691,7 +691,7 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
   - [x] `TestServerEdit` - verifies edit functionality
   - [x] `TestServerRemove_Confirmation` - tests y/N prompt
   - [x] `TestServerTestConnection` - tests connection functionality
-- [ ] Verify: `go build ./src && ./janitarr server --help`
+- [x] Verify: `go build ./src && ./janitarr server --help`
 
 NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pre-commit hook, preventing successful runs of `go test ./src/cli/...`. This is an environmental issue beyond the scope of this task.
 
