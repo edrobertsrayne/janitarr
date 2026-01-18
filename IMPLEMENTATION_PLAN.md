@@ -741,7 +741,7 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
   - [ ] `TestConfigSet_ValidKey` - updates value
   - [ ] `TestConfigSet_InvalidKey` - returns error
   - [ ] `TestConfigSet_InvalidValue` - returns error for bad type
-- [ ] Verify: `go build ./src && ./janitarr config --help`
+- [x] Verify: `go build ./src && ./janitarr config --help`
 
 ### Automation Commands
 
