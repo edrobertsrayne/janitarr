@@ -362,7 +362,7 @@ janitarr/
       Error   string `json:"error,omitempty"`
   }
   ```
-
+- [x] Define `ServerManagerInterface` in `src/services/types.go`.
 - [x] Create `src/services/server_manager_test.go`:
   - [x] `TestAddServer_Success` - creates server and tests connection
   - [x] `TestAddServer_DuplicateName` - rejects duplicate names
@@ -376,13 +376,14 @@ janitarr/
   - [x] `TestGetServer_ByName` - finds by name (case-insensitive)
 - [x] Create `src/services/server_manager.go`:
   - [x] `type ServerManager struct { db *database.DB, apiFactory func(url, key string) APIClient }`
-  - [x] `NewServerManager(db *database.DB) *ServerManager`
-  - [x] `AddServer(name, url, apiKey, serverType string) (*ServerInfo, error)`
-  - [x] `UpdateServer(id string, updates ServerUpdate) error`
+  - [x] `NewServerManager(db *database.DB) ServerManagerInterface` (returns interface)
+  - [x] `NewServerManagerFunc` variable for mockability.
+  - [x] `AddServer(ctx context.Context, name, url, apiKey, serverType string) (*ServerInfo, error)` (updated signature)
+  - [x] `UpdateServer(ctx context.Context, id string, updates ServerUpdate) error` (updated signature)
   - [x] `RemoveServer(id string) error`
-  - [x] `TestConnection(id string) (*ConnectionResult, error)`
+  - [x] `TestConnection(ctx context.Context, id string) (*ConnectionResult, error)` (updated signature)
   - [x] `ListServers() ([]ServerInfo, error)`
-  - [x] `GetServer(idOrName string) (*ServerInfo, error)`
+  - [x] `GetServer(ctx context.Context, idOrName string) (*ServerInfo, error)` (updated signature)
 - [x] Verify: `go test ./src/services/... -run Server`
 
 ### Detector Service
@@ -646,7 +647,7 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
 
 **Reference:** `src-ts/cli/commands.ts` (lines 76-300)
 
-- [ ] Create `src/cli/server.go`:
+- [x] Create `src/cli/server.go`:
 
   ```go
   var serverCmd = &cobra.Command{
@@ -667,10 +668,10 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
   - [ ] Validate inputs (non-empty, valid type)
   - [ ] Test connection before saving
   - [ ] Show spinner during connection test
-- [ ] Implement `server list`:
-  - [ ] `--json` flag for JSON output
-  - [ ] Default: formatted table with columns: Name, Type, URL, Enabled
-  - [ ] Show "(no servers)" if empty
+- [x] Implement `server list`:
+  - [x] `--json` flag for JSON output
+  - [x] Default: formatted table with columns: Name, Type, URL, Enabled
+  - [x] Show "(no servers)" if empty
 - [ ] Implement `server edit <id-or-name>`:
   - [ ] Look up server by ID or name
   - [ ] Prompt with current values as defaults
@@ -683,10 +684,10 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
 - [ ] Implement `server test <id-or-name>`:
   - [ ] Look up server by ID or name
   - [ ] Test connection and display version/app name
-- [ ] Create `src/cli/server_test.go`:
+- [x] Create `src/cli/server_test.go`:
   - [ ] `TestServerAdd_Interactive` - simulates input
-  - [ ] `TestServerList_JSON` - verifies JSON format
-  - [ ] `TestServerList_Table` - verifies table format
+  - [x] `TestServerList_JSON` - verifies JSON format
+  - [x] `TestServerList_Table` - verifies table format
   - [ ] `TestServerRemove_Confirmation` - tests y/N prompt
 - [ ] Verify: `go build ./src && ./janitarr server --help`
 

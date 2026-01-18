@@ -48,12 +48,6 @@ type DetectionResults struct {
 	FailureCount int               `json:"failureCount"`
 }
 
-// SearchLimits represents search limits configuration.
-type SearchLimits struct {
-	Missing int `json:"missing"`
-	Cutoff  int `json:"cutoff"`
-}
-
 // TriggerResult represents the result of triggering searches for one category on one server.
 type TriggerResult struct {
 	ServerID   string `json:"serverId"`
@@ -93,3 +87,14 @@ type CycleResult struct {
 	Errors           []string         `json:"errors"`
 	Duration         time.Duration    `json:"duration"`
 }
+
+// ServerManagerInterface defines the interface for the ServerManager service.
+type ServerManagerInterface interface {
+	AddServer(name, url, apiKey, serverType string) (*ServerInfo, error)
+	UpdateServer(id string, updates ServerUpdate) error
+	RemoveServer(id string) error
+	TestConnection(id string) (*ConnectionResult, error)
+	ListServers() ([]ServerInfo, error)
+	GetServer(idOrName string) (*ServerInfo, error)
+}
+

@@ -31,8 +31,12 @@ type ServerManager struct {
 	apiFactory APIClientFactory
 }
 
+// Ensure ServerManager implements ServerManagerInterface
+var _ ServerManagerInterface = (*ServerManager)(nil)
+
 // NewServerManager creates a new ServerManager with the given database.
-func NewServerManager(db *database.DB) *ServerManager {
+// This function is assigned to NewServerManagerFunc for testability.
+func NewServerManager(db *database.DB) ServerManagerInterface {
 	return &ServerManager{
 		db:         db,
 		apiFactory: defaultAPIClientFactory,
@@ -41,18 +45,28 @@ func NewServerManager(db *database.DB) *ServerManager {
 
 // NewServerManagerWithFactory creates a new ServerManager with a custom API factory.
 // Useful for testing.
-func NewServerManagerWithFactory(db *database.DB, factory APIClientFactory) *ServerManager {
+func NewServerManagerWithFactory(db *database.DB, factory APIClientFactory) ServerManagerInterface {
 	return &ServerManager{
 		db:         db,
 		apiFactory: factory,
 	}
 }
 
+// NewServerManagerFunc is a variable that holds the constructor for ServerManager.
+// It can be overridden in tests to inject mock implementations.
+var NewServerManagerFunc = NewServerManager
+
 // AddServer adds a new server after validating the configuration and testing the connection.
 func (m *ServerManager) AddServer(ctx context.Context, name, url, apiKey, serverType string) (*ServerInfo, error) {
 	// Validate inputs
 	if strings.TrimSpace(name) == "" {
 		return nil, fmt.Errorf("server name is required")
+	}
+	if strings.TrimSpace(url) == "" {
+		return nil, fmt.Errorf("server URL is required")
+	}
+	if strings.TrimSpace(apiKey) == "" {
+		return nil, fmt.Errorf("API key is required")
 	}
 	if strings.TrimSpace(url) == "" {
 		return nil, fmt.Errorf("server URL is required")
@@ -224,7 +238,7 @@ func (m *ServerManager) ListServers() ([]ServerInfo, error) {
 }
 
 // GetServer retrieves a server by ID or name.
-func (m *ServerManager) GetServer(idOrName string) (*ServerInfo, error) {
+func (m *ServerManager) GetServer(ctx context.Context, idOrName string) (*ServerInfo, error) {
 	// Try by ID first
 	server, err := m.db.GetServer(idOrName)
 	if err != nil {
