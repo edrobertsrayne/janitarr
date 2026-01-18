@@ -107,7 +107,7 @@ export async function detectAll(): Promise<AggregatedResults> {
  * Run detection on servers of a specific type
  */
 export async function detectByType(
-  type: "radarr" | "sonarr"
+  type: "radarr" | "sonarr",
 ): Promise<AggregatedResults> {
   const db = getDatabase();
   const servers = await db.getServersByType(type);
@@ -146,7 +146,7 @@ export async function detectByType(
  * Run detection on a single server by ID or name
  */
 export async function detectSingleServer(
-  idOrName: string
+  idOrName: string,
 ): Promise<DetectionResult | null> {
   const db = getDatabase();
 

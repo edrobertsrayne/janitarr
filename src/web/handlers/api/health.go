@@ -1,7 +1,6 @@
 package api
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -64,7 +63,6 @@ func (h *HealthHandlers) GetHealth(w http.ResponseWriter, r *http.Request) {
 		}
 		servicesStatus["scheduler"].(map[string]interface{})["message"] = "Scheduler is not running"
 	}
-
 
 	response := HealthResponse{
 		Status:    status,

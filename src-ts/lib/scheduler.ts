@@ -56,15 +56,13 @@ export function getScheduleConfig(): {
  */
 export function setScheduleConfig(
   intervalHours?: number,
-  enabled?: boolean
+  enabled?: boolean,
 ): void {
   const db = getDatabase();
 
   // Validate interval if provided
   if (intervalHours !== undefined && intervalHours < MIN_INTERVAL_HOURS) {
-    throw new Error(
-      `Interval must be at least ${MIN_INTERVAL_HOURS} hour(s)`
-    );
+    throw new Error(`Interval must be at least ${MIN_INTERVAL_HOURS} hour(s)`);
   }
 
   db.setAppConfig({
@@ -91,7 +89,9 @@ export function setScheduleConfig(
 function calculateNextRunTime(): Date {
   const config = getScheduleConfig();
   const now = new Date();
-  const nextRun = new Date(now.getTime() + config.intervalHours * 60 * 60 * 1000);
+  const nextRun = new Date(
+    now.getTime() + config.intervalHours * 60 * 60 * 1000,
+  );
   return nextRun;
 }
 
@@ -267,7 +267,9 @@ export function isCycleActive(): boolean {
  * @param timeoutMs - Maximum time to wait in milliseconds (default: 10000)
  * @returns Promise that resolves when cycle completes or timeout occurs
  */
-export async function waitForCycleCompletion(timeoutMs = 10000): Promise<boolean> {
+export async function waitForCycleCompletion(
+  timeoutMs = 10000,
+): Promise<boolean> {
   if (!state.isCycleActive) {
     return true; // No cycle active, return immediately
   }

@@ -47,7 +47,7 @@ func (h *AutomationHandlers) TriggerAutomationCycle(w http.ResponseWriter, r *ht
 
 	// Trigger the cycle in a goroutine to avoid blocking the HTTP response
 	go func() {
-		ctx := context.Background() // Or pass a cancellable context from r.Context()
+		ctx := context.Background()                                // Or pass a cancellable context from r.Context()
 		_, err := h.Automation.RunCycle(ctx, true, payload.DryRun) // isManual = true
 		if err != nil {
 			// Log the error but don't respond to the HTTP request directly

@@ -1,11 +1,11 @@
-import * as path from 'path';
-import { promises as fs } from 'fs';
+import * as path from "path";
+import { promises as fs } from "fs";
 
-const ALGORITHM_NAME = 'AES-GCM';
+const ALGORITHM_NAME = "AES-GCM";
 const KEY_SIZE = 256;
 const IV_LENGTH = 12; // AES-GCM recommends 12-byte IV
-const KEY_FILE = '.janitarr.key'; // Using dotfile to hide it
-const KEY_DIR = path.join(process.cwd(), 'data');
+const KEY_FILE = ".janitarr.key"; // Using dotfile to hide it
+const KEY_DIR = path.join(process.cwd(), "data");
 export let KEY_PATH = path.join(KEY_DIR, KEY_FILE);
 
 export function setKeyPathForTesting(newPath: string) {
@@ -27,18 +27,18 @@ export async function getEncryptionKey(): Promise<CryptoKey> {
   await ensureKeyDirectoryExists();
 
   try {
-    const keyData = await fs.readFile(KEY_PATH, 'utf8');
+    const keyData = await fs.readFile(KEY_PATH, "utf8");
     const jwk = JSON.parse(keyData);
     cachedKey = await crypto.subtle.importKey(
-      'jwk',
+      "jwk",
       jwk,
       { name: ALGORITHM_NAME, length: KEY_SIZE },
       true, // extractable
-      ['encrypt', 'decrypt'],
+      ["encrypt", "decrypt"],
     );
     return cachedKey;
   } catch (error: unknown) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       // Key file not found, generate a new one
       const newKey = await crypto.subtle.generateKey(
         {
@@ -46,15 +46,17 @@ export async function getEncryptionKey(): Promise<CryptoKey> {
           length: KEY_SIZE,
         },
         true, // extractable
-        ['encrypt', 'decrypt'],
+        ["encrypt", "decrypt"],
       );
 
-      const jwk = await crypto.subtle.exportKey('jwk', newKey);
-      await fs.writeFile(KEY_PATH, JSON.stringify(jwk), 'utf8');
+      const jwk = await crypto.subtle.exportKey("jwk", newKey);
+      await fs.writeFile(KEY_PATH, JSON.stringify(jwk), "utf8");
       cachedKey = newKey;
       return newKey;
     }
-    throw new Error(`Failed to get encryption key: ${(error as Error).message}`);
+    throw new Error(
+      `Failed to get encryption key: ${(error as Error).message}`,
+    );
   }
 }
 
@@ -75,8 +77,8 @@ export async function encryptApiKey(
   );
 
   // Combine IV and ciphertext for storage, separated by a delimiter
-  const ivBase64 = Buffer.from(iv).toString('base64');
-  const ciphertextBase64 = Buffer.from(ciphertext).toString('base64');
+  const ivBase64 = Buffer.from(iv).toString("base64");
+  const ciphertextBase64 = Buffer.from(ciphertext).toString("base64");
 
   return `${ivBase64}:${ciphertextBase64}`;
 }
@@ -85,14 +87,14 @@ export async function decryptApiKey(
   ciphertextWithIv: string,
   key: CryptoKey,
 ): Promise<string> {
-  const [ivBase64, ciphertextBase64] = ciphertextWithIv.split(':');
+  const [ivBase64, ciphertextBase64] = ciphertextWithIv.split(":");
 
   if (!ivBase64 || !ciphertextBase64) {
-    throw new Error('Invalid ciphertext format');
+    throw new Error("Invalid ciphertext format");
   }
 
-  const iv = Buffer.from(ivBase64, 'base64');
-  const ciphertext = Buffer.from(ciphertextBase64, 'base64');
+  const iv = Buffer.from(ivBase64, "base64");
+  const ciphertext = Buffer.from(ciphertextBase64, "base64");
 
   const decrypted = await crypto.subtle.decrypt(
     {

@@ -2,8 +2,8 @@
  * Dashboard view - Overview of system status
  */
 
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Grid,
@@ -21,7 +21,7 @@ import {
   Chip,
   Alert,
   Snackbar,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Timeline,
   TimelineItem,
@@ -30,7 +30,7 @@ import {
   TimelineContent,
   TimelineDot,
   TimelineOppositeContent,
-} from '@mui/lab';
+} from "@mui/lab";
 import {
   PlayArrow as PlayIcon,
   Add as AddIcon,
@@ -41,23 +41,23 @@ import {
   CheckCircle as SuccessIcon,
   Edit as EditIcon,
   Science as TestIcon,
-} from '@mui/icons-material';
-import { formatDistanceToNow } from 'date-fns';
+} from "@mui/icons-material";
+import { formatDistanceToNow } from "date-fns";
 
 import {
   getStatsSummary,
   getServers,
   getLogs,
   triggerAutomation,
-} from '../services/api';
+} from "../services/api";
 import type {
   StatsSummaryResponse,
   ServerConfig,
   LogEntry,
   LogEntryType,
-} from '../types';
-import LoadingSpinner from '../components/common/LoadingSpinner';
-import StatusBadge from '../components/common/StatusBadge';
+} from "../types";
+import LoadingSpinner from "../components/common/LoadingSpinner";
+import StatusBadge from "../components/common/StatusBadge";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -69,8 +69,8 @@ export default function Dashboard() {
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
-    severity: 'success' | 'error';
-  }>({ open: false, message: '', severity: 'success' });
+    severity: "success" | "error";
+  }>({ open: false, message: "", severity: "success" });
 
   useEffect(() => {
     loadDashboardData();
@@ -109,16 +109,16 @@ export default function Dashboard() {
     if (result.success) {
       setSnackbar({
         open: true,
-        message: 'Automation triggered successfully',
-        severity: 'success',
+        message: "Automation triggered successfully",
+        severity: "success",
       });
       // Refresh data after a short delay
       setTimeout(loadDashboardData, 2000);
     } else {
       setSnackbar({
         open: true,
-        message: result.error || 'Failed to trigger automation',
-        severity: 'error',
+        message: result.error || "Failed to trigger automation",
+        severity: "error",
       });
     }
 
@@ -127,31 +127,33 @@ export default function Dashboard() {
 
   const getLogIcon = (type: LogEntryType) => {
     switch (type) {
-      case 'cycle_start':
+      case "cycle_start":
         return <PlayIcon />;
-      case 'cycle_end':
+      case "cycle_end":
         return <SuccessIcon />;
-      case 'search':
+      case "search":
         return <SearchIcon />;
-      case 'error':
+      case "error":
         return <ErrorIcon />;
       default:
         return <SearchIcon />;
     }
   };
 
-  const getLogColor = (type: LogEntryType): 'primary' | 'success' | 'info' | 'error' => {
+  const getLogColor = (
+    type: LogEntryType,
+  ): "primary" | "success" | "info" | "error" => {
     switch (type) {
-      case 'cycle_start':
-        return 'primary';
-      case 'cycle_end':
-        return 'success';
-      case 'search':
-        return 'info';
-      case 'error':
-        return 'error';
+      case "cycle_start":
+        return "primary";
+      case "cycle_end":
+        return "success";
+      case "search":
+        return "info";
+      case "error":
+        return "error";
       default:
-        return 'info';
+        return "info";
     }
   };
 
@@ -161,25 +163,34 @@ export default function Dashboard() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          mb: 3,
+          flexWrap: "wrap",
+          gap: 2,
+        }}
+      >
         <Typography variant="h4" gutterBottom sx={{ mb: 0 }}>
           Dashboard
         </Typography>
-        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
           <Button
             variant="contained"
             startIcon={<PlayIcon />}
             onClick={handleTriggerAutomation}
             disabled={triggering}
-            sx={{ minWidth: { xs: '110px', sm: 'auto' } }}
+            sx={{ minWidth: { xs: "110px", sm: "auto" } }}
           >
-            {triggering ? 'Running...' : 'Run Now'}
+            {triggering ? "Running..." : "Run Now"}
           </Button>
           <Button
             variant="outlined"
             startIcon={<AddIcon />}
-            onClick={() => navigate('/servers')}
-            sx={{ minWidth: { xs: '120px', sm: 'auto' } }}
+            onClick={() => navigate("/servers")}
+            sx={{ minWidth: { xs: "120px", sm: "auto" } }}
           >
             Add Server
           </Button>
@@ -187,12 +198,22 @@ export default function Dashboard() {
       </Box>
 
       {/* Status Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }} role="region" aria-label="System statistics">
+      <Grid
+        container
+        spacing={3}
+        sx={{ mb: 4 }}
+        role="region"
+        aria-label="System statistics"
+      >
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card>
             <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <StorageIcon color="primary" sx={{ mr: 1 }} aria-hidden="true" />
+              <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                <StorageIcon
+                  color="primary"
+                  sx={{ mr: 1 }}
+                  aria-hidden="true"
+                />
                 <Typography color="text.secondary" variant="body2">
                   Total Servers
                 </Typography>
@@ -208,8 +229,12 @@ export default function Dashboard() {
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card>
             <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <ScheduleIcon color="primary" sx={{ mr: 1 }} aria-hidden="true" />
+              <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                <ScheduleIcon
+                  color="primary"
+                  sx={{ mr: 1 }}
+                  aria-hidden="true"
+                />
                 <Typography color="text.secondary" variant="body2">
                   Last Cycle
                 </Typography>
@@ -219,15 +244,15 @@ export default function Dashboard() {
                   ? formatDistanceToNow(new Date(stats.lastCycleTime), {
                       addSuffix: true,
                     })
-                  : 'Never'}
+                  : "Never"}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Next:{' '}
+                Next:{" "}
                 {stats?.nextScheduledTime
                   ? formatDistanceToNow(new Date(stats.nextScheduledTime), {
                       addSuffix: true,
                     })
-                  : 'N/A'}
+                  : "N/A"}
               </Typography>
             </CardContent>
           </Card>
@@ -236,13 +261,15 @@ export default function Dashboard() {
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card>
             <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
                 <SearchIcon color="primary" sx={{ mr: 1 }} aria-hidden="true" />
                 <Typography color="text.secondary" variant="body2">
                   Recent Searches
                 </Typography>
               </Box>
-              <Typography variant="h4">{stats?.searchesLast24h || 0}</Typography>
+              <Typography variant="h4">
+                {stats?.searchesLast24h || 0}
+              </Typography>
               <Typography variant="body2" color="text.secondary">
                 Last 24 hours
               </Typography>
@@ -253,13 +280,16 @@ export default function Dashboard() {
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card>
             <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
                 <ErrorIcon color="error" sx={{ mr: 1 }} aria-hidden="true" />
                 <Typography color="text.secondary" variant="body2">
                   Errors
                 </Typography>
               </Box>
-              <Typography variant="h4" color={stats?.errorsLast24h ? 'error' : 'inherit'}>
+              <Typography
+                variant="h4"
+                color={stats?.errorsLast24h ? "error" : "inherit"}
+              >
                 {stats?.errorsLast24h || 0}
               </Typography>
               <Typography variant="body2" color="text.secondary">
@@ -273,9 +303,11 @@ export default function Dashboard() {
       {/* Server Status List */}
       <Card sx={{ mb: 4 }}>
         <CardContent>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-            <Typography variant="h6" component="h2">Servers</Typography>
-            <Button size="small" onClick={() => navigate('/servers')}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+            <Typography variant="h6" component="h2">
+              Servers
+            </Typography>
+            <Button size="small" onClick={() => navigate("/servers")}>
               View All
             </Button>
           </Box>
@@ -286,7 +318,9 @@ export default function Dashboard() {
           ) : (
             <TableContainer>
               <Table size="small" aria-label="Server status">
-                <TableHead sx={{ display: { xs: 'none', sm: 'table-header-group' } }}>
+                <TableHead
+                  sx={{ display: { xs: "none", sm: "table-header-group" } }}
+                >
                   <TableRow>
                     <TableCell>Name</TableCell>
                     <TableCell>Type</TableCell>
@@ -302,34 +336,58 @@ export default function Dashboard() {
                           <Typography variant="body2" sx={{ fontWeight: 500 }}>
                             {server.name}
                           </Typography>
-                          <Box sx={{ display: { xs: 'flex', sm: 'none' }, gap: 1, mt: 0.5, alignItems: 'center', flexWrap: 'wrap' }}>
+                          <Box
+                            sx={{
+                              display: { xs: "flex", sm: "none" },
+                              gap: 1,
+                              mt: 0.5,
+                              alignItems: "center",
+                              flexWrap: "wrap",
+                            }}
+                          >
                             <Chip
                               label={server.type.toUpperCase()}
                               size="small"
-                              color={server.type === 'radarr' ? 'primary' : 'secondary'}
+                              color={
+                                server.type === "radarr"
+                                  ? "primary"
+                                  : "secondary"
+                              }
                             />
                             <StatusBadge
-                              status={server.enabled === false ? 'disabled' : 'connected'}
+                              status={
+                                server.enabled === false
+                                  ? "disabled"
+                                  : "connected"
+                              }
                             />
                           </Box>
                         </Box>
                       </TableCell>
-                      <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
+                      <TableCell
+                        sx={{ display: { xs: "none", sm: "table-cell" } }}
+                      >
                         <Chip
                           label={server.type.toUpperCase()}
                           size="small"
-                          color={server.type === 'radarr' ? 'primary' : 'secondary'}
+                          color={
+                            server.type === "radarr" ? "primary" : "secondary"
+                          }
                         />
                       </TableCell>
-                      <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
+                      <TableCell
+                        sx={{ display: { xs: "none", sm: "table-cell" } }}
+                      >
                         <StatusBadge
-                          status={server.enabled === false ? 'disabled' : 'connected'}
+                          status={
+                            server.enabled === false ? "disabled" : "connected"
+                          }
                         />
                       </TableCell>
                       <TableCell align="right">
                         <IconButton
                           size="small"
-                          onClick={() => navigate('/servers')}
+                          onClick={() => navigate("/servers")}
                           title="Edit"
                           aria-label={`Edit ${server.name}`}
                           sx={{ minWidth: 44, minHeight: 44 }}
@@ -338,7 +396,7 @@ export default function Dashboard() {
                         </IconButton>
                         <IconButton
                           size="small"
-                          onClick={() => navigate('/servers')}
+                          onClick={() => navigate("/servers")}
                           title="Test"
                           aria-label={`Test ${server.name}`}
                           sx={{ minWidth: 44, minHeight: 44 }}
@@ -358,9 +416,11 @@ export default function Dashboard() {
       {/* Recent Activity Timeline */}
       <Card>
         <CardContent>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-            <Typography variant="h6" component="h2">Recent Activity</Typography>
-            <Button size="small" onClick={() => navigate('/logs')}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
+            <Typography variant="h6" component="h2">
+              Recent Activity
+            </Typography>
+            <Button size="small" onClick={() => navigate("/logs")}>
               View All Logs
             </Button>
           </Box>
@@ -370,7 +430,10 @@ export default function Dashboard() {
             <Timeline>
               {recentLogs.map((log, index) => (
                 <TimelineItem key={log.id}>
-                  <TimelineOppositeContent color="text.secondary" sx={{ flex: 0.3 }}>
+                  <TimelineOppositeContent
+                    color="text.secondary"
+                    sx={{ flex: 0.3 }}
+                  >
                     <Typography variant="caption">
                       {formatDistanceToNow(new Date(log.timestamp), {
                         addSuffix: true,
@@ -404,9 +467,12 @@ export default function Dashboard() {
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       >
-        <Alert severity={snackbar.severity} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+        <Alert
+          severity={snackbar.severity}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+        >
           {snackbar.message}
         </Alert>
       </Snackbar>

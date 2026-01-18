@@ -138,5 +138,4 @@ This is the only mechanism for the user to see what the automation has done.
   content (that's Radarr/Sonarr's responsibility)
 - Individual log entries mean higher log volumes compared to grouped entries
 - Very old logs are purged automatically to prevent unbounded growth
-- Recommend using react-window or similar virtualization for displaying large
-  log lists efficiently
+- Web UI uses htmx with pagination for efficient log display

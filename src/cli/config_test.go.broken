@@ -1,0 +1,212 @@
+package cli
+
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"os"
+	"strconv"
+	"strings"
+	"testing"
+
+	"github.com/spf13/cobra"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/user/janitarr/src/database"
+)
+
+// MockDB for config tests
+type MockDBConfig struct {
+	mock.Mock
+}
+
+func (m *MockDBConfig) GetAppConfig() database.AppConfig {
+	args := m.Called()
+	return args.Get(0).(database.AppConfig)
+}
+
+func (m *MockDBConfig) SetAppConfig(config database.AppConfig) {
+	m.Called(config)
+}
+
+func createTestDBConfig(t *testing.T) *database.DB {
+	t.Helper()
+	db, err := database.New(":memory:", t.TempDir()+"/.janitarr.key")
+	if err != nil {
+		t.Fatalf("Failed to create test database: %v", err)
+	}
+	t.Cleanup(func() { db.Close() })
+	return db
+}
+
+func TestConfigShow(t *testing.T) {
+	assert := assert.New(t)
+
+	// Override database.New and GetAppConfig for testing
+	originalNewDB := database.New
+	defer func() { database.New = originalNewDB }()
+	originalGetAppConfig := database.GetAppConfigFunc // Assuming this exists or mocking directly
+	defer func() { database.GetAppConfigFunc = originalGetAppConfig }()
+
+	mockDB := new(MockDBConfig)
+	database.New = func(dbPath, keyPath string) (*database.DB, error) {
+		// Return a dummy DB, as we're mocking GetAppConfig directly
+		return createTestDBConfig(t), nil
+	}
+	database.GetAppConfigFunc = func(db *database.DB) database.AppConfig {
+		return mockDB.GetAppConfig()
+	}
+
+	rootCmd := NewRootCmd()
+	rootCmd.AddCommand(configCmd)
+
+	t.Run("show config - default (table format)", func(t *testing.T) {
+		defaultConfig := database.DefaultAppConfig()
+		mockDB.On("GetAppConfig").Return(defaultConfig).Once()
+
+		output, err := executeCommand(rootCmd, "config", "show")
+		assert.NoError(err)
+		assert.Contains(output, "Configuration")
+		assert.Contains(output, keyValue("Enabled", success("Yes")))
+		assert.Contains(output, keyValue("Interval", "6 hours"))
+		assert.Contains(output, keyValue("Missing Movies", "10 items"))
+		assert.Contains(output, keyValue("Cutoff Episodes", "5 items"))
+		mockDB.AssertExpectations(t)
+	})
+
+	t.Run("show config - json format", func(t *testing.T) {
+		customConfig := database.AppConfig{
+			Schedule: database.ScheduleConfig{IntervalHours: 12, Enabled: false},
+			SearchLimits: database.SearchLimits{
+				MissingMoviesLimit:   0,
+				MissingEpisodesLimit: 20,
+				CutoffMoviesLimit:    0,
+				CutoffEpisodesLimit:  0,
+			},
+		}
+		mockDB.On("GetAppConfig").Return(customConfig).Once()
+
+		output, err := executeCommand(rootCmd, "config", "show", "--json")
+		assert.NoError(err)
+
+		var actualConfig database.AppConfig
+		err = json.Unmarshal([]byte(output), &actualConfig)
+		assert.NoError(err)
+		assert.Equal(customConfig, actualConfig)
+		mockDB.AssertExpectations(t)
+	})
+}
+
+func TestConfigSet(t *testing.T) {
+	assert := assert.New(t)
+
+	// Override database.New, GetAppConfigFunc, and SetAppConfigFunc for testing
+	originalNewDB := database.New
+	defer func() { database.New = originalNewDB }()
+	originalGetAppConfigFunc := database.GetAppConfigFunc
+	defer func() { database.GetAppConfigFunc = originalGetAppConfigFunc }()
+	originalSetAppConfigFunc := database.SetAppConfigFunc
+	defer func() { database.SetAppConfigFunc = originalSetAppConfigFunc }()
+
+	mockDB := new(MockDBConfig)
+	database.New = func(dbPath, keyPath string) (*database.DB, error) {
+		return createTestDBConfig(t), nil
+	}
+	database.GetAppConfigFunc = func(db *database.DB) database.AppConfig {
+		return mockDB.GetAppConfig()
+	}
+	database.SetAppConfigFunc = func(db *database.DB, config database.AppConfig) {
+		mockDB.SetAppConfig(config)
+	}
+
+	rootCmd := NewRootCmd()
+	rootCmd.AddCommand(configCmd)
+
+	t.Run("set schedule.interval - success", func(t *testing.T) {
+		initialConfig := database.DefaultAppConfig()
+		updatedConfig := initialConfig
+		updatedConfig.Schedule.IntervalHours = 24
+
+		mockDB.On("GetAppConfig").Return(initialConfig).Once()
+		mockDB.On("SetAppConfig", updatedConfig).Once()
+		mockDB.On("GetAppConfig").Return(updatedConfig).Once() // For printing updated config
+
+		output, err := executeCommand(rootCmd, "config", "set", "schedule.interval", "24")
+		assert.NoError(err)
+		assert.Contains(output, success("Configuration key 'schedule.interval' updated to '24'."))
+		assert.Contains(output, keyValue("Interval", "24 hours"))
+		mockDB.AssertExpectations(t)
+	})
+
+	t.Run("set schedule.enabled - success", func(t *testing.T) {
+		initialConfig := database.DefaultAppConfig()
+		updatedConfig := initialConfig
+		updatedConfig.Schedule.Enabled = false
+
+		mockDB.On("GetAppConfig").Return(initialConfig).Once()
+		mockDB.On("SetAppConfig", updatedConfig).Once()
+		mockDB.On("GetAppConfig").Return(updatedConfig).Once() // For printing updated config
+
+		output, err := executeCommand(rootCmd, "config", "set", "schedule.enabled", "false")
+		assert.NoError(err)
+		assert.Contains(output, success("Configuration key 'schedule.enabled' updated to 'false'."))
+		assert.Contains(output, keyValue("Enabled", warning("No")))
+		mockDB.AssertExpectations(t)
+	})
+
+	t.Run("set limits.missing.movies - success", func(t *testing.T) {
+		initialConfig := database.DefaultAppConfig()
+		updatedConfig := initialConfig
+		updatedConfig.SearchLimits.MissingMoviesLimit = 50
+
+		mockDB.On("GetAppConfig").Return(initialConfig).Once()
+		mockDB.On("SetAppConfig", updatedConfig).Once()
+		mockDB.On("GetAppConfig").Return(updatedConfig).Once() // For printing updated config
+
+		output, err := executeCommand(rootCmd, "config", "set", "limits.missing.movies", "50")
+		assert.NoError(err)
+		assert.Contains(output, success("Configuration key 'limits.missing.movies' updated to '50'."))
+		assert.Contains(output, keyValue("Missing Movies", "50 items"))
+		mockDB.AssertExpectations(t)
+	})
+
+	t.Run("set limits.missing.movies - disable", func(t *testing.T) {
+		initialConfig := database.DefaultAppConfig()
+		updatedConfig := initialConfig
+		updatedConfig.SearchLimits.MissingMoviesLimit = 0
+
+		mockDB.On("GetAppConfig").Return(initialConfig).Once()
+		mockDB.On("SetAppConfig", updatedConfig).Once()
+		mockDB.On("GetAppConfig").Return(updatedConfig).Once() // For printing updated config
+
+		output, err := executeCommand(rootCmd, "config", "set", "limits.missing.movies", "0")
+		assert.NoError(err)
+		assert.Contains(output, success("Configuration key 'limits.missing.movies' updated to '0'."))
+		assert.Contains(output, keyValue("Missing Movies", warning("Disabled")))
+		mockDB.AssertExpectations(t)
+	})
+
+	t.Run("set - invalid key", func(t *testing.T) {
+		output, err := executeCommand(rootCmd, "config", "set", "invalid.key", "somevalue")
+		assert.Error(err)
+		assert.Contains(output, errorMsg("Unknown configuration key: invalid.key"))
+	})
+
+	t.Run("set schedule.interval - invalid value", func(t *testing.T) {
+		output, err := executeCommand(rootCmd, "config", "set", "schedule.interval", "abc")
+		assert.Error(err)
+		assert.Contains(output, errorMsg("Invalid value for schedule.interval: must be a positive integer"))
+	})
+
+	t.Run("set schedule.enabled - invalid value", func(t *testing.T) {
+		output, err := executeCommand(rootCmd, "config", "set", "schedule.enabled", "not_a_bool")
+		assert.Error(err)
+		assert.Contains(output, errorMsg("Invalid value for schedule.enabled: must be 'true' or 'false'"))
+	})
+
+	t.Run("set limits.cutoff.movies - negative value", func(t *testing.T) {
+		output, err := executeCommand(rootCmd, "config", "set", "limits.cutoff.movies", "-5")
+		assert.Error(err)
+		assert.Contains(output, errorMsg("Invalid value for limits.cutoff.movies: must be a non-negative integer"))
+	})
+}

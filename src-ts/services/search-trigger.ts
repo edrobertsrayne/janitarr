@@ -38,7 +38,7 @@ function distributeItems(
   detectionResults: DetectionResult[],
   category: "missing" | "cutoff",
   itemType: "movie" | "episode",
-  limit: number
+  limit: number,
 ): Map<string, MediaItem[]> {
   const serverItems = new Map<string, MediaItem[]>();
 
@@ -53,7 +53,8 @@ function distributeItems(
   const allItems: Array<{ serverId: string; item: MediaItem }> = [];
   for (const result of detectionResults) {
     if (result.error) continue;
-    const items = category === "missing" ? result.missingItems : result.cutoffItems;
+    const items =
+      category === "missing" ? result.missingItems : result.cutoffItems;
     for (const item of items) {
       // Filter by item type
       if (item.type === itemType) {
@@ -73,7 +74,9 @@ function distributeItems(
 
       // Find next available item for this server
       const itemIndex = allItems.findIndex(
-        (i) => i.serverId === serverId && !serverItems.get(serverId)?.includes(i.item)
+        (i) =>
+          i.serverId === serverId &&
+          !serverItems.get(serverId)?.includes(i.item),
       );
 
       if (itemIndex !== -1) {
@@ -86,7 +89,7 @@ function distributeItems(
 
     // Remove servers that have no more items
     serverIds = serverIds.filter((id) =>
-      allItems.some((i) => i.serverId === id)
+      allItems.some((i) => i.serverId === id),
     );
 
     // If no servers have items left, break
@@ -107,7 +110,7 @@ async function triggerServerSearch(
   apiKey: string,
   items: MediaItem[],
   category: "missing" | "cutoff",
-  dryRun = false
+  dryRun = false,
 ): Promise<SearchTriggerResult> {
   if (items.length === 0) {
     return {
@@ -173,7 +176,7 @@ async function triggerServerSearch(
  */
 export async function triggerSearches(
   detectionResults: AggregatedResults,
-  dryRun = false
+  dryRun = false,
 ): Promise<TriggerResults> {
   const db = getDatabase();
   const config = db.getAppConfig();
@@ -194,7 +197,7 @@ export async function triggerSearches(
       detectionResults.results,
       "missing",
       "movie",
-      config.searchLimits.missingMoviesLimit
+      config.searchLimits.missingMoviesLimit,
     );
 
     for (const [serverId, items] of missingMoviesDistribution) {
@@ -209,7 +212,7 @@ export async function triggerSearches(
         server.apiKey,
         items,
         "missing",
-        dryRun
+        dryRun,
       );
 
       results.push(result);
@@ -219,13 +222,23 @@ export async function triggerSearches(
         missingTriggered += result.itemIds.length;
         // Track successful search metrics
         if (!dryRun) {
-          incrementSearchCounter(server.type as "radarr" | "sonarr", "missing", result.itemIds.length, false);
+          incrementSearchCounter(
+            server.type as "radarr" | "sonarr",
+            "missing",
+            result.itemIds.length,
+            false,
+          );
         }
       } else {
         failureCount++;
         // Track failed search metrics
         if (!dryRun) {
-          incrementSearchCounter(server.type as "radarr" | "sonarr", "missing", result.itemIds.length, true);
+          incrementSearchCounter(
+            server.type as "radarr" | "sonarr",
+            "missing",
+            result.itemIds.length,
+            true,
+          );
         }
       }
     }
@@ -237,7 +250,7 @@ export async function triggerSearches(
       detectionResults.results,
       "missing",
       "episode",
-      config.searchLimits.missingEpisodesLimit
+      config.searchLimits.missingEpisodesLimit,
     );
 
     for (const [serverId, items] of missingEpisodesDistribution) {
@@ -252,7 +265,7 @@ export async function triggerSearches(
         server.apiKey,
         items,
         "missing",
-        dryRun
+        dryRun,
       );
 
       results.push(result);
@@ -262,13 +275,23 @@ export async function triggerSearches(
         missingTriggered += result.itemIds.length;
         // Track successful search metrics
         if (!dryRun) {
-          incrementSearchCounter(server.type as "radarr" | "sonarr", "missing", result.itemIds.length, false);
+          incrementSearchCounter(
+            server.type as "radarr" | "sonarr",
+            "missing",
+            result.itemIds.length,
+            false,
+          );
         }
       } else {
         failureCount++;
         // Track failed search metrics
         if (!dryRun) {
-          incrementSearchCounter(server.type as "radarr" | "sonarr", "missing", result.itemIds.length, true);
+          incrementSearchCounter(
+            server.type as "radarr" | "sonarr",
+            "missing",
+            result.itemIds.length,
+            true,
+          );
         }
       }
     }
@@ -280,7 +303,7 @@ export async function triggerSearches(
       detectionResults.results,
       "cutoff",
       "movie",
-      config.searchLimits.cutoffMoviesLimit
+      config.searchLimits.cutoffMoviesLimit,
     );
 
     for (const [serverId, items] of cutoffMoviesDistribution) {
@@ -295,7 +318,7 @@ export async function triggerSearches(
         server.apiKey,
         items,
         "cutoff",
-        dryRun
+        dryRun,
       );
 
       results.push(result);
@@ -305,13 +328,23 @@ export async function triggerSearches(
         cutoffTriggered += result.itemIds.length;
         // Track successful search metrics
         if (!dryRun) {
-          incrementSearchCounter(server.type as "radarr" | "sonarr", "cutoff", result.itemIds.length, false);
+          incrementSearchCounter(
+            server.type as "radarr" | "sonarr",
+            "cutoff",
+            result.itemIds.length,
+            false,
+          );
         }
       } else {
         failureCount++;
         // Track failed search metrics
         if (!dryRun) {
-          incrementSearchCounter(server.type as "radarr" | "sonarr", "cutoff", result.itemIds.length, true);
+          incrementSearchCounter(
+            server.type as "radarr" | "sonarr",
+            "cutoff",
+            result.itemIds.length,
+            true,
+          );
         }
       }
     }
@@ -323,7 +356,7 @@ export async function triggerSearches(
       detectionResults.results,
       "cutoff",
       "episode",
-      config.searchLimits.cutoffEpisodesLimit
+      config.searchLimits.cutoffEpisodesLimit,
     );
 
     for (const [serverId, items] of cutoffEpisodesDistribution) {
@@ -338,7 +371,7 @@ export async function triggerSearches(
         server.apiKey,
         items,
         "cutoff",
-        dryRun
+        dryRun,
       );
 
       results.push(result);
@@ -348,13 +381,23 @@ export async function triggerSearches(
         cutoffTriggered += result.itemIds.length;
         // Track successful search metrics
         if (!dryRun) {
-          incrementSearchCounter(server.type as "radarr" | "sonarr", "cutoff", result.itemIds.length, false);
+          incrementSearchCounter(
+            server.type as "radarr" | "sonarr",
+            "cutoff",
+            result.itemIds.length,
+            false,
+          );
         }
       } else {
         failureCount++;
         // Track failed search metrics
         if (!dryRun) {
-          incrementSearchCounter(server.type as "radarr" | "sonarr", "cutoff", result.itemIds.length, true);
+          incrementSearchCounter(
+            server.type as "radarr" | "sonarr",
+            "cutoff",
+            result.itemIds.length,
+            true,
+          );
         }
       }
     }
@@ -390,7 +433,7 @@ export function setSearchLimits(
   missingMoviesLimit?: number,
   missingEpisodesLimit?: number,
   cutoffMoviesLimit?: number,
-  cutoffEpisodesLimit?: number
+  cutoffEpisodesLimit?: number,
 ): void {
   const db = getDatabase();
   db.setAppConfig({

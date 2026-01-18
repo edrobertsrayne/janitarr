@@ -61,7 +61,9 @@ function toServerInfo(server: ServerConfig): ServerInfo {
 /**
  * Get all configured servers (ServerConfig objects)
  */
-export async function getServers(db: DatabaseManager): Promise<ServerResult<ServerConfig[]>> {
+export async function getServers(
+  db: DatabaseManager,
+): Promise<ServerResult<ServerConfig[]>> {
   const allServers = await db.getAllServers();
   return { success: true, data: allServers };
 }
@@ -78,7 +80,10 @@ export async function listServers(): Promise<ServerInfo[]> {
 /**
  * Get a server by ID (ServerConfig object)
  */
-export async function getServerById(db: DatabaseManager, id: string): Promise<ServerResult<ServerConfig>> {
+export async function getServerById(
+  db: DatabaseManager,
+  id: string,
+): Promise<ServerResult<ServerConfig>> {
   const server = await db.getServer(id);
   if (!server) {
     return { success: false, error: `Server with ID "${id}" not found` };
@@ -89,7 +94,9 @@ export async function getServerById(db: DatabaseManager, id: string): Promise<Se
 /**
  * Get a server by ID or name (ServerConfig object)
  */
-export async function getServer(idOrName: string): Promise<ServerResult<ServerConfig>> {
+export async function getServer(
+  idOrName: string,
+): Promise<ServerResult<ServerConfig>> {
   const db = getDatabase();
 
   // Try by ID first
@@ -110,7 +117,9 @@ export async function getServer(idOrName: string): Promise<ServerResult<ServerCo
 /**
  * Get servers by type
  */
-export async function getServersByType(type: ServerType): Promise<ServerConfig[]> {
+export async function getServersByType(
+  type: ServerType,
+): Promise<ServerConfig[]> {
   const db = getDatabase();
   return await db.getServersByType(type);
 }
@@ -122,7 +131,7 @@ export async function addServer(
   name: string,
   url: string,
   apiKey: string,
-  type: ServerType
+  type: ServerType,
 ): Promise<ServerResult<ServerInfo>> {
   // Validate URL format
   const urlResult = validateUrl(url);
@@ -187,7 +196,7 @@ export async function addServer(
 export async function updateServer(
   db: DatabaseManager, // Pass db explicitly for web routes
   id: string,
-  updates: { name?: string; url?: string; apiKey?: string }
+  updates: { name?: string; url?: string; apiKey?: string },
 ): Promise<ServerResult<ServerInfo>> {
   const serverResult = await getServerById(db, id);
   if (!serverResult.success) {
@@ -200,7 +209,6 @@ export async function updateServer(
   let newUrl = server.url;
   const newApiKey = updates.apiKey ?? server.apiKey;
   const newName = updates.name ?? server.name;
-
 
   // Validate and normalize URL if changed
   if (updates.url) {
@@ -232,7 +240,11 @@ export async function updateServer(
 
   // Test connection if URL or API key changed
   if (newUrl !== server.url || newApiKey !== server.apiKey) {
-    const connectionResult = await testConnection(newUrl, newApiKey, server.type);
+    const connectionResult = await testConnection(
+      newUrl,
+      newApiKey,
+      server.type,
+    );
     if (!connectionResult.success) {
       return {
         success: false,
@@ -258,7 +270,9 @@ export async function updateServer(
 /**
  * Remove a server
  */
-export async function removeServer(idOrName: string): Promise<ServerResult<void>> {
+export async function removeServer(
+  idOrName: string,
+): Promise<ServerResult<void>> {
   const serverResult = await getServer(idOrName);
   if (!serverResult.success) {
     return serverResult;
@@ -278,7 +292,7 @@ export async function removeServer(idOrName: string): Promise<ServerResult<void>
  * Test connection to a specific server (by ID or Name)
  */
 export async function testServerConnection(
-  idOrName: string
+  idOrName: string,
 ): Promise<ServerResult<SystemStatus>> {
   const serverResult = await getServer(idOrName);
   if (!serverResult.success) {
@@ -302,7 +316,7 @@ export async function testServerConnection(
 export async function testConnection(
   url: string,
   apiKey: string,
-  type: ServerType
+  type: ServerType,
 ): Promise<ApiResult<SystemStatus>> {
   const urlResult = validateUrl(url);
   if (!urlResult.success) {
@@ -319,7 +333,7 @@ export async function testConnection(
  */
 export async function validateServerConfig(
   config: Partial<ServerConfig>,
-  excludeId?: string
+  excludeId?: string,
 ): Promise<ServerResult<true>> {
   const db = getDatabase();
 

@@ -2,8 +2,8 @@
  * Main layout component with AppBar and Navigation Drawer
  */
 
-import { useState } from 'react';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { useState } from "react";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   Drawer,
@@ -18,7 +18,7 @@ import {
   ListItemText,
   useTheme as useMuiTheme,
   useMediaQuery,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Menu as MenuIcon,
   Home as HomeIcon,
@@ -27,8 +27,8 @@ import {
   Settings as SettingsIcon,
   Brightness4 as DarkModeIcon,
   Brightness7 as LightModeIcon,
-} from '@mui/icons-material';
-import { useTheme } from '../../contexts/ThemeContext';
+} from "@mui/icons-material";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const DRAWER_WIDTH = 240;
 
@@ -39,10 +39,10 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { label: 'Dashboard', path: '/', icon: <HomeIcon /> },
-  { label: 'Servers', path: '/servers', icon: <StorageIcon /> },
-  { label: 'Logs', path: '/logs', icon: <HistoryIcon /> },
-  { label: 'Settings', path: '/settings', icon: <SettingsIcon /> },
+  { label: "Dashboard", path: "/", icon: <HomeIcon /> },
+  { label: "Servers", path: "/servers", icon: <StorageIcon /> },
+  { label: "Logs", path: "/logs", icon: <HistoryIcon /> },
+  { label: "Settings", path: "/settings", icon: <SettingsIcon /> },
 ];
 
 export default function Layout() {
@@ -50,7 +50,7 @@ export default function Layout() {
   const location = useLocation();
   const muiTheme = useMuiTheme();
   const { mode, setMode, effectiveMode } = useTheme();
-  const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(muiTheme.breakpoints.down("md"));
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleDrawerToggle = () => {
@@ -58,12 +58,12 @@ export default function Layout() {
   };
 
   const handleThemeToggle = () => {
-    if (mode === 'light') {
-      setMode('dark');
-    } else if (mode === 'dark') {
-      setMode('system');
+    if (mode === "light") {
+      setMode("dark");
+    } else if (mode === "dark") {
+      setMode("system");
     } else {
-      setMode('light');
+      setMode("light");
     }
   };
 
@@ -88,7 +88,9 @@ export default function Layout() {
               selected={location.pathname === item.path}
               onClick={() => handleNavigation(item.path)}
               aria-label={item.label}
-              aria-current={location.pathname === item.path ? 'page' : undefined}
+              aria-current={
+                location.pathname === item.path ? "page" : undefined
+              }
             >
               <ListItemIcon aria-hidden="true">{item.icon}</ListItemIcon>
               <ListItemText primary={item.label} />
@@ -100,30 +102,30 @@ export default function Layout() {
   );
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: "flex" }}>
       {/* Skip to main content link for screen readers */}
       <Box
         component="a"
         href="#main-content"
         sx={{
-          position: 'absolute',
-          left: '-9999px',
-          top: 'auto',
-          width: '1px',
-          height: '1px',
-          overflow: 'hidden',
-          '&:focus': {
-            position: 'fixed',
+          position: "absolute",
+          left: "-9999px",
+          top: "auto",
+          width: "1px",
+          height: "1px",
+          overflow: "hidden",
+          "&:focus": {
+            position: "fixed",
             top: 0,
             left: 0,
-            width: 'auto',
-            height: 'auto',
-            overflow: 'visible',
+            width: "auto",
+            height: "auto",
+            overflow: "visible",
             zIndex: 9999,
             padding: 2,
-            backgroundColor: 'primary.main',
-            color: 'primary.contrastText',
-            textDecoration: 'none',
+            backgroundColor: "primary.main",
+            color: "primary.contrastText",
+            textDecoration: "none",
           },
         }}
       >
@@ -142,13 +144,13 @@ export default function Layout() {
             aria-label="open drawer"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { md: 'none' } }}
+            sx={{ mr: 2, display: { md: "none" } }}
           >
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             {navItems.find((item) => item.path === location.pathname)?.label ||
-              'Janitarr'}
+              "Janitarr"}
           </Typography>
           <IconButton
             color="inherit"
@@ -156,7 +158,7 @@ export default function Layout() {
             sx={{ minWidth: 44, minHeight: 44 }}
             aria-label="Toggle theme"
           >
-            {effectiveMode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
+            {effectiveMode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
           </IconButton>
         </Toolbar>
       </MuiAppBar>
@@ -174,9 +176,9 @@ export default function Layout() {
             keepMounted: true, // Better mobile performance
           }}
           sx={{
-            display: { xs: 'block', md: 'none' },
-            '& .MuiDrawer-paper': {
-              boxSizing: 'border-box',
+            display: { xs: "block", md: "none" },
+            "& .MuiDrawer-paper": {
+              boxSizing: "border-box",
               width: DRAWER_WIDTH,
             },
           }}
@@ -188,9 +190,9 @@ export default function Layout() {
         <Drawer
           variant="permanent"
           sx={{
-            display: { xs: 'none', md: 'block' },
-            '& .MuiDrawer-paper': {
-              boxSizing: 'border-box',
+            display: { xs: "none", md: "block" },
+            "& .MuiDrawer-paper": {
+              boxSizing: "border-box",
               width: DRAWER_WIDTH,
             },
           }}
@@ -209,8 +211,8 @@ export default function Layout() {
           flexGrow: 1,
           p: 3,
           width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
-          '&:focus': {
-            outline: 'none',
+          "&:focus": {
+            outline: "none",
           },
         }}
       >

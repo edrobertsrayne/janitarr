@@ -2,7 +2,7 @@
  * Servers view - Manage Radarr/Sonarr servers
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -36,7 +36,7 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   CircularProgress,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Add as AddIcon,
   Edit as EditIcon,
@@ -45,7 +45,7 @@ import {
   ViewModule as CardIcon,
   Science as TestIcon,
   Storage as StorageIcon,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
 
 import {
   getServers,
@@ -54,39 +54,37 @@ import {
   deleteServer,
   testServer, // For testing new server configurations (CreateServerRequest)
   testServerConnectionById, // For testing existing servers by ID
-} from '../services/api';
-import type {
-  ServerConfig,
-  CreateServerRequest,
-  ServerType,
-} from '../types';
-import LoadingSpinner from '../components/common/LoadingSpinner';
-import StatusBadge from '../components/common/StatusBadge';
-import ConfirmDialog from '../components/common/ConfirmDialog';
+} from "../services/api";
+import type { ServerConfig, CreateServerRequest, ServerType } from "../types";
+import LoadingSpinner from "../components/common/LoadingSpinner";
+import StatusBadge from "../components/common/StatusBadge";
+import ConfirmDialog from "../components/common/ConfirmDialog";
 
-type ViewMode = 'list' | 'card';
+type ViewMode = "list" | "card";
 
 export default function Servers() {
   const [servers, setServers] = useState<ServerConfig[]>([]);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingServer, setEditingServer] = useState<ServerConfig | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [serverToDelete, setServerToDelete] = useState<ServerConfig | null>(null);
+  const [serverToDelete, setServerToDelete] = useState<ServerConfig | null>(
+    null,
+  );
   const [testing, setTesting] = useState<string | null>(null);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
-    severity: 'success' | 'error';
-  }>({ open: false, message: '', severity: 'success' });
+    severity: "success" | "error";
+  }>({ open: false, message: "", severity: "success" });
 
   // Form state
   const [formData, setFormData] = useState<CreateServerRequest>({
-    name: '',
-    type: 'radarr',
-    url: '',
-    apiKey: '',
+    name: "",
+    type: "radarr",
+    url: "",
+    apiKey: "",
     enabled: true,
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -117,10 +115,10 @@ export default function Servers() {
     } else {
       setEditingServer(null);
       setFormData({
-        name: '',
-        type: 'radarr',
-        url: '',
-        apiKey: '',
+        name: "",
+        type: "radarr",
+        url: "",
+        apiKey: "",
         enabled: true,
       });
     }
@@ -132,10 +130,10 @@ export default function Servers() {
     setDialogOpen(false);
     setEditingServer(null);
     setFormData({
-      name: '',
-      type: 'radarr',
-      url: '',
-      apiKey: '',
+      name: "",
+      type: "radarr",
+      url: "",
+      apiKey: "",
       enabled: true,
     });
     setFormErrors({});
@@ -145,17 +143,17 @@ export default function Servers() {
     const errors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      errors.name = 'Name is required';
+      errors.name = "Name is required";
     }
 
     if (!formData.url.trim()) {
-      errors.url = 'URL is required';
+      errors.url = "URL is required";
     } else if (!/^https?:\/\/.+/.test(formData.url)) {
-      errors.url = 'URL must start with http:// or https://';
+      errors.url = "URL must start with http:// or https://";
     }
 
     if (!formData.apiKey.trim()) {
-      errors.apiKey = 'API Key is required';
+      errors.apiKey = "API Key is required";
     }
 
     setFormErrors(errors);
@@ -178,23 +176,23 @@ export default function Servers() {
       setSnackbar({
         open: true,
         message: editingServer
-          ? 'Server updated successfully'
-          : 'Server created successfully',
-        severity: 'success',
+          ? "Server updated successfully"
+          : "Server created successfully",
+        severity: "success",
       });
       handleCloseDialog();
       loadServers();
     } else {
       setSnackbar({
         open: true,
-        message: result.error || 'Failed to save server',
-        severity: 'error',
+        message: result.error || "Failed to save server",
+        severity: "error",
       });
     }
   };
 
   const handleTestConnection = async (server?: ServerConfig) => {
-    setTesting(server ? server.id : 'temp'); // Set testing state
+    setTesting(server ? server.id : "temp"); // Set testing state
 
     let testResult;
     if (server) {
@@ -214,14 +212,14 @@ export default function Servers() {
     if (testResult.success) {
       setSnackbar({
         open: true,
-        message: testResult.data?.message || 'Connection successful',
-        severity: 'success',
+        message: testResult.data?.message || "Connection successful",
+        severity: "success",
       });
     } else {
       setSnackbar({
         open: true,
-        message: testResult.error || 'Connection failed',
-        severity: 'error',
+        message: testResult.error || "Connection failed",
+        severity: "error",
       });
     }
   };
@@ -234,15 +232,15 @@ export default function Servers() {
     if (result.success) {
       setSnackbar({
         open: true,
-        message: 'Server deleted successfully',
-        severity: 'success',
+        message: "Server deleted successfully",
+        severity: "success",
       });
       loadServers();
     } else {
       setSnackbar({
         open: true,
-        message: result.error || 'Failed to delete server',
-        severity: 'error',
+        message: result.error || "Failed to delete server",
+        severity: "error",
       });
     }
 
@@ -250,16 +248,26 @@ export default function Servers() {
     setServerToDelete(null);
   };
 
-
   if (loading) {
     return <LoadingSpinner message="Loading servers..." />;
   }
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-        <Typography variant="h4" sx={{ mb: 0 }}>Servers</Typography>
-        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          mb: 3,
+          flexWrap: "wrap",
+          gap: 2,
+        }}
+      >
+        <Typography variant="h4" sx={{ mb: 0 }}>
+          Servers
+        </Typography>
+        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
           <ToggleButtonGroup
             value={viewMode}
             exclusive
@@ -267,18 +275,28 @@ export default function Servers() {
             size="small"
             aria-label="View mode"
           >
-            <ToggleButton value="list" aria-label="List view" sx={{ minWidth: 44, minHeight: 44 }}>
+            <ToggleButton
+              value="list"
+              aria-label="List view"
+              sx={{ minWidth: 44, minHeight: 44 }}
+            >
               <ListIcon />
             </ToggleButton>
-            <ToggleButton value="card" aria-label="Card view" sx={{ minWidth: 44, minHeight: 44 }}>
+            <ToggleButton
+              value="card"
+              aria-label="Card view"
+              sx={{ minWidth: 44, minHeight: 44 }}
+            >
               <CardIcon />
             </ToggleButton>
           </ToggleButtonGroup>
           <Button
             variant="contained"
-            startIcon={<AddIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
+            startIcon={
+              <AddIcon sx={{ display: { xs: "none", sm: "inline-flex" } }} />
+            }
             onClick={() => handleOpenDialog()}
-            sx={{ minWidth: { xs: '100px', sm: 'auto' } }}
+            sx={{ minWidth: { xs: "100px", sm: "auto" } }}
           >
             Add Server
           </Button>
@@ -289,10 +307,12 @@ export default function Servers() {
         <Alert severity="info">
           No servers configured. Click "Add Server" to get started.
         </Alert>
-      ) : viewMode === 'list' ? (
+      ) : viewMode === "list" ? (
         <TableContainer component={Paper}>
           <Table size="small" aria-label="Configured servers">
-            <TableHead sx={{ display: { xs: 'none', md: 'table-header-group' } }}>
+            <TableHead
+              sx={{ display: { xs: "none", md: "table-header-group" } }}
+            >
               <TableRow>
                 <TableCell>Name</TableCell>
                 <TableCell>Type</TableCell>
@@ -306,43 +326,81 @@ export default function Servers() {
                 <TableRow key={server.id}>
                   <TableCell>
                     <Box>
-                      <Typography variant="body1" sx={{ fontWeight: 500 }}>{server.name}</Typography>
-                      <Box sx={{ display: { xs: 'block', md: 'none' }, mt: 0.5 }}>
-                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap', mb: 0.5 }}>
+                      <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                        {server.name}
+                      </Typography>
+                      <Box
+                        sx={{ display: { xs: "block", md: "none" }, mt: 0.5 }}
+                      >
+                        <Box
+                          sx={{
+                            display: "flex",
+                            gap: 1,
+                            alignItems: "center",
+                            flexWrap: "wrap",
+                            mb: 0.5,
+                          }}
+                        >
                           <Chip
                             label={server.type.toUpperCase()}
                             size="small"
-                            color={server.type === 'radarr' ? 'primary' : 'secondary'}
+                            color={
+                              server.type === "radarr" ? "primary" : "secondary"
+                            }
                           />
                           <StatusBadge
-                            status={server.enabled === false ? 'disabled' : 'connected'}
+                            status={
+                              server.enabled === false
+                                ? "disabled"
+                                : "connected"
+                            }
                           />
                         </Box>
-                        <Typography variant="caption" color="text.secondary" sx={{ wordBreak: 'break-all' }}>
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ wordBreak: "break-all" }}
+                        >
                           {server.url}
                         </Typography>
                       </Box>
                     </Box>
                   </TableCell>
-                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
+                  <TableCell sx={{ display: { xs: "none", md: "table-cell" } }}>
                     <Chip
                       label={server.type.toUpperCase()}
                       size="small"
-                      color={server.type === 'radarr' ? 'primary' : 'secondary'}
+                      color={server.type === "radarr" ? "primary" : "secondary"}
                     />
                   </TableCell>
-                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
-                    <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <TableCell sx={{ display: { xs: "none", md: "table-cell" } }}>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{
+                        maxWidth: 200,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
                       {server.url}
                     </Typography>
                   </TableCell>
-                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
+                  <TableCell sx={{ display: { xs: "none", md: "table-cell" } }}>
                     <StatusBadge
-                      status={server.enabled === false ? 'disabled' : 'connected'}
+                      status={
+                        server.enabled === false ? "disabled" : "connected"
+                      }
                     />
                   </TableCell>
                   <TableCell align="right">
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "flex-end",
+                        gap: 0.5,
+                      }}
+                    >
                       <IconButton
                         size="small"
                         onClick={() => handleTestConnection(server)}
@@ -392,26 +450,37 @@ export default function Servers() {
             <Grid size={{ xs: 12, sm: 6, md: 4 }} key={server.id}>
               <Card>
                 <CardContent>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      mb: 2,
+                    }}
+                  >
                     <Typography variant="h6">{server.name}</Typography>
                     <StatusBadge
-                      status={server.enabled === false ? 'disabled' : 'connected'}
+                      status={
+                        server.enabled === false ? "disabled" : "connected"
+                      }
                     />
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <StorageIcon sx={{ mr: 1, color: 'text.secondary' }} aria-hidden="true" />
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                    <StorageIcon
+                      sx={{ mr: 1, color: "text.secondary" }}
+                      aria-hidden="true"
+                    />
                     <Chip
                       label={server.type.toUpperCase()}
                       size="small"
-                      color={server.type === 'radarr' ? 'primary' : 'secondary'}
+                      color={server.type === "radarr" ? "primary" : "secondary"}
                     />
                   </Box>
                   <Typography variant="body2" color="text.secondary" noWrap>
                     {server.url}
                   </Typography>
                 </CardContent>
-                <CardActions sx={{ justifyContent: 'space-between' }}>
-                  <Box sx={{ display: 'flex', gap: 0.5 }}>
+                <CardActions sx={{ justifyContent: "space-between" }}>
+                  <Box sx={{ display: "flex", gap: 0.5 }}>
                     <IconButton
                       size="small"
                       onClick={() => handleTestConnection(server)}
@@ -457,16 +526,23 @@ export default function Servers() {
       )}
 
       {/* Add/Edit Server Dialog */}
-      <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+      <Dialog
+        open={dialogOpen}
+        onClose={handleCloseDialog}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle>
-          {editingServer ? 'Edit Server' : 'Add Server'}
+          {editingServer ? "Edit Server" : "Add Server"}
         </DialogTitle>
         <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
             <TextField
               label="Name"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               error={!!formErrors.name}
               helperText={formErrors.name}
               fullWidth
@@ -479,20 +555,33 @@ export default function Servers() {
                 row
                 value={formData.type}
                 onChange={(e) =>
-                  setFormData({ ...formData, type: e.target.value as ServerType })
+                  setFormData({
+                    ...formData,
+                    type: e.target.value as ServerType,
+                  })
                 }
               >
-                <FormControlLabel value="radarr" control={<Radio />} label="Radarr" />
-                <FormControlLabel value="sonarr" control={<Radio />} label="Sonarr" />
+                <FormControlLabel
+                  value="radarr"
+                  control={<Radio />}
+                  label="Radarr"
+                />
+                <FormControlLabel
+                  value="sonarr"
+                  control={<Radio />}
+                  label="Sonarr"
+                />
               </RadioGroup>
             </FormControl>
 
             <TextField
               label="URL"
               value={formData.url}
-              onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, url: e.target.value })
+              }
               error={!!formErrors.url}
-              helperText={formErrors.url || 'Example: http://localhost:7878'}
+              helperText={formErrors.url || "Example: http://localhost:7878"}
               fullWidth
               required
             />
@@ -501,7 +590,9 @@ export default function Servers() {
               label="API Key"
               type="password"
               value={formData.apiKey}
-              onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, apiKey: e.target.value })
+              }
               error={!!formErrors.apiKey}
               helperText={formErrors.apiKey}
               fullWidth
@@ -522,19 +613,21 @@ export default function Servers() {
 
             <Button
               variant="outlined"
-              startIcon={testing ? <CircularProgress size={20} /> : <TestIcon />}
+              startIcon={
+                testing ? <CircularProgress size={20} /> : <TestIcon />
+              }
               onClick={() => handleTestConnection()}
               disabled={testing !== null}
               fullWidth
             >
-              {testing ? 'Testing...' : 'Test Connection'}
+              {testing ? "Testing..." : "Test Connection"}
             </Button>
           </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
           <Button onClick={handleSubmit} variant="contained">
-            {editingServer ? 'Update' : 'Create'}
+            {editingServer ? "Update" : "Create"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -558,7 +651,7 @@ export default function Servers() {
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       >
         <Alert
           severity={snackbar.severity}

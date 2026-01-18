@@ -9,10 +9,14 @@ test-results/
 playwright-report/
 ui/test-results/
 
+.claude/
+
 # devenv
 .devenv/
 .devenv.flake.nix
 devenv.lock
+.mcp.json
+.pre-commit-config.yaml
 
 # Go build artifacts
 /janitarr

@@ -3,7 +3,11 @@
  */
 
 import { jsonSuccess, jsonError, parseJsonBody, HttpStatus } from "../types";
-import type { TriggerAutomationRequest, TriggerAutomationResponse, AutomationStatusResponse } from "../types";
+import type {
+  TriggerAutomationRequest,
+  TriggerAutomationResponse,
+  AutomationStatusResponse,
+} from "../types";
 import type { DatabaseManager } from "../../storage/database";
 
 /**
@@ -16,7 +20,10 @@ export async function handleTriggerAutomation(req: Request): Promise<Response> {
 
     // Validate type
     if (type !== "full" && type !== "missing" && type !== "cutoff") {
-      return jsonError("Invalid automation type. Must be 'full', 'missing', or 'cutoff'", HttpStatus.BAD_REQUEST);
+      return jsonError(
+        "Invalid automation type. Must be 'full', 'missing', or 'cutoff'",
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     // Import and run automation cycle
@@ -26,7 +33,7 @@ export async function handleTriggerAutomation(req: Request): Promise<Response> {
     const jobId = crypto.randomUUID();
 
     // Run cycle asynchronously (don't await - return immediately)
-    runAutomationCycle(true).catch(error => {
+    runAutomationCycle(true).catch((error) => {
       console.error("Automation cycle failed:", error);
     });
 
@@ -39,7 +46,7 @@ export async function handleTriggerAutomation(req: Request): Promise<Response> {
   } catch (error) {
     return jsonError(
       `Failed to trigger automation: ${error instanceof Error ? error.message : String(error)}`,
-      HttpStatus.INTERNAL_SERVER_ERROR
+      HttpStatus.INTERNAL_SERVER_ERROR,
     );
   }
 }
@@ -47,7 +54,9 @@ export async function handleTriggerAutomation(req: Request): Promise<Response> {
 /**
  * Handle GET /api/automation/status
  */
-export async function handleGetAutomationStatus(db: DatabaseManager): Promise<Response> {
+export async function handleGetAutomationStatus(
+  db: DatabaseManager,
+): Promise<Response> {
   try {
     // Get scheduler status
     const { getStatus } = await import("../../lib/scheduler");
@@ -57,10 +66,14 @@ export async function handleGetAutomationStatus(db: DatabaseManager): Promise<Re
     const lastCycleLogs = db.getLogsPaginated({ type: "cycle_end" }, 1, 0);
     const lastCycleLog = lastCycleLogs[0];
 
-    let lastRunResults: { searchesTriggered: number; failedServers: number } | undefined;
+    let lastRunResults:
+      | { searchesTriggered: number; failedServers: number }
+      | undefined;
     if (lastCycleLog) {
       // Parse results from message (format: "Cycle complete: X searches triggered across Y servers (Z failures)")
-      const match = lastCycleLog.message.match(/(\d+) searches triggered.*\((\d+) failures\)/);
+      const match = lastCycleLog.message.match(
+        /(\d+) searches triggered.*\((\d+) failures\)/,
+      );
       if (match) {
         lastRunResults = {
           searchesTriggered: parseInt(match[1], 10),
@@ -80,7 +93,7 @@ export async function handleGetAutomationStatus(db: DatabaseManager): Promise<Re
   } catch (error) {
     return jsonError(
       `Failed to get automation status: ${error instanceof Error ? error.message : String(error)}`,
-      HttpStatus.INTERNAL_SERVER_ERROR
+      HttpStatus.INTERNAL_SERVER_ERROR,
     );
   }
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/user/janitarr/src/services"
 	"github.com/user/janitarr/src/web/handlers/api"             // Import api package
 	webMiddleware "github.com/user/janitarr/src/web/middleware" // Custom middleware package
+	"github.com/user/janitarr/src/web/websocket"
 )
 
 // ServerConfig holds configuration for the HTTP server.
@@ -32,18 +33,21 @@ type Server struct {
 	router            chi.Router
 	httpSrv           *http.Server
 	prometheusMetrics *metrics.Metrics // Prometheus metrics
-	// wsHub     *websocket.LogHub // Placeholder for later
+	wsHub             *websocket.LogHub
 }
 
 // NewServer creates a new HTTP server instance.
 func NewServer(config ServerConfig) *Server {
 	r := chi.NewRouter()
 	prometheusMetrics := metrics.NewMetrics() // Initialize Prometheus metrics
+	wsHub := websocket.NewLogHub(config.Logger)
+	go wsHub.Run() // Start the WebSocket hub
 	return &Server{
 		config:            config,
 		router:            r,
 		httpSrv:           &http.Server{Addr: fmt.Sprintf("%s:%d", config.Host, config.Port), Handler: r},
 		prometheusMetrics: prometheusMetrics,
+		wsHub:             wsHub,
 	}
 }
 
@@ -58,9 +62,11 @@ func (s *Server) Shutdown(ctx context.Context) error {
 	return s.httpSrv.Shutdown(ctx)
 }
 
-// CloseWebSockets is a placeholder for closing WebSocket connections.
+// CloseWebSockets closes all WebSocket connections.
 func (s *Server) CloseWebSockets() {
-	// TODO: Implement WebSocket hub shutdown logic
+	if s.wsHub != nil {
+		s.wsHub.Close()
+	}
 }
 
 // metricsMiddleware wraps HTTP requests to record metrics
@@ -81,7 +87,9 @@ func (s *Server) setupRoutes() {
 	// Middleware
 	r.Use(chiMiddleware.RequestID)
 	r.Use(chiMiddleware.RealIP)
-	r.Use(webMiddleware.Recoverer(s.config.IsDev)) // Use custom recoverer
+	r.Use(func(next http.Handler) http.Handler {
+		return webMiddleware.Recoverer(next, s.config.IsDev)
+	})
 	if s.config.IsDev {
 		r.Use(webMiddleware.RequestLogger) // Use custom request logger
 	}
@@ -131,7 +139,7 @@ func (s *Server) setupRoutes() {
 	r.Get("/metrics", metricsHandlers.GetMetrics)
 
 	// WebSocket
-	// r.Get("/ws/logs", s.wsHub.ServeWS) // Placeholder for later
+	r.Get("/ws/logs", s.wsHub.ServeWS)
 
 	// Static files and pages
 	r.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))

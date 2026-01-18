@@ -2,7 +2,7 @@
  * Settings view - Application configuration
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 import {
   Box,
   Card,
@@ -21,18 +21,18 @@ import {
   AccordionDetails,
   IconButton,
   Tooltip,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Save as SaveIcon,
   RestartAlt as ResetIcon,
   ExpandMore as ExpandMoreIcon,
   ContentCopy as CopyIcon,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
 
-import { getConfig, updateConfig, resetConfig } from '../services/api';
-import type { AppConfig } from '../types';
-import LoadingSpinner from '../components/common/LoadingSpinner';
-import ConfirmDialog from '../components/common/ConfirmDialog';
+import { getConfig, updateConfig, resetConfig } from "../services/api";
+import type { AppConfig } from "../types";
+import LoadingSpinner from "../components/common/LoadingSpinner";
+import ConfirmDialog from "../components/common/ConfirmDialog";
 
 export default function Settings() {
   const [loading, setLoading] = useState(true);
@@ -42,8 +42,8 @@ export default function Settings() {
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
-    severity: 'success' | 'error';
-  }>({ open: false, message: '', severity: 'success' });
+    severity: "success" | "error";
+  }>({ open: false, message: "", severity: "success" });
 
   useEffect(() => {
     loadConfig();
@@ -67,14 +67,14 @@ export default function Settings() {
     if (result.success) {
       setSnackbar({
         open: true,
-        message: 'Settings saved successfully',
-        severity: 'success',
+        message: "Settings saved successfully",
+        severity: "success",
       });
     } else {
       setSnackbar({
         open: true,
-        message: result.error || 'Failed to save settings',
-        severity: 'error',
+        message: result.error || "Failed to save settings",
+        severity: "error",
       });
     }
 
@@ -88,14 +88,14 @@ export default function Settings() {
       setConfig(result.data);
       setSnackbar({
         open: true,
-        message: 'Settings reset to defaults',
-        severity: 'success',
+        message: "Settings reset to defaults",
+        severity: "success",
       });
     } else {
       setSnackbar({
         open: true,
-        message: result.error || 'Failed to reset settings',
-        severity: 'error',
+        message: result.error || "Failed to reset settings",
+        severity: "error",
       });
     }
 
@@ -106,8 +106,8 @@ export default function Settings() {
     navigator.clipboard.writeText(text);
     setSnackbar({
       open: true,
-      message: 'Copied to clipboard',
-      severity: 'success',
+      message: "Copied to clipboard",
+      severity: "success",
     });
   };
 
@@ -117,25 +117,40 @@ export default function Settings() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-        <Typography variant="h4" sx={{ mb: 0 }}>Settings</Typography>
-        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          mb: 3,
+          flexWrap: "wrap",
+          gap: 2,
+        }}
+      >
+        <Typography variant="h4" sx={{ mb: 0 }}>
+          Settings
+        </Typography>
+        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
           <Button
             variant="outlined"
-            startIcon={<ResetIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
+            startIcon={
+              <ResetIcon sx={{ display: { xs: "none", sm: "inline-flex" } }} />
+            }
             onClick={() => setResetConfirmOpen(true)}
-            sx={{ minWidth: { xs: '70px', sm: 'auto' } }}
+            sx={{ minWidth: { xs: "70px", sm: "auto" } }}
           >
             Reset
           </Button>
           <Button
             variant="contained"
-            startIcon={<SaveIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
+            startIcon={
+              <SaveIcon sx={{ display: { xs: "none", sm: "inline-flex" } }} />
+            }
             onClick={handleSave}
             disabled={saving}
-            sx={{ minWidth: { xs: '90px', sm: 'auto' } }}
+            sx={{ minWidth: { xs: "90px", sm: "auto" } }}
           >
-            {saving ? 'Saving...' : 'Save Changes'}
+            {saving ? "Saving..." : "Save Changes"}
           </Button>
         </Box>
       </Box>
@@ -167,7 +182,11 @@ export default function Settings() {
                 }
                 label="Enable Automation"
               />
-              <Typography variant="body2" color="text.secondary" sx={{ mt: -2 }}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mt: -2 }}
+              >
                 Automatically run detection and search cycles on schedule
               </Typography>
 
@@ -205,7 +224,7 @@ export default function Settings() {
                 <Typography variant="subtitle2" gutterBottom>
                   Missing Content
                 </Typography>
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                   <TextField
                     label="Movies"
                     type="number"
@@ -247,7 +266,7 @@ export default function Settings() {
                 <Typography variant="subtitle2" gutterBottom>
                   Quality Cutoff
                 </Typography>
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                   <TextField
                     label="Movies"
                     type="number"
@@ -299,7 +318,7 @@ export default function Settings() {
                 <Typography variant="subtitle2" gutterBottom>
                   API Base URL
                 </Typography>
-                <Box sx={{ display: 'flex', gap: 1 }}>
+                <Box sx={{ display: "flex", gap: 1 }}>
                   <TextField
                     value={`${window.location.origin}/api`}
                     fullWidth
@@ -310,7 +329,9 @@ export default function Settings() {
                   />
                   <Tooltip title="Copy to clipboard">
                     <IconButton
-                      onClick={() => handleCopy(`${window.location.origin}/api`)}
+                      onClick={() =>
+                        handleCopy(`${window.location.origin}/api`)
+                      }
                       aria-label="Copy API base URL to clipboard"
                       sx={{ minWidth: 44, minHeight: 44 }}
                     >
@@ -348,7 +369,7 @@ export default function Settings() {
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       >
         <Alert
           severity={snackbar.severity}

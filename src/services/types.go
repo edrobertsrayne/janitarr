@@ -2,7 +2,17 @@ package services
 
 import (
 	"context"
+	"errors"
 	"time"
+)
+
+// Error constants for server operations
+var (
+	ErrServerNotFound      = errors.New("server not found")
+	ErrServerAlreadyExists = errors.New("server already exists")
+	ErrDuplicateURLType    = errors.New("server with this URL and type already exists")
+	ErrServerValidation    = errors.New("server validation failed")
+	ErrConnectionFailed    = errors.New("connection to server failed")
 )
 
 // ServerInfo represents a server for display (without API key).

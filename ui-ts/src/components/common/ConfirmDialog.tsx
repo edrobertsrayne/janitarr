@@ -9,7 +9,7 @@ import {
   DialogContentText,
   DialogActions,
   Button,
-} from '@mui/material';
+} from "@mui/material";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -26,8 +26,8 @@ export default function ConfirmDialog({
   open,
   title,
   message,
-  confirmLabel = 'Confirm',
-  cancelLabel = 'Cancel',
+  confirmLabel = "Confirm",
+  cancelLabel = "Cancel",
   onConfirm,
   onCancel,
   destructive = false,
@@ -42,7 +42,7 @@ export default function ConfirmDialog({
         <Button onClick={onCancel}>{cancelLabel}</Button>
         <Button
           onClick={onConfirm}
-          color={destructive ? 'error' : 'primary'}
+          color={destructive ? "error" : "primary"}
           variant="contained"
           autoFocus
         >

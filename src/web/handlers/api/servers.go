@@ -1,10 +1,10 @@
 package api
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/user/janitarr/src/database"
@@ -45,7 +45,8 @@ func (h *ServerHandlers) GetServer(w http.ResponseWriter, r *http.Request) {
 
 	server, err := h.ServerManager.GetServer(r.Context(), serverID)
 	if err != nil {
-		if err == services.ErrServerNotFound {
+		// Check if error message contains "not found"
+		if strings.Contains(err.Error(), "not found") {
 			jsonError(w, "Server not found", http.StatusNotFound)
 			return
 		}
@@ -58,10 +59,10 @@ func (h *ServerHandlers) GetServer(w http.ResponseWriter, r *http.Request) {
 // CreateServer adds a new server.
 func (h *ServerHandlers) CreateServer(w http.ResponseWriter, r *http.Request) {
 	var payload struct {
-		Name string `json:"name"`
-		URL string `json:"url"`
+		Name   string `json:"name"`
+		URL    string `json:"url"`
 		APIKey string `json:"apiKey"`
-		Type string `json:"type"`
+		Type   string `json:"type"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
@@ -71,11 +72,12 @@ func (h *ServerHandlers) CreateServer(w http.ResponseWriter, r *http.Request) {
 
 	server, err := h.ServerManager.AddServer(r.Context(), payload.Name, payload.URL, payload.APIKey, payload.Type)
 	if err != nil {
-		if err == services.ErrServerAlreadyExists || err == services.ErrDuplicateURLType {
+		errMsg := err.Error()
+		if strings.Contains(errMsg, "already exists") {
 			jsonError(w, err.Error(), http.StatusConflict)
 			return
 		}
-		if err == services.ErrServerValidation || err == services.ErrConnectionFailed {
+		if strings.Contains(errMsg, "connection failed") || strings.Contains(errMsg, "required") {
 			jsonError(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -101,11 +103,12 @@ func (h *ServerHandlers) UpdateServer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.ServerManager.UpdateServer(r.Context(), serverID, payload); err != nil {
-		if err == services.ErrServerNotFound {
+		errMsg := err.Error()
+		if strings.Contains(errMsg, "not found") {
 			jsonError(w, "Server not found", http.StatusNotFound)
 			return
 		}
-		if err == services.ErrServerValidation || err == services.ErrConnectionFailed || err == services.ErrDuplicateURLType {
+		if strings.Contains(errMsg, "connection failed") || strings.Contains(errMsg, "already exists") {
 			jsonError(w, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -160,9 +163,9 @@ func (h *ServerHandlers) TestServerConnection(w http.ResponseWriter, r *http.Req
 // TestNewServerConnection tests a new server configuration before saving.
 func (h *ServerHandlers) TestNewServerConnection(w http.ResponseWriter, r *http.Request) {
 	var payload struct {
-		URL string `json:"url"`
+		URL    string `json:"url"`
 		APIKey string `json:"apiKey"`
-		Type string `json:"type"`
+		Type   string `json:"type"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
@@ -172,7 +175,7 @@ func (h *ServerHandlers) TestNewServerConnection(w http.ResponseWriter, r *http.
 
 	// Create a temporary server object to test connection
 	testServerInfo := &services.ServerInfo{
-		URL: payload.URL,
+		URL:  payload.URL,
 		Type: payload.Type,
 	}
 

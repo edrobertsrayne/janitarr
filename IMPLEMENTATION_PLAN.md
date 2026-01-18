@@ -1128,7 +1128,7 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
 
 **Reference:** `src-ts/web/websocket.ts`
 
-- [ ] Create `src/web/websocket/types.go`:
+- [x] Create `src/web/websocket/types.go`:
 
   ```go
   type ClientMessage struct {
@@ -1148,7 +1148,7 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
   }
   ```
 
-- [ ] Create `src/web/websocket/hub.go`:
+- [x] Create `src/web/websocket/hub.go`:
 
   ```go
   type LogHub struct {
@@ -1167,22 +1167,22 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
   }
   ```
 
-  - [ ] `NewLogHub(logger *logger.Logger) *LogHub`
-  - [ ] `Run()` - goroutine for hub loop
-  - [ ] `ServeWS(w http.ResponseWriter, r *http.Request)` - upgrade handler
-  - [ ] `Broadcast(entry *logger.LogEntry)` - send to matching clients
+  - [x] `NewLogHub(logger *logger.Logger) *LogHub`
+  - [x] `Run()` - goroutine for hub loop
+  - [x] `ServeWS(w http.ResponseWriter, r *http.Request)` - upgrade handler
+  - [x] `Broadcast(entry *logger.LogEntry)` - send to matching clients
 
-- [ ] Create `src/web/websocket/client.go`:
-  - [ ] `readPump()` - read messages from client
-  - [ ] `writePump()` - write messages to client
-  - [ ] `shouldSend(entry, filters) bool` - filter check
-- [ ] Create `src/web/websocket/hub_test.go`:
-  - [ ] `TestHub_ClientConnect` - adds to clients map
-  - [ ] `TestHub_ClientDisconnect` - removes from map
-  - [ ] `TestHub_Broadcast` - sends to all clients
-  - [ ] `TestHub_FilteredBroadcast` - respects filters
-- [ ] Use `github.com/gorilla/websocket` for WebSocket handling
-- [ ] Verify: `go test ./src/web/websocket/...`
+- [x] Create `src/web/websocket/client.go`:
+  - [x] `readPump()` - read messages from client
+  - [x] `writePump()` - write messages to client
+  - [x] `shouldSend(entry, filters) bool` - filter check
+- [x] Create `src/web/websocket/hub_test.go`:
+  - [x] `TestHub_ClientConnect` - adds to clients map
+  - [x] `TestHub_ClientDisconnect` - removes from map
+  - [x] `TestHub_Broadcast` - sends to all clients
+  - [x] `TestHub_FilteredBroadcast` - respects filters
+- [x] Use `github.com/gorilla/websocket` for WebSocket handling
+- [x] Verify: `go test ./src/web/websocket/...`
 
 ---
 

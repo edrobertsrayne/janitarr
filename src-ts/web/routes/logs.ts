@@ -10,7 +10,10 @@ import type { LogEntryType } from "../../types";
 /**
  * Handle GET /api/logs
  */
-export async function handleGetLogs(url: URL, db: DatabaseManager): Promise<Response> {
+export async function handleGetLogs(
+  url: URL,
+  db: DatabaseManager,
+): Promise<Response> {
   try {
     const params: LogQueryParams = {
       limit: parseInt(url.searchParams.get("limit") || "100", 10),
@@ -24,7 +27,10 @@ export async function handleGetLogs(url: URL, db: DatabaseManager): Promise<Resp
 
     // Validate limit
     if (params.limit && (params.limit < 1 || params.limit > 1000)) {
-      return jsonError("Limit must be between 1 and 1000", HttpStatus.BAD_REQUEST);
+      return jsonError(
+        "Limit must be between 1 and 1000",
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     // Validate offset
@@ -41,14 +47,14 @@ export async function handleGetLogs(url: URL, db: DatabaseManager): Promise<Resp
         search: params.search,
       },
       params.limit || 100,
-      params.offset || 0
+      params.offset || 0,
     );
 
     return jsonSuccess(logs);
   } catch (error) {
     return jsonError(
       `Failed to retrieve logs: ${error instanceof Error ? error.message : String(error)}`,
-      HttpStatus.INTERNAL_SERVER_ERROR
+      HttpStatus.INTERNAL_SERVER_ERROR,
     );
   }
 }
@@ -64,7 +70,7 @@ export async function handleDeleteLogs(db: DatabaseManager): Promise<Response> {
   } catch (error) {
     return jsonError(
       `Failed to delete logs: ${error instanceof Error ? error.message : String(error)}`,
-      HttpStatus.INTERNAL_SERVER_ERROR
+      HttpStatus.INTERNAL_SERVER_ERROR,
     );
   }
 }
@@ -72,7 +78,10 @@ export async function handleDeleteLogs(db: DatabaseManager): Promise<Response> {
 /**
  * Handle GET /api/logs/export
  */
-export async function handleExportLogs(url: URL, db: DatabaseManager): Promise<Response> {
+export async function handleExportLogs(
+  url: URL,
+  db: DatabaseManager,
+): Promise<Response> {
   try {
     const format = url.searchParams.get("format") || "json";
 
@@ -95,13 +104,21 @@ export async function handleExportLogs(url: URL, db: DatabaseManager): Promise<R
         search: params.search,
       },
       params.limit || 1000,
-      params.offset || 0
+      params.offset || 0,
     );
 
     if (format === "csv") {
       // Convert to CSV format
-      const headers = ["Timestamp", "Type", "Server", "Category", "Count", "Message", "Is Manual"];
-      const rows = logs.map(log => [
+      const headers = [
+        "Timestamp",
+        "Type",
+        "Server",
+        "Category",
+        "Count",
+        "Message",
+        "Is Manual",
+      ];
+      const rows = logs.map((log) => [
         log.timestamp.toISOString(),
         log.type,
         log.serverName || "",
@@ -113,7 +130,9 @@ export async function handleExportLogs(url: URL, db: DatabaseManager): Promise<R
 
       const csv = [
         headers.join(","),
-        ...rows.map(row => row.map(field => `"${field.replace(/"/g, '""')}"`).join(",")),
+        ...rows.map((row) =>
+          row.map((field) => `"${field.replace(/"/g, '""')}"`).join(","),
+        ),
       ].join("\n");
 
       return new Response(csv, {
@@ -136,7 +155,7 @@ export async function handleExportLogs(url: URL, db: DatabaseManager): Promise<R
   } catch (error) {
     return jsonError(
       `Failed to export logs: ${error instanceof Error ? error.message : String(error)}`,
-      HttpStatus.INTERNAL_SERVER_ERROR
+      HttpStatus.INTERNAL_SERVER_ERROR,
     );
   }
 }

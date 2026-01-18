@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
-	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/user/janitarr/src/database"

@@ -138,6 +138,11 @@ func (db *DB) TestConnection() bool {
 	return err == nil && result == 1
 }
 
+// Ping verifies the database connection is alive
+func (db *DB) Ping() error {
+	return db.conn.Ping()
+}
+
 // encryptAPIKey encrypts an API key for storage
 func (db *DB) encryptAPIKey(apiKey string) (string, error) {
 	return crypto.Encrypt(apiKey, db.cryptoKey)

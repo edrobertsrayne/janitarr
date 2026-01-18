@@ -1,14 +1,11 @@
 package api
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 	"time"
 
@@ -217,7 +214,7 @@ func TestLogHandlers(t *testing.T) {
 		assert.Equal("text/csv", rr.Header().Get("Content-Type"))
 		assert.Contains(rr.Header().Get("Content-Disposition"), "janitarr_logs.csv")
 		expectedCSV := "ID,Timestamp,Type,ServerName,ServerType,Category,Count,Message,IsManual\n" +
-				`1,2023-01-01T10:00:00Z,search,Radarr,radarr,movie,1,"Movie searched",true` + "\n"
+			`1,2023-01-01T10:00:00Z,search,Radarr,radarr,movie,1,"Movie searched",true` + "\n"
 		assert.Equal(expectedCSV, rr.Body.String())
 		mockDB.AssertExpectations(t)
 	})

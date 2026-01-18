@@ -2,7 +2,7 @@
  * Loading spinner component
  */
 
-import { Box, CircularProgress, Typography } from '@mui/material';
+import { Box, CircularProgress, Typography } from "@mui/material";
 
 interface LoadingSpinnerProps {
   message?: string;
@@ -16,10 +16,10 @@ export default function LoadingSpinner({
   return (
     <Box
       sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
         gap: 2,
         py: 4,
       }}

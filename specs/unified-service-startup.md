@@ -3,14 +3,16 @@
 ## Context
 
 Janitarr consists of two primary runtime components:
+
 1. **Scheduler daemon** - Executes automated detection and search cycles on a configured interval
 2. **Web server** - Provides REST API and web interface for managing configuration and monitoring activity
 
 Currently, these services must be started separately using different commands (`start` for scheduler, `serve` for web server). This creates friction for users and complicates deployment. The services should start together as a unified application.
 
-Following the Next.js convention, the system should provide two startup modes:
-- **Development mode** (`dev` command) - Optimized for local development with verbose logging and frontend dev server proxy
-- **Production mode** (`start` command) - Optimized for deployed environments with built assets and minimal logging
+The system provides two startup modes:
+
+- **Development mode** (`dev` command) - Optimized for local development with verbose logging and hot reload via Air
+- **Production mode** (`start` command) - Optimized for deployed environments with minimal logging
 
 ## Requirements
 
@@ -23,7 +25,7 @@ Following the Next.js convention, the system should provide two startup modes:
 #### Acceptance Criteria
 
 - [ ] `janitarr start` command launches both scheduler daemon and web server
-- [ ] Web server serves built frontend assets from `dist/public/`
+- [ ] Web server serves static assets and renders templ templates
 - [ ] Both services run in the same process
 - [ ] Command accepts `--port <number>` flag to configure web server port (default: 3434)
 - [ ] Command accepts `--host <string>` flag to configure web server bind address (default: localhost)
@@ -31,22 +33,20 @@ Following the Next.js convention, the system should provide two startup modes:
 - [ ] Process displays startup confirmation for both services with URLs and configuration
 - [ ] Graceful shutdown on SIGINT (Ctrl+C) stops both services cleanly
 
-### Story: Development Mode with Frontend Proxy
+### Story: Development Mode with Verbose Logging
 
 - **As a** developer working on Janitarr
-- **I want to** run the backend services while proxying frontend requests to Vite dev server
-- **So that** I can work on the UI with hot module reloading
+- **I want to** run the services with verbose logging and hot reload
+- **So that** I can diagnose issues and iterate quickly during development
 
 #### Acceptance Criteria
 
 - [ ] `janitarr dev` command launches both scheduler daemon and web server in development mode
-- [ ] Web server proxies non-API requests to Vite dev server at `http://localhost:5173`
-- [ ] API requests (`/api/*`, `/ws/*`) are handled by Janitarr backend
 - [ ] Verbose logging enabled: all HTTP requests, scheduler events, automation cycles logged to console
 - [ ] API error responses include detailed stack traces and debugging information
 - [ ] Command accepts same `--port` and `--host` flags as production mode
 - [ ] Clear indication in console output that development mode is active
-- [ ] Frontend developer can run `bun run dev` in `ui/` directory separately to start Vite
+- [ ] Air provides hot reload for Go and templ file changes
 
 ### Story: Health Check Endpoint
 
@@ -187,20 +187,22 @@ Following the Next.js convention, the system should provide two startup modes:
 
 ### Development Mode Requirements
 
-- Development mode assumes Vite dev server is running separately on port 5173
-- If Vite dev server is not accessible, proxy requests fail with 502 Bad Gateway
-- Frontend developers must run `cd ui && bun run dev` in separate terminal
-- Backend-only developers can use production mode (`start`) and access built UI
+- Development mode uses Air for hot reload of Go and templ files
+- Run `air` in project root to start development server with auto-rebuild
+- Tailwind CSS watches for changes via `make watch-css` or integrated into Air config
+- Templates are re-generated automatically on `.templ` file changes
 
 ### Logging Behavior
 
 **Production Mode (`start`):**
+
 - Log level: INFO
 - Output: Startup messages, scheduler events, automation cycle summaries, errors
 - HTTP request logging: Disabled (only errors logged)
 - API errors: Generic messages without stack traces
 
 **Development Mode (`dev`):**
+
 - Log level: DEBUG
 - Output: All production logs plus HTTP requests, WebSocket messages, detailed timing
 - HTTP request logging: Enabled (method, path, status code, response time)
@@ -210,9 +212,9 @@ Following the Next.js convention, the system should provide two startup modes:
 ### Resource Management
 
 - Web server and scheduler share single database connection pool
-- WebSocket broadcasts from logger must be thread-safe (if Bun uses worker threads)
-- Memory: Both services in single process may use more RAM than separate processes
-- Suggested minimum: 128MB RAM for typical deployments
+- WebSocket broadcasts from logger must be goroutine-safe (use sync.Mutex or channels)
+- Memory: Both services in single process, typical usage ~50MB RAM
+- Suggested minimum: 64MB RAM for typical deployments
 
 ### Configuration Persistence
 
@@ -245,6 +247,7 @@ Following the Next.js convention, the system should provide two startup modes:
 - HTTP request metrics collected via middleware (minimal overhead)
 - Expensive metrics (e.g., log counts) may query database but cached briefly
 - Example output format:
+
   ```
   # HELP janitarr_info Application version information
   # TYPE janitarr_info gauge
@@ -267,6 +270,7 @@ Following the Next.js convention, the system should provide two startup modes:
   # TYPE janitarr_http_requests_total counter
   janitarr_http_requests_total{method="GET",path="/api/servers",status="200"} 123
   ```
+
 - Prometheus scrape configuration recommendation: 15-30 second intervals
 - Metrics library: Implement custom formatting (no external dependencies needed)
 
@@ -292,72 +296,130 @@ Following the Next.js convention, the system should provide two startup modes:
 # Production mode - both scheduler and web server
 janitarr start [--port 3434] [--host localhost]
 
-# Development mode - both services with verbose logging and Vite proxy
+# Development mode - both services with verbose logging
 janitarr dev [--port 3434] [--host localhost]
-
-# Removed (no longer available)
-janitarr serve  # ❌ Command removed
 ```
 
 ### API Endpoints
 
-The existing API at `/api/health` needs to be enhanced to include scheduler status. Current implementation returns basic status only.
+The `/api/health` endpoint provides comprehensive health status.
 
-**Updated response schema:**
-```typescript
-interface HealthResponse {
-  status: 'ok' | 'degraded' | 'error';
-  timestamp: string; // ISO 8601
-  services: {
-    webServer: { status: 'ok' };
-    scheduler: {
-      status: 'ok' | 'disabled' | 'error';
-      isRunning: boolean;
-      isCycleActive: boolean;
-      nextRun: string | null; // ISO 8601
-    };
-  };
-  database: { status: 'ok' | 'error' };
+**Response schema:**
+
+```go
+type HealthResponse struct {
+    Status    string                 `json:"status"`    // "ok", "degraded", "error"
+    Timestamp string                 `json:"timestamp"` // ISO 8601
+    Services  map[string]interface{} `json:"services"`
+    Database  map[string]string      `json:"database"`
 }
 ```
 
-### Web Server Modifications Required
+### Go Web Server Implementation
 
-The `createWebServer` function in `src/web/server.ts` needs:
+The web server uses Chi router with the following setup:
 
-1. New `isDev` parameter to enable development mode
-2. Proxy middleware for non-API requests when `isDev === true`
-3. Conditional logging based on mode
-4. Detailed error responses in dev mode
-5. Return server instance for shutdown capability
-6. Enhanced `/api/health` endpoint with scheduler and database status
+```go
+// src/web/server.go
+type Server struct {
+    router    chi.Router
+    db        *database.DB
+    scheduler *services.Scheduler
+    logger    *logger.Logger
+    isDev     bool
+}
+
+func NewServer(config ServerConfig) *Server {
+    r := chi.NewRouter()
+
+    // Middleware stack
+    r.Use(middleware.RequestID)
+    r.Use(middleware.RealIP)
+    r.Use(middleware.Recoverer)
+
+    if config.IsDev {
+        r.Use(middleware.Logger)  // Verbose request logging
+    }
+
+    // API routes
+    r.Route("/api", func(r chi.Router) {
+        r.Get("/health", handlers.Health)
+        r.Get("/config", handlers.GetConfig)
+        // ... other routes
+    })
+
+    // Prometheus metrics
+    r.Get("/metrics", handlers.Metrics)
+
+    // Page routes (templ templates)
+    r.Get("/", handlers.Dashboard)
+    r.Get("/servers", handlers.ServersPage)
+    r.Get("/logs", handlers.LogsPage)
+    r.Get("/settings", handlers.SettingsPage)
+
+    // Static files
+    r.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+
+    // WebSocket
+    r.Get("/ws/logs", websocket.LogsHandler)
+
+    return &Server{router: r, isDev: config.IsDev}
+}
+```
 
 ### Scheduler Integration
 
-The scheduler already supports:
-- `startScheduler()` - Begin scheduled cycles
-- `stopScheduler()` - Stop accepting new cycles
-- `isSchedulerRunning()` - Check if active
-- `registerCycleCallback()` - Register automation cycle function
-- `getStatus()` - Get current scheduler state
-- `getTimeUntilNextRun()` - Get time until next cycle
+The scheduler is implemented as a Go struct with concurrency safety:
 
-No changes needed to scheduler itself, only integration in startup command and health check.
+```go
+// src/services/scheduler.go
+type Scheduler struct {
+    mu          sync.Mutex
+    running     bool
+    cycleActive bool
+    nextRunTime time.Time
+    timer       *time.Timer
+    callback    func(isManual bool) error
+    stopCh      chan struct{}
+}
+
+func (s *Scheduler) Start(ctx context.Context) error
+func (s *Scheduler) Stop()
+func (s *Scheduler) TriggerManual() error
+func (s *Scheduler) GetStatus() SchedulerStatus
+func (s *Scheduler) IsRunning() bool
+func (s *Scheduler) IsCycleActive() bool
+```
 
 ### File Structure
 
 ```
 src/
 ├── cli/
-│   └── commands.ts        # Modified: update start, add dev, remove serve
+│   ├── root.go           # Root command with global flags
+│   ├── start.go          # Production mode startup
+│   └── dev.go            # Development mode startup
 ├── web/
-│   ├── server.ts          # Modified: add isDev support, proxy, enhanced health, metrics
-│   └── routes/
-│       ├── health.ts      # New: dedicated health check route handler
-│       └── metrics.ts     # New: Prometheus metrics endpoint handler
-└── lib/
-    ├── scheduler.ts       # No changes needed
-    └── metrics.ts         # New: metrics collection and formatting utilities
+│   ├── server.go         # Chi router setup
+│   ├── middleware/
+│   │   ├── logging.go    # Request logging (dev mode)
+│   │   ├── recovery.go   # Panic recovery
+│   │   └── cors.go       # CORS headers
+│   ├── handlers/
+│   │   ├── api/
+│   │   │   ├── health.go
+│   │   │   ├── metrics.go
+│   │   │   └── ...
+│   │   └── pages/
+│   │       └── ...
+│   └── websocket/
+│       └── logs.go
+├── services/
+│   └── scheduler.go
+├── logger/
+│   └── logger.go
+└── metrics/
+    └── metrics.go
 ```
 
 ## Success Metrics
@@ -372,9 +434,9 @@ src/
 
 ## Future Enhancements (Post-v1)
 
-1. **Process Manager Integration**: systemd/pm2 service files for production deployments
-2. **Configuration File**: `janitarr.config.js` for setting defaults (port, host, etc.)
+1. **Process Manager Integration**: systemd service files for production deployments
+2. **Configuration File**: `janitarr.yaml` for setting defaults (port, host, etc.)
 3. **Graceful Reload**: SIGHUP signal to reload configuration without downtime
-4. **Cluster Mode**: Multiple worker processes for high-traffic deployments (Bun cluster support)
+4. **Docker Image**: Official container image for easy deployment
 5. **Auto-restart**: Watch for critical failures and auto-restart services
 6. **Advanced Metrics**: Additional custom metrics, histogram buckets configuration, metric retention

@@ -7,9 +7,9 @@ import type {
   WSServerMessage,
   WebSocketFilters,
   LogEntry,
-} from '../types';
+} from "../types";
 
-type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error';
+type ConnectionStatus = "connecting" | "connected" | "disconnected" | "error";
 
 interface WebSocketClientOptions {
   onLog?: (log: LogEntry) => void;
@@ -22,7 +22,7 @@ interface WebSocketClientOptions {
  */
 export class WebSocketClient {
   private ws: WebSocket | null = null;
-  private status: ConnectionStatus = 'disconnected';
+  private status: ConnectionStatus = "disconnected";
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 10;
   private reconnectTimeout: number | null = null;
@@ -45,13 +45,13 @@ export class WebSocketClient {
       return; // Already connected
     }
 
-    this.setStatus('connecting');
+    this.setStatus("connecting");
 
     try {
       this.ws = new WebSocket(this.url);
 
       this.ws.onopen = () => {
-        this.setStatus('connected');
+        this.setStatus("connected");
         this.reconnectAttempts = 0;
         this.startPingInterval();
       };
@@ -61,19 +61,19 @@ export class WebSocketClient {
       };
 
       this.ws.onerror = () => {
-        this.setStatus('error');
-        this.options.onError?.(new Error('WebSocket error'));
+        this.setStatus("error");
+        this.options.onError?.(new Error("WebSocket error"));
       };
 
       this.ws.onclose = () => {
-        this.setStatus('disconnected');
+        this.setStatus("disconnected");
         this.stopPingInterval();
         this.scheduleReconnect();
       };
     } catch (error) {
-      this.setStatus('error');
+      this.setStatus("error");
       this.options.onError?.(
-        error instanceof Error ? error : new Error('Connection failed')
+        error instanceof Error ? error : new Error("Connection failed"),
       );
       this.scheduleReconnect();
     }
@@ -95,21 +95,21 @@ export class WebSocketClient {
       this.ws = null;
     }
 
-    this.setStatus('disconnected');
+    this.setStatus("disconnected");
   }
 
   /**
    * Subscribe to logs with optional filters
    */
   subscribe(filters?: WebSocketFilters): void {
-    this.send({ type: 'subscribe', filters });
+    this.send({ type: "subscribe", filters });
   }
 
   /**
    * Unsubscribe from logs
    */
   unsubscribe(): void {
-    this.send({ type: 'unsubscribe' });
+    this.send({ type: "unsubscribe" });
   }
 
   /**
@@ -129,20 +129,18 @@ export class WebSocketClient {
       const message: WSServerMessage = JSON.parse(data);
 
       switch (message.type) {
-        case 'log':
+        case "log":
           this.options.onLog?.(message.data);
           break;
-        case 'connected':
+        case "connected":
           // Server confirmed connection
           break;
-        case 'pong':
+        case "pong":
           // Keep-alive response
           break;
       }
     } catch (error) {
-      this.options.onError?.(
-        new Error('Failed to parse message: ' + data)
-      );
+      this.options.onError?.(new Error("Failed to parse message: " + data));
     }
   }
 
@@ -152,7 +150,7 @@ export class WebSocketClient {
   private startPingInterval(): void {
     this.stopPingInterval();
     this.pingInterval = window.setInterval(() => {
-      this.send({ type: 'ping' });
+      this.send({ type: "ping" });
     }, 30000); // 30 seconds
   }
 
@@ -171,18 +169,13 @@ export class WebSocketClient {
    */
   private scheduleReconnect(): void {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      this.setStatus('error');
-      this.options.onError?.(
-        new Error('Max reconnection attempts reached')
-      );
+      this.setStatus("error");
+      this.options.onError?.(new Error("Max reconnection attempts reached"));
       return;
     }
 
     // Exponential backoff: 1s, 2s, 4s, 8s, 16s, 30s (max)
-    const delay = Math.min(
-      1000 * Math.pow(2, this.reconnectAttempts),
-      30000
-    );
+    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
 
     this.reconnectAttempts++;
 

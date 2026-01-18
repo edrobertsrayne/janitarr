@@ -34,7 +34,9 @@ export interface HealthResponse {
  * - HTTP 200 for "ok" and "degraded"
  * - HTTP 503 for "error"
  */
-export async function handleHealthCheck(db: DatabaseManager): Promise<Response> {
+export async function handleHealthCheck(
+  db: DatabaseManager,
+): Promise<Response> {
   const timestamp = new Date().toISOString();
 
   // Check database connectivity with lightweight query
@@ -84,14 +86,17 @@ export async function handleHealthCheck(db: DatabaseManager): Promise<Response> 
         status: schedulerStatus,
         isRunning: schedulerState.isRunning,
         isCycleActive: schedulerState.isCycleActive,
-        nextRun: schedulerState.nextRunTime ? schedulerState.nextRunTime.toISOString() : null,
+        nextRun: schedulerState.nextRunTime
+          ? schedulerState.nextRunTime.toISOString()
+          : null,
       },
     },
     database: { status: dbStatus },
   };
 
   // Return appropriate HTTP status code
-  const httpStatus = overallStatus === "error" ? HttpStatus.SERVICE_UNAVAILABLE : HttpStatus.OK;
+  const httpStatus =
+    overallStatus === "error" ? HttpStatus.SERVICE_UNAVAILABLE : HttpStatus.OK;
 
   return new Response(JSON.stringify(response), {
     status: httpStatus,

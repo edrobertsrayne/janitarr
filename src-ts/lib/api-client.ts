@@ -84,7 +84,10 @@ export function validateUrl(url: string): ApiResult<string> {
   try {
     const parsed = new URL(normalized);
     if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-      return { success: false, error: "URL must use http:// or https:// protocol" };
+      return {
+        success: false,
+        error: "URL must use http:// or https:// protocol",
+      };
     }
     return { success: true, data: normalized };
   } catch {
@@ -105,7 +108,7 @@ export class ApiClient {
     url: string,
     apiKey: string,
     type: ServerType,
-    timeoutMs = DEFAULT_TIMEOUT_MS
+    timeoutMs = DEFAULT_TIMEOUT_MS,
   ) {
     this.baseUrl = normalizeUrl(url);
     this.apiKey = apiKey;
@@ -119,7 +122,7 @@ export class ApiClient {
   private async request<T>(
     method: string,
     endpoint: string,
-    body?: unknown
+    body?: unknown,
   ): Promise<ApiResult<T>> {
     const url = `${this.baseUrl}${API_PREFIX}${endpoint}`;
     const controller = new AbortController();
@@ -143,7 +146,10 @@ export class ApiClient {
       }
 
       if (response.status === 404) {
-        return { success: false, error: "API endpoint not found - check server URL" };
+        return {
+          success: false,
+          error: "API endpoint not found - check server URL",
+        };
       }
 
       if (!response.ok) {
@@ -160,14 +166,20 @@ export class ApiClient {
 
       if (error instanceof Error) {
         if (error.name === "AbortError") {
-          return { success: false, error: `Request timed out after ${this.timeoutMs}ms` };
+          return {
+            success: false,
+            error: `Request timed out after ${this.timeoutMs}ms`,
+          };
         }
         if (
           error.message.includes("fetch failed") ||
           error.message.includes("ECONNREFUSED") ||
           error.message.includes("Unable to connect")
         ) {
-          return { success: false, error: "Server unreachable - check URL and network" };
+          return {
+            success: false,
+            error: "Server unreachable - check URL and network",
+          };
         }
         return { success: false, error: `Network error: ${error.message}` };
       }
@@ -202,9 +214,13 @@ export class ApiClient {
    */
   async getWantedMissing(
     page = 1,
-    pageSize = 50
-  ): Promise<ApiResult<PaginatedResponse<RadarrWantedRecord | SonarrWantedRecord>>> {
-    return this.get(`/wanted/missing?page=${page}&pageSize=${pageSize}&sortKey=id&sortDirection=ascending`);
+    pageSize = 50,
+  ): Promise<
+    ApiResult<PaginatedResponse<RadarrWantedRecord | SonarrWantedRecord>>
+  > {
+    return this.get(
+      `/wanted/missing?page=${page}&pageSize=${pageSize}&sortKey=id&sortDirection=ascending`,
+    );
   }
 
   /**
@@ -212,9 +228,13 @@ export class ApiClient {
    */
   async getCutoffUnmet(
     page = 1,
-    pageSize = 50
-  ): Promise<ApiResult<PaginatedResponse<RadarrWantedRecord | SonarrWantedRecord>>> {
-    return this.get(`/wanted/cutoff?page=${page}&pageSize=${pageSize}&sortKey=id&sortDirection=ascending`);
+    pageSize = 50,
+  ): Promise<
+    ApiResult<PaginatedResponse<RadarrWantedRecord | SonarrWantedRecord>>
+  > {
+    return this.get(
+      `/wanted/cutoff?page=${page}&pageSize=${pageSize}&sortKey=id&sortDirection=ascending`,
+    );
   }
 }
 
@@ -308,7 +328,9 @@ export class SonarrClient extends ApiClient {
   /**
    * Trigger episode search for specific episode IDs
    */
-  async searchEpisodes(episodeIds: number[]): Promise<ApiResult<CommandResponse>> {
+  async searchEpisodes(
+    episodeIds: number[],
+  ): Promise<ApiResult<CommandResponse>> {
     return this.post<CommandResponse>("/command", {
       name: "EpisodeSearch",
       episodeIds,
@@ -331,7 +353,8 @@ export class SonarrClient extends ApiClient {
 
       const records = result.data.records as SonarrWantedRecord[];
       for (const record of records) {
-        const seriesTitle = record.series?.title ?? record.seriesTitle ?? "Unknown Series";
+        const seriesTitle =
+          record.series?.title ?? record.seriesTitle ?? "Unknown Series";
         items.push({
           id: record.id,
           title: `${seriesTitle} - S${record.seasonNumber.toString().padStart(2, "0")}E${record.episodeNumber.toString().padStart(2, "0")} - ${record.title}`,
@@ -362,7 +385,8 @@ export class SonarrClient extends ApiClient {
 
       const records = result.data.records as SonarrWantedRecord[];
       for (const record of records) {
-        const seriesTitle = record.series?.title ?? record.seriesTitle ?? "Unknown Series";
+        const seriesTitle =
+          record.series?.title ?? record.seriesTitle ?? "Unknown Series";
         items.push({
           id: record.id,
           title: `${seriesTitle} - S${record.seasonNumber.toString().padStart(2, "0")}E${record.episodeNumber.toString().padStart(2, "0")} - ${record.title}`,
@@ -385,7 +409,7 @@ export function createClient(
   url: string,
   apiKey: string,
   type: ServerType,
-  timeoutMs = DEFAULT_TIMEOUT_MS
+  timeoutMs = DEFAULT_TIMEOUT_MS,
 ): RadarrClient | SonarrClient {
   return type === "radarr"
     ? new RadarrClient(url, apiKey, timeoutMs)

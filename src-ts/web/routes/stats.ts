@@ -9,7 +9,9 @@ import type { StatsSummaryResponse, ServerStatsResponse } from "../types";
 /**
  * Handle GET /api/stats/summary
  */
-export async function handleGetStatsSummary(db: DatabaseManager): Promise<Response> {
+export async function handleGetStatsSummary(
+  db: DatabaseManager,
+): Promise<Response> {
   try {
     const systemStats = db.getSystemStats();
 
@@ -35,7 +37,7 @@ export async function handleGetStatsSummary(db: DatabaseManager): Promise<Respon
   } catch (error) {
     return jsonError(
       `Failed to retrieve summary statistics: ${error instanceof Error ? error.message : String(error)}`,
-      HttpStatus.INTERNAL_SERVER_ERROR
+      HttpStatus.INTERNAL_SERVER_ERROR,
     );
   }
 }
@@ -43,7 +45,10 @@ export async function handleGetStatsSummary(db: DatabaseManager): Promise<Respon
 /**
  * Handle GET /api/stats/servers/:id
  */
-export async function handleGetServerStats(path: string, db: DatabaseManager): Promise<Response> {
+export async function handleGetServerStats(
+  path: string,
+  db: DatabaseManager,
+): Promise<Response> {
   try {
     const serverId = extractPathParam(path, /^\/api\/stats\/servers\/([^/]+)$/);
     if (!serverId) {
@@ -60,7 +65,8 @@ export async function handleGetServerStats(path: string, db: DatabaseManager): P
 
     // Calculate success rate
     const totalAttempts = stats.totalSearches + stats.errorCount;
-    const successRate = totalAttempts > 0 ? (stats.totalSearches / totalAttempts) * 100 : 100;
+    const successRate =
+      totalAttempts > 0 ? (stats.totalSearches / totalAttempts) * 100 : 100;
 
     const response: ServerStatsResponse = {
       totalSearches: stats.totalSearches,
@@ -73,7 +79,7 @@ export async function handleGetServerStats(path: string, db: DatabaseManager): P
   } catch (error) {
     return jsonError(
       `Failed to retrieve server statistics: ${error instanceof Error ? error.message : String(error)}`,
-      HttpStatus.INTERNAL_SERVER_ERROR
+      HttpStatus.INTERNAL_SERVER_ERROR,
     );
   }
 }

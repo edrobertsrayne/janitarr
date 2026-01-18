@@ -53,7 +53,10 @@ function question(rl: readline.Interface, prompt: string): Promise<string> {
 /**
  * Confirm action with user
  */
-async function confirm(rl: readline.Interface, message: string): Promise<boolean> {
+async function confirm(
+  rl: readline.Interface,
+  message: string,
+): Promise<boolean> {
   const answer = await question(rl, `${message} (y/N)`);
   return answer.toLowerCase() === "y" || answer.toLowerCase() === "yes";
 }
@@ -94,12 +97,17 @@ export function createProgram(): Command {
         const typeAnswer = await question(rl, "Server type (radarr/sonarr)");
         const type = typeAnswer.toLowerCase().trim() as ServerType;
         if (type !== "radarr" && type !== "sonarr") {
-          console.log(fmt.error("Invalid server type. Must be 'radarr' or 'sonarr'"));
+          console.log(
+            fmt.error("Invalid server type. Must be 'radarr' or 'sonarr'"),
+          );
           rl.close();
           return;
         }
 
-        const url = await question(rl, "Server URL (e.g., http://localhost:7878)");
+        const url = await question(
+          rl,
+          "Server URL (e.g., http://localhost:7878)",
+        );
         if (!url.trim()) {
           console.log(fmt.error("Server URL is required"));
           rl.close();
@@ -166,7 +174,10 @@ export function createProgram(): Command {
         console.log();
 
         const url = await question(rl, `URL [${server.url}]`);
-        const apiKey = await question(rl, `API Key [${server.apiKey.slice(0, 8)}...]`);
+        const apiKey = await question(
+          rl,
+          `API Key [${server.apiKey.slice(0, 8)}...]`,
+        );
 
         const newUrl = url.trim() || server.url;
         const newApiKey = apiKey.trim() || server.apiKey;
@@ -180,12 +191,17 @@ export function createProgram(): Command {
         console.log();
         fmt.showProgress("Testing connection");
 
-        const result = await updateServer(getDatabase(), server.id, { url: newUrl, apiKey: newApiKey });
+        const result = await updateServer(getDatabase(), server.id, {
+          url: newUrl,
+          apiKey: newApiKey,
+        });
 
         fmt.clearLine();
 
         if (result.success) {
-          console.log(fmt.success(`Server '${server.name}' updated successfully`));
+          console.log(
+            fmt.success(`Server '${server.name}' updated successfully`),
+          );
         } else {
           console.log(fmt.error(`Failed to update server: ${result.error}`));
         }
@@ -210,10 +226,7 @@ export function createProgram(): Command {
 
         const server = serverResult.data;
 
-        const confirmed = await confirm(
-          rl,
-          `Remove server '${server.name}'?`
-        );
+        const confirmed = await confirm(rl, `Remove server '${server.name}'?`);
 
         if (!confirmed) {
           console.log(fmt.info("Cancelled"));
@@ -279,17 +292,24 @@ export function createProgram(): Command {
               config,
             },
             null,
-            2
-          )
+            2,
+          ),
         );
       } else {
         console.log(fmt.header("Janitarr Status"));
         console.log();
 
-        console.log(fmt.keyValue("Servers configured", servers.length.toString()));
+        console.log(
+          fmt.keyValue("Servers configured", servers.length.toString()),
+        );
         console.log();
 
-        console.log(fmt.keyValue("Scheduler", status.isRunning ? fmt.success("Running") : fmt.warning("Stopped")));
+        console.log(
+          fmt.keyValue(
+            "Scheduler",
+            status.isRunning ? fmt.success("Running") : fmt.warning("Stopped"),
+          ),
+        );
 
         if (status.isRunning) {
           const timeUntilNext = getTimeUntilNextRun();
@@ -330,13 +350,18 @@ export function createProgram(): Command {
   program
     .command("run")
     .description("Execute automation cycle immediately")
-    .option("--dry-run", "Preview what would be searched without triggering searches")
+    .option(
+      "--dry-run",
+      "Preview what would be searched without triggering searches",
+    )
     .option("--json", "Output as JSON")
     .action(async (options) => {
       const dryRun = options.dryRun === true;
 
       if (dryRun) {
-        fmt.showProgress("Running automation cycle (DRY RUN - no searches will be triggered)");
+        fmt.showProgress(
+          "Running automation cycle (DRY RUN - no searches will be triggered)",
+        );
       } else {
         fmt.showProgress("Running automation cycle");
       }
@@ -365,7 +390,11 @@ export function createProgram(): Command {
 
         if (dryRun) {
           console.log();
-          console.log(fmt.info("No searches were triggered. Run without --dry-run to execute."));
+          console.log(
+            fmt.info(
+              "No searches were triggered. Run without --dry-run to execute.",
+            ),
+          );
         }
       }
     });
@@ -381,7 +410,9 @@ export function createProgram(): Command {
 
       // Validate port number
       if (isNaN(port) || port < 1 || port > 65535) {
-        console.log(fmt.error("Invalid port number. Must be between 1 and 65535"));
+        console.log(
+          fmt.error("Invalid port number. Must be between 1 and 65535"),
+        );
         process.exit(1);
       }
 
@@ -403,7 +434,11 @@ export function createProgram(): Command {
         console.log(fmt.info(`  Metrics: http://${host}:${port}/metrics`));
         console.log();
       } catch (error) {
-        console.log(fmt.error(`Failed to start web server: ${error instanceof Error ? error.message : String(error)}`));
+        console.log(
+          fmt.error(
+            `Failed to start web server: ${error instanceof Error ? error.message : String(error)}`,
+          ),
+        );
         process.exit(1);
       }
 
@@ -411,8 +446,12 @@ export function createProgram(): Command {
       const config = getScheduleConfig();
       if (!config.enabled) {
         console.log(fmt.warning("⚠ Scheduler is disabled in configuration"));
-        console.log(fmt.info("  Web server running, but automation cycles will not run"));
-        console.log(fmt.info("  Enable with: janitarr config set schedule.enabled true"));
+        console.log(
+          fmt.info("  Web server running, but automation cycles will not run"),
+        );
+        console.log(
+          fmt.info("  Enable with: janitarr config set schedule.enabled true"),
+        );
         console.log();
       } else {
         if (isSchedulerRunning()) {
@@ -454,13 +493,19 @@ export function createProgram(): Command {
         try {
           // Stop scheduler and wait for active cycle to complete
           if (isSchedulerRunning()) {
-            const { waitForCycleCompletion, isCycleActive } = await import("../lib/scheduler");
+            const { waitForCycleCompletion, isCycleActive } = await import(
+              "../lib/scheduler"
+            );
 
             if (isCycleActive()) {
-              console.log(fmt.info("  Waiting for active cycle to complete..."));
+              console.log(
+                fmt.info("  Waiting for active cycle to complete..."),
+              );
               const completed = await waitForCycleCompletion(10000);
               if (!completed) {
-                console.log(fmt.warning("  ⚠ Cycle did not complete within timeout"));
+                console.log(
+                  fmt.warning("  ⚠ Cycle did not complete within timeout"),
+                );
               }
             }
 
@@ -480,7 +525,11 @@ export function createProgram(): Command {
           process.exit(0);
         } catch (error) {
           clearTimeout(shutdownTimeout);
-          console.log(fmt.error(`Shutdown error: ${error instanceof Error ? error.message : String(error)}`));
+          console.log(
+            fmt.error(
+              `Shutdown error: ${error instanceof Error ? error.message : String(error)}`,
+            ),
+          );
           process.exit(1);
         }
       });
@@ -500,14 +549,20 @@ export function createProgram(): Command {
 
       // Validate port number
       if (isNaN(port) || port < 1 || port > 65535) {
-        console.log(fmt.error("Invalid port number. Must be between 1 and 65535"));
+        console.log(
+          fmt.error("Invalid port number. Must be between 1 and 65535"),
+        );
         process.exit(1);
       }
 
       console.log(fmt.header("Starting Janitarr (Development Mode)"));
       console.log(fmt.warning("⚠ Development mode enabled:"));
       console.log(fmt.info("  - Verbose logging enabled"));
-      console.log(fmt.info("  - Proxying frontend requests to Vite (http://localhost:5173)"));
+      console.log(
+        fmt.info(
+          "  - Proxying frontend requests to Vite (http://localhost:5173)",
+        ),
+      );
       console.log(fmt.info("  - API errors include stack traces"));
       console.log();
 
@@ -518,9 +573,17 @@ export function createProgram(): Command {
 
       // Start web server in development mode
       try {
-        webServer = createWebServer({ port, host, db, silent: true, isDev: true });
+        webServer = createWebServer({
+          port,
+          host,
+          db,
+          silent: true,
+          isDev: true,
+        });
         console.log(fmt.success("✓ Web server started (development mode)"));
-        console.log(fmt.info(`  Web UI: http://${host}:${port} (proxied to Vite)`));
+        console.log(
+          fmt.info(`  Web UI: http://${host}:${port} (proxied to Vite)`),
+        );
         console.log(fmt.info(`  API: http://${host}:${port}/api`));
         console.log(fmt.info(`  Health: http://${host}:${port}/api/health`));
         console.log(fmt.info(`  Metrics: http://${host}:${port}/metrics`));
@@ -529,7 +592,11 @@ export function createProgram(): Command {
         console.log(fmt.info("  cd ui && bun run dev"));
         console.log();
       } catch (error) {
-        console.log(fmt.error(`Failed to start web server: ${error instanceof Error ? error.message : String(error)}`));
+        console.log(
+          fmt.error(
+            `Failed to start web server: ${error instanceof Error ? error.message : String(error)}`,
+          ),
+        );
         process.exit(1);
       }
 
@@ -537,8 +604,12 @@ export function createProgram(): Command {
       const config = getScheduleConfig();
       if (!config.enabled) {
         console.log(fmt.warning("⚠ Scheduler is disabled in configuration"));
-        console.log(fmt.info("  Web server running, but automation cycles will not run"));
-        console.log(fmt.info("  Enable with: janitarr config set schedule.enabled true"));
+        console.log(
+          fmt.info("  Web server running, but automation cycles will not run"),
+        );
+        console.log(
+          fmt.info("  Enable with: janitarr config set schedule.enabled true"),
+        );
         console.log();
       } else {
         if (isSchedulerRunning()) {
@@ -547,9 +618,17 @@ export function createProgram(): Command {
         } else {
           // Register automation cycle callback
           registerCycleCallback(async (isManual: boolean) => {
-            console.log(fmt.info(`[${new Date().toISOString()}] Running automation cycle${isManual ? " (manual)" : ""}...`));
+            console.log(
+              fmt.info(
+                `[${new Date().toISOString()}] Running automation cycle${isManual ? " (manual)" : ""}...`,
+              ),
+            );
             await runAutomationCycle(isManual);
-            console.log(fmt.success(`[${new Date().toISOString()}] Automation cycle complete`));
+            console.log(
+              fmt.success(
+                `[${new Date().toISOString()}] Automation cycle complete`,
+              ),
+            );
           });
 
           await startScheduler();
@@ -584,13 +663,19 @@ export function createProgram(): Command {
         try {
           // Stop scheduler and wait for active cycle to complete
           if (isSchedulerRunning()) {
-            const { waitForCycleCompletion, isCycleActive } = await import("../lib/scheduler");
+            const { waitForCycleCompletion, isCycleActive } = await import(
+              "../lib/scheduler"
+            );
 
             if (isCycleActive()) {
-              console.log(fmt.info("  Waiting for active cycle to complete..."));
+              console.log(
+                fmt.info("  Waiting for active cycle to complete..."),
+              );
               const completed = await waitForCycleCompletion(10000);
               if (!completed) {
-                console.log(fmt.warning("  ⚠ Cycle did not complete within timeout"));
+                console.log(
+                  fmt.warning("  ⚠ Cycle did not complete within timeout"),
+                );
               }
             }
 
@@ -610,7 +695,11 @@ export function createProgram(): Command {
           process.exit(0);
         } catch (error) {
           clearTimeout(shutdownTimeout);
-          console.log(fmt.error(`Shutdown error: ${error instanceof Error ? error.message : String(error)}`));
+          console.log(
+            fmt.error(
+              `Shutdown error: ${error instanceof Error ? error.message : String(error)}`,
+            ),
+          );
           process.exit(1);
         }
       });
@@ -675,7 +764,7 @@ export function createProgram(): Command {
             const enabled = value.toLowerCase() === "true" || value === "1";
             setScheduleConfig(undefined, enabled);
             console.log(
-              fmt.success(`Schedule ${enabled ? "enabled" : "disabled"}`)
+              fmt.success(`Schedule ${enabled ? "enabled" : "disabled"}`),
             );
             break;
           }
@@ -691,8 +780,8 @@ export function createProgram(): Command {
               fmt.success(
                 limit === 0
                   ? "Missing movies searches disabled"
-                  : `Missing movies limit set to ${limit}`
-              )
+                  : `Missing movies limit set to ${limit}`,
+              ),
             );
             break;
           }
@@ -708,8 +797,8 @@ export function createProgram(): Command {
               fmt.success(
                 limit === 0
                   ? "Missing episodes searches disabled"
-                  : `Missing episodes limit set to ${limit}`
-              )
+                  : `Missing episodes limit set to ${limit}`,
+              ),
             );
             break;
           }
@@ -725,8 +814,8 @@ export function createProgram(): Command {
               fmt.success(
                 limit === 0
                   ? "Cutoff movies searches disabled"
-                  : `Cutoff movies limit set to ${limit}`
-              )
+                  : `Cutoff movies limit set to ${limit}`,
+              ),
             );
             break;
           }
@@ -742,8 +831,8 @@ export function createProgram(): Command {
               fmt.success(
                 limit === 0
                   ? "Cutoff episodes searches disabled"
-                  : `Cutoff episodes limit set to ${limit}`
-              )
+                  : `Cutoff episodes limit set to ${limit}`,
+              ),
             );
             break;
           }
@@ -752,13 +841,15 @@ export function createProgram(): Command {
             console.log(fmt.error(`Unknown configuration key: ${key}`));
             console.log(
               fmt.info(
-                "Valid keys: schedule.interval, schedule.enabled, limits.missing.movies, limits.missing.episodes, limits.cutoff.movies, limits.cutoff.episodes"
-              )
+                "Valid keys: schedule.interval, schedule.enabled, limits.missing.movies, limits.missing.episodes, limits.cutoff.movies, limits.cutoff.episodes",
+              ),
             );
         }
       } catch (err) {
         console.log(
-          fmt.error(`Failed to set configuration: ${err instanceof Error ? err.message : String(err)}`)
+          fmt.error(
+            `Failed to set configuration: ${err instanceof Error ? err.message : String(err)}`,
+          ),
         );
       }
     });

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Add a modern, responsive web interface to janitarr that enables users to manage settings, configure servers, and monitor logs through a browser. The web UI will follow Material Design 3 Expressive principles and provide an intuitive alternative to the CLI interface.
+Janitarr provides a modern, responsive web interface for managing settings, configuring servers, and monitoring logs. The UI uses server-rendered HTML with templ templates, enhanced with htmx for dynamic updates and Alpine.js for client-side interactivity.
 
 ## Goals
 
@@ -11,28 +11,29 @@ Add a modern, responsive web interface to janitarr that enables users to manage 
 3. **Mobile Support**: Ensure full functionality on mobile and tablet devices
 4. **Zero Configuration**: Work out-of-the-box with sensible defaults
 5. **Performance**: Fast, responsive UI with minimal resource overhead
+6. **Simplicity**: No JavaScript build step, single binary deployment
 
 ## Architecture
 
-### Frontend Stack
+### Technology Stack
 
-- **Framework**: React 18+ with TypeScript
-- **Build Tool**: Vite 5+ (fast HMR, optimized builds)
-- **UI Library**: MUI (Material-UI v6) - Material Design 3 implementation
-- **Routing**: React Router v6
-- **State Management**: React Context API + hooks (lightweight, no external deps)
-- **HTTP Client**: Native Fetch API with type-safe wrappers
-- **WebSocket**: Native WebSocket API for real-time log streaming
-- **Theme**: Material Design 3 Expressive with dark/light mode support
+- **Templates**: templ (a-h/templ) - Type-safe Go HTML templates
+- **Dynamic Updates**: htmx - HTML over the wire
+- **Interactivity**: Alpine.js - Lightweight reactive framework
+- **Styling**: Tailwind CSS - Utility-first CSS
+- **HTTP Server**: Chi router (go-chi/chi/v5)
+- **WebSocket**: gorilla/websocket for real-time log streaming
+- **Port**: Configurable (default: 3434)
 
-### Backend Stack
+### Why This Stack?
 
-- **HTTP Server**: Bun's native HTTP server (`Bun.serve()`)
-- **API Style**: RESTful JSON API
-- **WebSocket**: Native WebSocket support via Bun.serve upgrade
-- **Integration**: Embedded server running as part of janitarr process
-- **Port**: Configurable (default: 3000)
-- **Static Files**: Serve built frontend from `dist/` or `public/` directory
+| Choice       | Rationale                                                     |
+| ------------ | ------------------------------------------------------------- |
+| templ        | Type-safe templates that compile to Go, excellent IDE support |
+| htmx         | Progressive enhancement, no client-side state management      |
+| Alpine.js    | Minimal JS for interactions (modals, toggles, dark mode)      |
+| Tailwind CSS | Utility-first, works great with templ, easy dark mode         |
+| No React     | Simpler deployment, smaller bundle, faster initial load       |
 
 ### Integration Model
 
@@ -42,7 +43,7 @@ Add a modern, responsive web interface to janitarr that enables users to manage 
 │                                                  │
 │  ┌──────────────┐         ┌──────────────────┐ │
 │  │   CLI Layer  │         │   Web Server     │ │
-│  │  (existing)  │         │   (new)          │ │
+│  │   (Cobra)    │         │   (Chi + templ)  │ │
 │  └──────────────┘         └──────────────────┘ │
 │         │                          │            │
 │         │                          │            │
@@ -51,7 +52,7 @@ Add a modern, responsive web interface to janitarr that enables users to manage 
 │           ┌────────▼────────┐                   │
 │           │  Service Layer  │                   │
 │           │  - ServerManager │                  │
-│           │  - DatabaseMgr   │                  │
+│           │  - Detector      │                  │
 │           │  - Automation    │                  │
 │           │  - Logger        │                  │
 │           └─────────────────┘                   │
@@ -110,12 +111,14 @@ Material Design 3 navigation with responsive drawer:
 ### Color Scheme (Material Design 3)
 
 **Light Theme:**
+
 - Primary: Purple/Blue (`#6750A4`)
 - Secondary: Pink (`#E91E63`)
 - Surface: White/Off-white
 - Background: Light grey (`#FAFAFA`)
 
 **Dark Theme:**
+
 - Primary: Light purple (`#D0BCFF`)
 - Secondary: Light pink
 - Surface: Dark grey (`#1C1B1F`)
@@ -155,6 +158,7 @@ Material Design 3 navigation with responsive drawer:
    - "Add Server" - Open server creation dialog
 
 **Real-time Updates:**
+
 - WebSocket connection updates status cards when logs arrive
 - Auto-refresh server status every 60 seconds (configurable)
 
@@ -206,6 +210,7 @@ Material Design 3 navigation with responsive drawer:
    - Error history
 
 **Interactions:**
+
 - Drag-and-drop to reorder servers (future enhancement)
 - Bulk actions: Enable/Disable multiple, Delete multiple (with multi-select)
 - Search/filter servers by name or type
@@ -254,9 +259,9 @@ Material Design 3 navigation with responsive drawer:
    - "New logs available" snackbar if user scrolled away
    - Smooth fade-in animation for new entries
 
-4. **Virtualization**
-   - Use `react-window` or similar for efficient rendering of large log lists
-   - Load initial batch (last 100 logs), lazy-load more on scroll up
+4. **Pagination**
+   - Server-side pagination with htmx for efficient rendering
+   - Load initial batch (last 100 logs), load more on scroll or button click
    - Maintain performance with thousands of entries
 
 5. **Export Functionality**
@@ -343,6 +348,7 @@ Material Expansion Panel (collapsed by default):
    - Button to restore default settings (with confirmation)
 
 **Interactions:**
+
 - Auto-save on blur (save individual field changes via PATCH /api/config)
 - Or "Save Changes" button at bottom (save all changes at once)
 - Success snackbar on save: "Settings saved successfully"
@@ -472,8 +478,8 @@ GET    /api/stats/servers/:id
 {
   "type": "subscribe",
   "filters": {
-    "types": ["search", "error"],  // optional
-    "servers": ["server-uuid"],     // optional
+    "types": ["search", "error"], // optional
+    "servers": ["server-uuid"] // optional
   }
 }
 ```
@@ -523,6 +529,7 @@ GET    /api/stats/servers/:id
 ```
 
 **Connection Management**:
+
 - Auto-reconnect on disconnect (exponential backoff: 1s, 2s, 4s, 8s, max 30s)
 - Ping/pong every 30s to keep connection alive
 - Close connection on page unload
@@ -531,321 +538,297 @@ GET    /api/stats/servers/:id
 
 ## Implementation Plan
 
-### Phase 1: Backend API Foundation
+### Phase 1: templ Setup and Base Layout
 
 **Tasks**:
-1. Create `src/web/` directory structure:
-   ```
-   src/web/
-   ├── server.ts          # Main HTTP server setup
-   ├── routes/
-   │   ├── config.ts      # Config endpoints
-   │   ├── servers.ts     # Server management endpoints
-   │   ├── logs.ts        # Log endpoints
-   │   ├── automation.ts  # Automation control endpoints
-   │   └── stats.ts       # Statistics endpoints
-   ├── middleware/
-   │   ├── error-handler.ts
-   │   ├── logger.ts
-   │   └── cors.ts
-   ├── websocket.ts       # WebSocket log streaming
-   └── types.ts           # API request/response types
+
+1. Install templ CLI:
+
+   ```bash
+   go install github.com/a-h/templ/cmd/templ@latest
    ```
 
-2. Implement REST API endpoints using Bun.serve:
-   ```typescript
-   export function createWebServer(db: DatabaseManager, automation: AutomationService) {
-     return Bun.serve({
-       port: 3000,
-       fetch(req, server) {
-         // Route handling logic
-       },
-       websocket: {
-         // WebSocket handlers for log streaming
-       },
-     });
+2. Create template directory structure:
+
+   ```
+   src/templates/
+   ├── layouts/
+   │   └── base.templ        # HTML5 document, nav, content slot
+   ├── components/
+   │   ├── nav.templ         # Navigation sidebar
+   │   ├── server_card.templ # Server display card
+   │   ├── log_entry.templ   # Single log entry
+   │   ├── stats_card.templ  # Dashboard stat card
+   │   └── forms/
+   │       ├── server_form.templ
+   │       └── config_form.templ
+   └── pages/
+       ├── dashboard.templ
+       ├── servers.templ
+       ├── logs.templ
+       └── settings.templ
+   ```
+
+3. Create base layout with dark mode support:
+
+   ```go
+   // templates/layouts/base.templ
+   package layouts
+
+   templ Base(title string) {
+       <!DOCTYPE html>
+       <html lang="en" x-data="{ darkMode: localStorage.getItem('darkMode') === 'true' }" :class="{ 'dark': darkMode }">
+       <head>
+           <meta charset="UTF-8"/>
+           <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+           <title>{ title } - Janitarr</title>
+           <link href="/static/css/app.css" rel="stylesheet"/>
+           <script src="/static/js/htmx.min.js"></script>
+           <script src="/static/js/alpine.min.js" defer></script>
+       </head>
+       <body class="bg-gray-100 dark:bg-gray-900">
+           { children... }
+       </body>
+       </html>
    }
    ```
 
-3. Add WebSocket log streaming:
-   - Create broadcast mechanism for new logs
-   - Implement subscription filtering
-   - Handle connection lifecycle
+4. Set up Tailwind CSS:
 
-4. Add CLI command:
    ```bash
-   janitarr serve [options]
-     --port, -p <number>   Port to listen on (default: 3000)
-     --host <string>       Host to bind to (default: localhost)
-     --open, -o            Open browser automatically
+   npm init -y
+   npm install -D tailwindcss
+   npx tailwindcss init
    ```
 
-5. Update `DatabaseManager` with query methods needed for API:
-   - `getServerStats(serverId)`
-   - `getLogsPaginated(filters, limit, offset)`
-   - `searchLogs(query)`
-   - `getSystemStats()`
+   Configure `tailwind.config.js` to scan templ files:
+
+   ```javascript
+   module.exports = {
+     content: ["./src/templates/**/*.templ"],
+     darkMode: "class",
+     theme: { extend: {} },
+     plugins: [],
+   };
+   ```
+
+5. Download htmx and Alpine.js:
+   ```bash
+   mkdir -p static/js
+   curl -o static/js/htmx.min.js https://unpkg.com/htmx.org@1.9/dist/htmx.min.js
+   curl -o static/js/alpine.min.js https://unpkg.com/alpinejs@3/dist/cdn.min.js
+   ```
 
 **Acceptance Criteria**:
-- All REST endpoints functional and returning correct data
-- WebSocket streaming logs in real-time
-- API integration tests passing
-- OpenAPI/Swagger documentation generated
+
+- `templ generate` compiles templates without errors
+- Base layout renders with navigation
+- Dark mode toggle works with Alpine.js
+- Tailwind CSS styles applied correctly
 
 ---
 
-### Phase 2: Frontend Project Setup
+### Phase 2: Page Handlers and Routing
 
 **Tasks**:
-1. Initialize React + Vite project in `ui/` directory:
-   ```bash
-   cd ui/
-   bun create vite . --template react-ts
-   bun add @mui/material @emotion/react @emotion/styled
-   bun add react-router-dom
-   bun add @mui/icons-material
-   ```
 
-2. Configure Vite for development:
-   ```typescript
-   // vite.config.ts
-   export default {
-     server: {
-       proxy: {
-         '/api': 'http://localhost:3000',
-         '/ws': { target: 'ws://localhost:3000', ws: true }
+1. Create page handlers in `src/web/handlers/pages/`:
+
+   ```go
+   // dashboard.go
+   func Dashboard(db *database.DB, scheduler *services.Scheduler) http.HandlerFunc {
+       return func(w http.ResponseWriter, r *http.Request) {
+           stats := db.GetStats()
+           status := scheduler.GetStatus()
+           pages.Dashboard(stats, status).Render(r.Context(), w)
        }
-     },
-     build: {
-       outDir: '../dist/public',
-       emptyOutDir: true
-     }
    }
    ```
 
-3. Set up project structure:
-   ```
-   ui/
-   ├── src/
-   │   ├── App.tsx
-   │   ├── main.tsx
-   │   ├── components/
-   │   │   ├── layout/
-   │   │   │   ├── AppBar.tsx
-   │   │   │   ├── NavDrawer.tsx
-   │   │   │   └── Layout.tsx
-   │   │   ├── servers/
-   │   │   ├── logs/
-   │   │   ├── settings/
-   │   │   ├── dashboard/
-   │   │   └── common/      # Shared components
-   │   ├── hooks/
-   │   │   ├── useApi.ts
-   │   │   ├── useWebSocket.ts
-   │   │   └── useTheme.ts
-   │   ├── services/
-   │   │   ├── api.ts       # REST API client
-   │   │   └── websocket.ts # WebSocket client
-   │   ├── types/
-   │   │   └── index.ts     # Shared types with backend
-   │   ├── contexts/
-   │   │   ├── ThemeContext.tsx
-   │   │   └── ConfigContext.tsx
-   │   └── theme.ts         # MUI theme configuration
-   ├── index.html
-   ├── package.json
-   └── vite.config.ts
+2. Register routes in Chi router:
+
+   ```go
+   r.Get("/", handlers.Dashboard(db, scheduler))
+   r.Get("/servers", handlers.ServersPage(db))
+   r.Get("/logs", handlers.LogsPage(db))
+   r.Get("/settings", handlers.SettingsPage(db))
    ```
 
-4. Configure MUI theme with Material Design 3:
-   ```typescript
-   import { createTheme } from '@mui/material/styles';
-
-   export const lightTheme = createTheme({
-     palette: {
-       mode: 'light',
-       primary: { main: '#6750A4' },
-       secondary: { main: '#E91E63' },
-       // ... Material Design 3 colors
-     },
-     shape: { borderRadius: 12 }, // MD3 rounded corners
-     // ... typography, components customization
-   });
-   ```
-
-5. Implement routing structure:
-   ```typescript
-   <BrowserRouter>
-     <Routes>
-       <Route path="/" element={<Layout />}>
-         <Route index element={<Dashboard />} />
-         <Route path="servers" element={<Servers />} />
-         <Route path="logs" element={<Logs />} />
-         <Route path="settings" element={<Settings />} />
-       </Route>
-     </Routes>
-   </BrowserRouter>
-   ```
+3. Implement each page template:
+   - Dashboard: Stats cards, server list, recent activity
+   - Servers: Server grid, add/edit forms
+   - Logs: Log list, filters, export
+   - Settings: Configuration forms
 
 **Acceptance Criteria**:
-- Vite dev server running with HMR
-- MUI components rendering correctly
-- Routing functional
-- Theme switching working (light/dark)
-- TypeScript compilation with no errors
+
+- All pages render correctly
+- Navigation between pages works
+- Data displays correctly from database
 
 ---
 
-### Phase 3: Core Components Implementation
+### Phase 3: htmx Dynamic Updates
 
 **Tasks**:
 
-1. **Layout Components**:
-   - `AppBar`: Top bar with title, theme toggle, status indicators
-   - `NavDrawer`: Responsive navigation drawer with menu items
-   - `Layout`: Main layout wrapper with drawer + content area
+1. Add htmx attributes for dynamic updates:
 
-2. **Dashboard View**:
-   - Status cards with live data from `/api/stats/summary`
-   - Server status list with real-time updates
-   - Recent activity timeline (last 10 logs)
-   - Quick action buttons (FAB or prominent)
+   ```go
+   // Server card with test button
+   templ ServerCard(server database.Server) {
+       <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
+           <h3>{ server.Name }</h3>
+           <button
+               hx-post={ "/api/servers/" + server.ID + "/test" }
+               hx-target="#test-result"
+               hx-indicator="#spinner"
+               class="btn"
+           >
+               Test Connection
+           </button>
+           <span id="test-result"></span>
+       </div>
+   }
+   ```
 
-3. **Servers View**:
-   - Server list/card grid with toggle view
-   - Add server dialog with form validation
-   - Edit server dialog
-   - Delete confirmation dialog
-   - Test connection button with loading state and feedback
-   - Enable/disable toggle with instant update
+2. Create partial templates for htmx responses:
 
-4. **Logs View**:
-   - Log list with virtualization (use `react-window`)
-   - Search/filter toolbar
-   - WebSocket integration for real-time logs
-   - Export functionality (JSON/CSV download)
-   - Auto-scroll behavior
+   ```go
+   // Partial for stats refresh
+   templ StatsPartial(stats Stats) {
+       <div class="grid grid-cols-4 gap-4">
+           @StatsCard("Servers", stats.ServerCount)
+           @StatsCard("Last Cycle", stats.LastCycle)
+           @StatsCard("Searches", stats.SearchCount)
+           @StatsCard("Errors", stats.ErrorCount)
+       </div>
+   }
+   ```
 
-5. **Settings View**:
-   - Form sections for config groups
-   - Auto-save or save button
-   - Validation and error handling
-   - Reset to defaults functionality
+3. Add polling for real-time updates:
 
-**Shared/Common Components**:
-- `LoadingSpinner`: Consistent loading indicator
-- `ErrorBoundary`: Catch and display React errors
-- `ConfirmDialog`: Reusable confirmation dialog
-- `Snackbar`: Toast notifications for success/error
-- `StatusBadge`: Color-coded status indicator
-- `ServerIcon`: Radarr/Sonarr logo icons
+   ```html
+   <div hx-get="/partials/stats" hx-trigger="every 60s" hx-swap="innerHTML">
+     <!-- Stats content -->
+   </div>
+   ```
+
+4. Implement form submissions:
+   - Add server form
+   - Edit server form
+   - Settings form
+   - All use htmx for seamless updates
 
 **Acceptance Criteria**:
-- All views render and match design spec
-- Navigation between views working
-- Forms submit correctly to API
-- Error states handled gracefully
-- Loading states displayed during async operations
+
+- Forms submit without page reload
+- Test connection shows result inline
+- Stats auto-refresh every 60 seconds
+- Delete confirmation works with Alpine.js
 
 ---
 
-### Phase 4: Real-time Features & Polish
+### Phase 4: WebSocket Log Streaming
 
 **Tasks**:
 
-1. **WebSocket Integration**:
-   - Create `useWebSocket` hook for log streaming
-   - Auto-reconnect logic with exponential backoff
-   - Connection status indicator in UI
-   - Subscribe/unsubscribe based on active view
-   - Filter logs based on user-selected filters
+1. Implement WebSocket handler:
 
-2. **API Integration**:
-   - Create `useApi` hook for consistent API calls
-   - Error handling and retry logic
-   - Loading states
-   - Optimistic updates for instant feedback
+   ```go
+   // src/web/websocket/logs.go
+   func LogsHandler(logger *logger.Logger) http.HandlerFunc {
+       upgrader := websocket.Upgrader{
+           CheckOrigin: func(r *http.Request) bool { return true },
+       }
 
-3. **Real-time Updates**:
-   - Dashboard stats refresh on new logs
-   - Server status updates
-   - Notification snackbars for important events
-   - "New logs available" indicator when scrolled away
+       return func(w http.ResponseWriter, r *http.Request) {
+           conn, err := upgrader.Upgrade(w, r, nil)
+           if err != nil {
+               return
+           }
+           defer conn.Close()
 
-4. **Performance Optimizations**:
-   - Lazy load routes with React.lazy
-   - Virtualize long lists (logs, servers if many)
-   - Debounce search inputs
-   - Memoize expensive computations
-   - Code splitting for smaller bundles
+           ch := logger.Subscribe()
+           defer logger.Unsubscribe(ch)
 
-5. **Mobile Responsiveness**:
-   - Test on mobile viewports
-   - Adjust layouts for small screens
-   - Touch-friendly buttons and interactions
-   - Responsive tables (card view on mobile)
+           for entry := range ch {
+               if err := conn.WriteJSON(entry); err != nil {
+                   break
+               }
+           }
+       }
+   }
+   ```
 
-6. **Accessibility**:
-   - ARIA labels for icons and actions
-   - Keyboard navigation support
-   - Focus management in dialogs
-   - Color contrast validation
-   - Screen reader testing
+2. Add JavaScript for WebSocket connection:
+
+   ```javascript
+   // In logs.templ
+   <script>
+   function logViewer() {
+       return {
+           ws: null,
+           connect() {
+               this.ws = new WebSocket(`ws://${window.location.host}/ws/logs`);
+               this.ws.onmessage = (e) => {
+                   const log = JSON.parse(e.data);
+                   htmx.ajax('GET', '/partials/log-entry?id=' + log.id, {
+                       target: '#log-list',
+                       swap: 'afterbegin'
+                   });
+               };
+               this.ws.onclose = () => setTimeout(() => this.connect(), 1000);
+           }
+       }
+   }
+   </script>
+   ```
+
+3. Create log entry partial for htmx insertion
 
 **Acceptance Criteria**:
-- Logs stream in real-time without lag
-- UI responsive on mobile devices
-- No console errors or warnings
-- Lighthouse score: 90+ (Performance, Accessibility)
-- Works in Chrome, Firefox, Safari, Edge
+
+- Logs appear in real-time
+- WebSocket reconnects on disconnect
+- New logs insert at top of list
+- Filter updates work correctly
 
 ---
 
-### Phase 5: Testing & Documentation
+### Phase 5: Testing & Polish
 
 **Tasks**:
 
-1. **Backend Tests**:
-   - Unit tests for API routes
-   - Integration tests for WebSocket
-   - Test error handling
-   - Test concurrent requests
+1. **Unit Tests**:
+   - Handler tests with httptest
+   - Template rendering tests
+   - WebSocket connection tests
 
-2. **Frontend Tests**:
-   - Component tests with React Testing Library
-   - Integration tests for user flows
-   - Test WebSocket reconnection
-   - Test form validation
+2. **E2E Tests with Playwright**:
+   - Dashboard loads correctly
+   - Add/edit/delete server flow
+   - Settings save and persist
+   - Log filtering works
+   - Dark mode toggle
 
-3. **End-to-End Tests**:
-   - Manual testing of critical user journeys:
-     - Add and configure server
-     - View logs and filter
-     - Change settings and save
-     - Trigger manual automation
+3. **Mobile Responsiveness**:
+   - Test on small screens
+   - Collapsible navigation
+   - Touch-friendly buttons
 
-4. **Documentation**:
-   - Update main README with web UI instructions
-   - Create `docs/web-ui.md` with:
-     - Screenshots of each view
-     - Feature overview
-     - Configuration options
-     - Troubleshooting guide
-   - API documentation (OpenAPI/Swagger)
-   - Developer guide for contributing to UI
-
-5. **Deployment**:
-   - Build script: `bun run build` in ui/ directory
-   - Copy built files to `dist/public/`
-   - Update `src/web/server.ts` to serve static files
-   - Add production build to CI/CD pipeline
+4. **Accessibility**:
+   - ARIA labels
+   - Keyboard navigation
+   - Color contrast
+   - Focus management
 
 **Acceptance Criteria**:
-- Test coverage >80% for critical paths
-- All E2E tests passing
-- Documentation complete and accurate
-- Production build working
-- No security vulnerabilities in dependencies
+
+- All tests pass
+- Responsive on mobile
+- Accessible with screen readers
+- No console errors
 
 ---
 
@@ -918,7 +901,7 @@ LOG_RETENTION_DAYS=30               # Log retention period
 4. **Server Groups**: Organize servers into logical groups
 5. **Bulk Operations**: Multi-select and bulk actions on servers/logs
 6. **API Webhooks**: Outbound webhooks for integration with other tools
-7. **Mobile Apps**: Native iOS/Android apps (React Native or PWA)
+7. **Mobile Apps**: Progressive Web App (PWA) support
 8. **Plugins**: Extensibility system for custom integrations
 9. **Internationalization**: Multi-language support (i18n)
 10. **Configuration Backup**: Scheduled backups and version history
@@ -927,57 +910,48 @@ LOG_RETENTION_DAYS=30               # Log retention period
 
 ## Dependencies
 
-### New Backend Dependencies
+### Go Dependencies
 
-```json
-{
-  "dependencies": {
-    // No additional dependencies needed!
-    // Bun provides everything: HTTP server, WebSocket, static file serving
-  }
-}
+```go
+// go.mod
+require (
+    github.com/go-chi/chi/v5 v5.0.12
+    github.com/gorilla/websocket v1.5.1
+    modernc.org/sqlite v1.29.1
+    github.com/spf13/cobra v1.8.0
+    github.com/a-h/templ v0.2.543
+)
 ```
 
-### Frontend Dependencies
+### Frontend Dependencies (npm - for Tailwind build only)
 
 ```json
 {
-  "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-router-dom": "^6.22.0",
-    "@mui/material": "^6.1.0",
-    "@mui/icons-material": "^6.1.0",
-    "@emotion/react": "^11.13.0",
-    "@emotion/styled": "^11.13.0",
-    "react-window": "^1.8.10"
-  },
   "devDependencies": {
-    "@types/react": "^18.3.1",
-    "@types/react-dom": "^18.3.0",
-    "@types/react-window": "^1.8.8",
-    "@vitejs/plugin-react": "^4.3.0",
-    "vite": "^5.4.0",
-    "typescript": "^5.6.0",
-    "@testing-library/react": "^16.0.0",
-    "@testing-library/jest-dom": "^6.5.0",
-    "vitest": "^2.0.0"
+    "tailwindcss": "^3.4.0"
   }
 }
 ```
+
+### Static Assets (CDN downloads)
+
+- htmx v1.9+ (30KB minified)
+- Alpine.js v3+ (15KB minified)
+
+No JavaScript build step required. Static files served directly from `static/` directory.
 
 ---
 
 ## Technical Risks & Mitigations
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| WebSocket connection instability | Users miss real-time logs | Implement robust reconnection logic, fallback to polling |
-| Large log datasets causing performance issues | UI becomes sluggish | Use virtualization, pagination, and efficient filtering |
-| Browser compatibility issues | Users can't access UI | Test on all major browsers, use polyfills if needed |
-| Build size too large | Slow initial load | Code splitting, tree shaking, lazy loading routes |
-| API breaking changes affecting UI | Frontend breaks on backend updates | Version API, maintain backwards compatibility |
-| Memory leaks from WebSocket subscriptions | Browser tab becomes unresponsive | Proper cleanup in useEffect hooks, connection monitoring |
+| Risk                                          | Impact                             | Mitigation                                               |
+| --------------------------------------------- | ---------------------------------- | -------------------------------------------------------- |
+| WebSocket connection instability              | Users miss real-time logs          | Implement robust reconnection logic, fallback to polling |
+| Large log datasets causing performance issues | UI becomes sluggish                | Use virtualization, pagination, and efficient filtering  |
+| Browser compatibility issues                  | Users can't access UI              | Test on all major browsers, use polyfills if needed      |
+| Build size too large                          | Slow initial load                  | Code splitting, tree shaking, lazy loading routes        |
+| API breaking changes affecting UI             | Frontend breaks on backend updates | Version API, maintain backwards compatibility            |
+| Memory leaks from WebSocket subscriptions     | Browser tab becomes unresponsive   | Proper cleanup in useEffect hooks, connection monitoring |
 
 ---
 

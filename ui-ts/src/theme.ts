@@ -2,35 +2,35 @@
  * Material Design 3 theme configuration for Janitarr
  */
 
-import { createTheme, type ThemeOptions } from '@mui/material/styles';
+import { createTheme, type ThemeOptions } from "@mui/material/styles";
 
 /**
  * Light theme configuration (Material Design 3)
  */
 const lightThemeOptions: ThemeOptions = {
   palette: {
-    mode: 'light',
+    mode: "light",
     primary: {
-      main: '#6750A4',
+      main: "#6750A4",
     },
     secondary: {
-      main: '#E91E63',
+      main: "#E91E63",
     },
     background: {
-      default: '#FAFAFA',
-      paper: '#FFFFFF',
+      default: "#FAFAFA",
+      paper: "#FFFFFF",
     },
     error: {
-      main: '#B3261E',
+      main: "#B3261E",
     },
     success: {
-      main: '#4CAF50',
+      main: "#4CAF50",
     },
     warning: {
-      main: '#FB8C00',
+      main: "#FB8C00",
     },
     info: {
-      main: '#2196F3',
+      main: "#2196F3",
     },
   },
   shape: {
@@ -38,35 +38,35 @@ const lightThemeOptions: ThemeOptions = {
   },
   typography: {
     fontFamily: [
-      'Roboto',
-      '-apple-system',
-      'BlinkMacSystemFont',
+      "Roboto",
+      "-apple-system",
+      "BlinkMacSystemFont",
       '"Segoe UI"',
-      'Arial',
-      'sans-serif',
-    ].join(','),
+      "Arial",
+      "sans-serif",
+    ].join(","),
     h1: {
-      fontSize: '2.5rem',
+      fontSize: "2.5rem",
       fontWeight: 500,
     },
     h2: {
-      fontSize: '2rem',
+      fontSize: "2rem",
       fontWeight: 500,
     },
     h3: {
-      fontSize: '1.75rem',
+      fontSize: "1.75rem",
       fontWeight: 500,
     },
     h4: {
-      fontSize: '1.5rem',
+      fontSize: "1.5rem",
       fontWeight: 500,
     },
     h5: {
-      fontSize: '1.25rem',
+      fontSize: "1.25rem",
       fontWeight: 500,
     },
     h6: {
-      fontSize: '1rem',
+      fontSize: "1rem",
       fontWeight: 500,
     },
   },
@@ -74,9 +74,9 @@ const lightThemeOptions: ThemeOptions = {
     MuiButton: {
       styleOverrides: {
         root: {
-          textTransform: 'none',
+          textTransform: "none",
           borderRadius: 20,
-          padding: '8px 24px',
+          padding: "8px 24px",
         },
       },
     },
@@ -102,28 +102,28 @@ const lightThemeOptions: ThemeOptions = {
  */
 const darkThemeOptions: ThemeOptions = {
   palette: {
-    mode: 'dark',
+    mode: "dark",
     primary: {
-      main: '#D0BCFF',
+      main: "#D0BCFF",
     },
     secondary: {
-      main: '#F48FB1',
+      main: "#F48FB1",
     },
     background: {
-      default: '#121212',
-      paper: '#1C1B1F',
+      default: "#121212",
+      paper: "#1C1B1F",
     },
     error: {
-      main: '#F2B8B5',
+      main: "#F2B8B5",
     },
     success: {
-      main: '#81C784',
+      main: "#81C784",
     },
     warning: {
-      main: '#FFB74D',
+      main: "#FFB74D",
     },
     info: {
-      main: '#64B5F6',
+      main: "#64B5F6",
     },
   },
   shape: {
@@ -131,35 +131,35 @@ const darkThemeOptions: ThemeOptions = {
   },
   typography: {
     fontFamily: [
-      'Roboto',
-      '-apple-system',
-      'BlinkMacSystemFont',
+      "Roboto",
+      "-apple-system",
+      "BlinkMacSystemFont",
       '"Segoe UI"',
-      'Arial',
-      'sans-serif',
-    ].join(','),
+      "Arial",
+      "sans-serif",
+    ].join(","),
     h1: {
-      fontSize: '2.5rem',
+      fontSize: "2.5rem",
       fontWeight: 500,
     },
     h2: {
-      fontSize: '2rem',
+      fontSize: "2rem",
       fontWeight: 500,
     },
     h3: {
-      fontSize: '1.75rem',
+      fontSize: "1.75rem",
       fontWeight: 500,
     },
     h4: {
-      fontSize: '1.5rem',
+      fontSize: "1.5rem",
       fontWeight: 500,
     },
     h5: {
-      fontSize: '1.25rem',
+      fontSize: "1.25rem",
       fontWeight: 500,
     },
     h6: {
-      fontSize: '1rem',
+      fontSize: "1rem",
       fontWeight: 500,
     },
   },
@@ -167,9 +167,9 @@ const darkThemeOptions: ThemeOptions = {
     MuiButton: {
       styleOverrides: {
         root: {
-          textTransform: 'none',
+          textTransform: "none",
           borderRadius: 20,
-          padding: '8px 24px',
+          padding: "8px 24px",
         },
       },
     },

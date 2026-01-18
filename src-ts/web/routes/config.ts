@@ -16,7 +16,7 @@ export async function handleGetConfig(db: DatabaseManager): Promise<Response> {
   } catch (error) {
     return jsonError(
       `Failed to retrieve config: ${error instanceof Error ? error.message : String(error)}`,
-      HttpStatus.INTERNAL_SERVER_ERROR
+      HttpStatus.INTERNAL_SERVER_ERROR,
     );
   }
 }
@@ -24,7 +24,10 @@ export async function handleGetConfig(db: DatabaseManager): Promise<Response> {
 /**
  * Handle PATCH /api/config
  */
-export async function handlePatchConfig(req: Request, db: DatabaseManager): Promise<Response> {
+export async function handlePatchConfig(
+  req: Request,
+  db: DatabaseManager,
+): Promise<Response> {
   try {
     const body = await parseJsonBody<Partial<AppConfig>>(req);
     if (!body) {
@@ -34,8 +37,14 @@ export async function handlePatchConfig(req: Request, db: DatabaseManager): Prom
     // Validate schedule config if provided
     if (body.schedule) {
       if (body.schedule.intervalHours !== undefined) {
-        if (body.schedule.intervalHours < 1 || body.schedule.intervalHours > 168) {
-          return jsonError("Interval hours must be between 1 and 168", HttpStatus.BAD_REQUEST);
+        if (
+          body.schedule.intervalHours < 1 ||
+          body.schedule.intervalHours > 168
+        ) {
+          return jsonError(
+            "Interval hours must be between 1 and 168",
+            HttpStatus.BAD_REQUEST,
+          );
         }
       }
     }
@@ -43,17 +52,41 @@ export async function handlePatchConfig(req: Request, db: DatabaseManager): Prom
     // Validate search limits if provided
     if (body.searchLimits) {
       const limits = body.searchLimits;
-      if (limits.missingMoviesLimit !== undefined && (limits.missingMoviesLimit < 0 || limits.missingMoviesLimit > 1000)) {
-        return jsonError("Missing movies limit must be between 0 and 1000", HttpStatus.BAD_REQUEST);
+      if (
+        limits.missingMoviesLimit !== undefined &&
+        (limits.missingMoviesLimit < 0 || limits.missingMoviesLimit > 1000)
+      ) {
+        return jsonError(
+          "Missing movies limit must be between 0 and 1000",
+          HttpStatus.BAD_REQUEST,
+        );
       }
-      if (limits.missingEpisodesLimit !== undefined && (limits.missingEpisodesLimit < 0 || limits.missingEpisodesLimit > 1000)) {
-        return jsonError("Missing episodes limit must be between 0 and 1000", HttpStatus.BAD_REQUEST);
+      if (
+        limits.missingEpisodesLimit !== undefined &&
+        (limits.missingEpisodesLimit < 0 || limits.missingEpisodesLimit > 1000)
+      ) {
+        return jsonError(
+          "Missing episodes limit must be between 0 and 1000",
+          HttpStatus.BAD_REQUEST,
+        );
       }
-      if (limits.cutoffMoviesLimit !== undefined && (limits.cutoffMoviesLimit < 0 || limits.cutoffMoviesLimit > 1000)) {
-        return jsonError("Cutoff movies limit must be between 0 and 1000", HttpStatus.BAD_REQUEST);
+      if (
+        limits.cutoffMoviesLimit !== undefined &&
+        (limits.cutoffMoviesLimit < 0 || limits.cutoffMoviesLimit > 1000)
+      ) {
+        return jsonError(
+          "Cutoff movies limit must be between 0 and 1000",
+          HttpStatus.BAD_REQUEST,
+        );
       }
-      if (limits.cutoffEpisodesLimit !== undefined && (limits.cutoffEpisodesLimit < 0 || limits.cutoffEpisodesLimit > 1000)) {
-        return jsonError("Cutoff episodes limit must be between 0 and 1000", HttpStatus.BAD_REQUEST);
+      if (
+        limits.cutoffEpisodesLimit !== undefined &&
+        (limits.cutoffEpisodesLimit < 0 || limits.cutoffEpisodesLimit > 1000)
+      ) {
+        return jsonError(
+          "Cutoff episodes limit must be between 0 and 1000",
+          HttpStatus.BAD_REQUEST,
+        );
       }
     }
 
@@ -66,7 +99,7 @@ export async function handlePatchConfig(req: Request, db: DatabaseManager): Prom
   } catch (error) {
     return jsonError(
       `Failed to update config: ${error instanceof Error ? error.message : String(error)}`,
-      HttpStatus.INTERNAL_SERVER_ERROR
+      HttpStatus.INTERNAL_SERVER_ERROR,
     );
   }
 }
@@ -74,7 +107,9 @@ export async function handlePatchConfig(req: Request, db: DatabaseManager): Prom
 /**
  * Handle PUT /api/config/reset
  */
-export async function handleResetConfig(db: DatabaseManager): Promise<Response> {
+export async function handleResetConfig(
+  db: DatabaseManager,
+): Promise<Response> {
   try {
     // Reset to default values
     const defaults: AppConfig = {
@@ -97,7 +132,7 @@ export async function handleResetConfig(db: DatabaseManager): Promise<Response> 
   } catch (error) {
     return jsonError(
       `Failed to reset config: ${error instanceof Error ? error.message : String(error)}`,
-      HttpStatus.INTERNAL_SERVER_ERROR
+      HttpStatus.INTERNAL_SERVER_ERROR,
     );
   }
 }

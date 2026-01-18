@@ -50,18 +50,24 @@ describe("CLI Commands - Unified Startup", () => {
   describe("start command", () => {
     test("command is registered with correct name and description", () => {
       const program = createProgram();
-      const startCommand = program.commands.find((cmd) => cmd.name() === "start");
+      const startCommand = program.commands.find(
+        (cmd) => cmd.name() === "start",
+      );
 
       expect(startCommand).toBeDefined();
-      expect(startCommand?.description()).toBe("Start scheduler and web server (production mode)");
+      expect(startCommand?.description()).toBe(
+        "Start scheduler and web server (production mode)",
+      );
     });
 
     test("command has port option with default value", () => {
       const program = createProgram();
-      const startCommand = program.commands.find((cmd) => cmd.name() === "start");
+      const startCommand = program.commands.find(
+        (cmd) => cmd.name() === "start",
+      );
 
       const portOption = startCommand?.options.find(
-        (opt) => opt.short === "-p" || opt.long === "--port"
+        (opt) => opt.short === "-p" || opt.long === "--port",
       );
 
       expect(portOption).toBeDefined();
@@ -72,10 +78,12 @@ describe("CLI Commands - Unified Startup", () => {
 
     test("command has host option with default value", () => {
       const program = createProgram();
-      const startCommand = program.commands.find((cmd) => cmd.name() === "start");
+      const startCommand = program.commands.find(
+        (cmd) => cmd.name() === "start",
+      );
 
       const hostOption = startCommand?.options.find(
-        (opt) => opt.short === "-h" || opt.long === "--host"
+        (opt) => opt.short === "-h" || opt.long === "--host",
       );
 
       expect(hostOption).toBeDefined();
@@ -99,9 +107,12 @@ describe("CLI Commands - Unified Startup", () => {
       exitCode = undefined;
 
       try {
-        await program.parseAsync(["start", "--port", "65536"], { from: "user" });
+        await program.parseAsync(["start", "--port", "65536"], {
+          from: "user",
+        });
       } catch (error) {
-        expect(exitCode).toBe(1);
+        expect(exitCode).toBeDefined();
+        expect(exitCode!).toBe(1);
       }
     });
 
@@ -112,7 +123,8 @@ describe("CLI Commands - Unified Startup", () => {
       try {
         await program.parseAsync(["start", "--port", "abc"], { from: "user" });
       } catch (error) {
-        expect(exitCode).toBe(1);
+        expect(exitCode).toBeDefined();
+        expect(exitCode!).toBe(1);
       }
     });
   });
@@ -124,7 +136,7 @@ describe("CLI Commands - Unified Startup", () => {
 
       expect(devCommand).toBeDefined();
       expect(devCommand?.description()).toBe(
-        "Start scheduler and web server (development mode)"
+        "Start scheduler and web server (development mode)",
       );
     });
 
@@ -133,7 +145,7 @@ describe("CLI Commands - Unified Startup", () => {
       const devCommand = program.commands.find((cmd) => cmd.name() === "dev");
 
       const portOption = devCommand?.options.find(
-        (opt) => opt.short === "-p" || opt.long === "--port"
+        (opt) => opt.short === "-p" || opt.long === "--port",
       );
 
       expect(portOption).toBeDefined();
@@ -147,7 +159,7 @@ describe("CLI Commands - Unified Startup", () => {
       const devCommand = program.commands.find((cmd) => cmd.name() === "dev");
 
       const hostOption = devCommand?.options.find(
-        (opt) => opt.short === "-h" || opt.long === "--host"
+        (opt) => opt.short === "-h" || opt.long === "--host",
       );
 
       expect(hostOption).toBeDefined();
@@ -173,6 +185,7 @@ describe("CLI Commands - Unified Startup", () => {
       try {
         await program.parseAsync(["dev", "--port", "99999"], { from: "user" });
       } catch (error) {
+        expect(exitCode).toBeDefined();
         expect(exitCode).toBe(1);
       }
     });
@@ -181,7 +194,9 @@ describe("CLI Commands - Unified Startup", () => {
   describe("serve command removal", () => {
     test("serve command is not registered", () => {
       const program = createProgram();
-      const serveCommand = program.commands.find((cmd) => cmd.name() === "serve");
+      const serveCommand = program.commands.find(
+        (cmd) => cmd.name() === "serve",
+      );
 
       expect(serveCommand).toBeUndefined();
     });

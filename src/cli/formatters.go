@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"time" // Added for time.RFC3339 in log formatting if needed, though not for server table
+
 	"github.com/user/janitarr/src/database"
 	"github.com/user/janitarr/src/logger"
 	"github.com/user/janitarr/src/services" // Imported for ServerInfo, etc.
@@ -20,11 +21,11 @@ const (
 	colorBold   = "\033[1m"
 )
 
-func success(msg string) string { return colorGreen + "✓ " + msg + colorReset }
+func success(msg string) string  { return colorGreen + "✓ " + msg + colorReset }
 func errorMsg(msg string) string { return colorRed + "✗ " + msg + colorReset }
-func warning(msg string) string { return colorYellow + "⚠ " + msg + colorReset }
-func info(msg string) string { return colorCyan + "ℹ " + msg + colorReset }
-func header(msg string) string { return colorBold + msg + colorReset }
+func warning(msg string) string  { return colorYellow + "⚠ " + msg + colorReset }
+func info(msg string) string     { return colorCyan + "ℹ " + msg + colorReset }
+func header(msg string) string   { return colorBold + msg + colorReset }
 
 // keyValue formats a key-value pair for console output.
 func keyValue(key, value string) string {
@@ -108,7 +109,7 @@ func formatLogTable(logs []logger.LogEntry) string {
 	// Calculate column widths
 	// Max width for timestamp (RFC3339) is usually around 24-29 chars
 	timestampWidth := 29
-	typeWidth := 15 // Max length of LogEntryType enum values
+	typeWidth := 15  // Max length of LogEntryType enum values
 	serverWidth := 6 // "Server"
 	for _, l := range logs {
 		if l.ServerName != "" && len(l.ServerName) > serverWidth {
@@ -171,7 +172,7 @@ func formatConfigTable(config *database.AppConfig) string {
 	sb.WriteString(header("Configuration") + "\n")
 	sb.WriteString("\n")
 
-	ssb.WriteString(colorBold + "Schedule:" + colorReset + "\n")
+	sb.WriteString(colorBold + "Schedule:" + colorReset + "\n")
 	enabledText := warning("No")
 	if config.Schedule.Enabled {
 		enabledText = success("Yes")
@@ -180,7 +181,7 @@ func formatConfigTable(config *database.AppConfig) string {
 	sb.WriteString(keyValue("Interval", fmt.Sprintf("%d hours", config.Schedule.IntervalHours)) + "\n")
 	sb.WriteString("\n")
 
-	ssb.WriteString(colorBold + "Search Limits:" + colorReset + "\n")
+	sb.WriteString(colorBold + "Search Limits:" + colorReset + "\n")
 	sb.WriteString(keyValue("Missing Movies", formatLimit(config.SearchLimits.MissingMoviesLimit)) + "\n")
 	sb.WriteString(keyValue("Missing Episodes", formatLimit(config.SearchLimits.MissingEpisodesLimit)) + "\n")
 	sb.WriteString(keyValue("Cutoff Movies", formatLimit(config.SearchLimits.CutoffMoviesLimit)) + "\n")

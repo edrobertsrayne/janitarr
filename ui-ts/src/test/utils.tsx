@@ -1,9 +1,9 @@
-import type { ReactElement } from 'react';
-import { render, type RenderOptions } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import { vi } from 'vitest';
+import type { ReactElement } from "react";
+import { render, type RenderOptions } from "@testing-library/react";
+import { BrowserRouter } from "react-router-dom";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
+import CssBaseline from "@mui/material/CssBaseline";
+import { vi } from "vitest";
 
 // Create a test theme (light mode by default)
 const testTheme = createTheme({
@@ -19,7 +19,7 @@ const testTheme = createTheme({
  */
 export function renderWithProviders(
   ui: ReactElement,
-  renderOptions: Omit<RenderOptions, 'wrapper'> = {}
+  renderOptions: Omit<RenderOptions, "wrapper"> = {},
 ) {
   function Wrapper({ children }: { children: React.ReactNode }) {
     return (
@@ -78,5 +78,5 @@ export class MockWebSocketClient {
 }
 
 // Re-export everything from React Testing Library
-export * from '@testing-library/react';
-export { default as userEvent } from '@testing-library/user-event';
+export * from "@testing-library/react";
+export { default as userEvent } from "@testing-library/user-event";

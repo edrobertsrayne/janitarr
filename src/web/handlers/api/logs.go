@@ -1,14 +1,13 @@
 package api
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/user/janitarr/src/database"
-	"github.com/user/janitarr/src/logger"
 )
 
 // LogHandlers provides handlers for log-related API endpoints.

@@ -9,7 +9,11 @@ import { websocketHandlers } from "./websocket";
 import { jsonError, HttpStatus } from "./types";
 
 // Import route handlers
-import { handleGetConfig, handlePatchConfig, handleResetConfig } from "./routes/config";
+import {
+  handleGetConfig,
+  handlePatchConfig,
+  handleResetConfig,
+} from "./routes/config";
 import {
   handleGetServers,
   handleGetServer,
@@ -19,8 +23,15 @@ import {
   handleTestServer,
   handleTestNewServer,
 } from "./routes/servers";
-import { handleGetLogs, handleDeleteLogs, handleExportLogs } from "./routes/logs";
-import { handleTriggerAutomation, handleGetAutomationStatus } from "./routes/automation";
+import {
+  handleGetLogs,
+  handleDeleteLogs,
+  handleExportLogs,
+} from "./routes/logs";
+import {
+  handleTriggerAutomation,
+  handleGetAutomationStatus,
+} from "./routes/automation";
 import { handleGetStatsSummary, handleGetServerStats } from "./routes/stats";
 import { handleHealthCheck } from "./routes/health";
 import { handleMetrics } from "./routes/metrics";
@@ -48,7 +59,10 @@ async function proxyToVite(req: Request): Promise<Response> {
     const response = await fetch(viteUrl, {
       method: req.method,
       headers: req.headers,
-      body: req.method !== "GET" && req.method !== "HEAD" ? await req.text() : undefined,
+      body:
+        req.method !== "GET" && req.method !== "HEAD"
+          ? await req.text()
+          : undefined,
     });
 
     // Forward response from Vite
@@ -61,7 +75,7 @@ async function proxyToVite(req: Request): Promise<Response> {
     console.error("Vite proxy error:", error);
     return new Response(
       "Failed to proxy to Vite dev server. Is it running on http://localhost:5173?",
-      { status: 502 }
+      { status: 502 },
     );
   }
 }
@@ -128,7 +142,13 @@ async function serveStaticFile(urlPath: string): Promise<Response> {
  * Create and start the web server
  */
 export function createWebServer(options: WebServerOptions) {
-  const { port = 3000, host = "localhost", db, silent = false, isDev = false } = options;
+  const {
+    port = 3000,
+    host = "localhost",
+    db,
+    silent = false,
+    isDev = false,
+  } = options;
 
   const server = Bun.serve({
     port,
@@ -147,7 +167,10 @@ export function createWebServer(options: WebServerOptions) {
       if (path === "/ws/logs") {
         const upgraded = server.upgrade(req, { data: {} });
         if (!upgraded) {
-          return jsonError("WebSocket upgrade failed", HttpStatus.INTERNAL_SERVER_ERROR);
+          return jsonError(
+            "WebSocket upgrade failed",
+            HttpStatus.INTERNAL_SERVER_ERROR,
+          );
         }
         return undefined; // WebSocket connection established
       }
@@ -155,7 +178,8 @@ export function createWebServer(options: WebServerOptions) {
       // Add CORS headers
       const headers = new Headers({
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+        "Access-Control-Allow-Methods":
+          "GET, POST, PUT, PATCH, DELETE, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization",
       });
 
@@ -187,9 +211,15 @@ export function createWebServer(options: WebServerOptions) {
           response = await handleCreateServer(req, db);
         } else if (path.match(/^\/api\/servers\/[^/]+$/) && method === "PUT") {
           response = await handleUpdateServer(req, path, db);
-        } else if (path.match(/^\/api\/servers\/[^/]+$/) && method === "DELETE") {
+        } else if (
+          path.match(/^\/api\/servers\/[^/]+$/) &&
+          method === "DELETE"
+        ) {
           response = await handleDeleteServer(path, db);
-        } else if (path.match(/^\/api\/servers\/[^/]+\/test$/) && method === "POST") {
+        } else if (
+          path.match(/^\/api\/servers\/[^/]+\/test$/) &&
+          method === "POST"
+        ) {
           response = await handleTestServer(path, db);
         } else if (path === "/api/servers/test" && method === "POST") {
           response = await handleTestNewServer(req);
@@ -205,7 +235,10 @@ export function createWebServer(options: WebServerOptions) {
           response = await handleGetAutomationStatus(db);
         } else if (path === "/api/stats/summary" && method === "GET") {
           response = await handleGetStatsSummary(db);
-        } else if (path.match(/^\/api\/stats\/servers\/[^/]+$/) && method === "GET") {
+        } else if (
+          path.match(/^\/api\/stats\/servers\/[^/]+$/) &&
+          method === "GET"
+        ) {
           response = await handleGetServerStats(path, db);
         } else if (path === "/api/health" && method === "GET") {
           response = await handleHealthCheck(db);
@@ -253,7 +286,7 @@ export function createWebServer(options: WebServerOptions) {
 
         const errorResponse = jsonError(
           errorMessage,
-          HttpStatus.INTERNAL_SERVER_ERROR
+          HttpStatus.INTERNAL_SERVER_ERROR,
         );
 
         // Add CORS headers to error response
@@ -268,7 +301,9 @@ export function createWebServer(options: WebServerOptions) {
 
         // In dev mode, log error response details
         if (isDev) {
-          console.log(`  → ${errorResponse.status} (${durationMs.toFixed(2)}ms) ERROR`);
+          console.log(
+            `  → ${errorResponse.status} (${durationMs.toFixed(2)}ms) ERROR`,
+          );
         }
 
         return errorResponse;
@@ -285,7 +320,10 @@ export function createWebServer(options: WebServerOptions) {
      */
     error(error) {
       console.error("Server error:", error);
-      return jsonError("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+      return jsonError(
+        "Internal server error",
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     },
   });
 
@@ -312,7 +350,9 @@ export function stopWebServer(server: ReturnType<typeof Bun.serve>): void {
  * Closes all WebSocket connections and stops the server.
  * Bun's server.stop() automatically waits for in-flight requests to complete.
  */
-export async function gracefulStopWebServer(server: ReturnType<typeof Bun.serve>): Promise<void> {
+export async function gracefulStopWebServer(
+  server: ReturnType<typeof Bun.serve>,
+): Promise<void> {
   const { closeAllClients } = await import("./websocket");
 
   // Close all WebSocket connections with proper close frames

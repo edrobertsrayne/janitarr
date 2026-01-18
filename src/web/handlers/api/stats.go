@@ -1,10 +1,7 @@
 package api
 
 import (
-	"encoding/json"
-	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/user/janitarr/src/database"
@@ -35,7 +32,7 @@ func (h *StatsHandlers) GetServerStats(w http.ResponseWriter, r *http.Request) {
 	}
 
 	stats := h.DB.GetServerStats(serverID)
-	if stats.ServerName == "" { // Assuming ServerName is set if found
+	if stats.TotalSearches == 0 && stats.ErrorCount == 0 && stats.LastCheckTime == "" {
 		jsonError(w, "Server not found", http.StatusNotFound)
 		return
 	}

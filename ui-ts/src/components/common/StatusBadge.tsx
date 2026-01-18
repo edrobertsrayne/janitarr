@@ -2,14 +2,14 @@
  * Status badge component for servers and automation
  */
 
-import { Chip } from '@mui/material';
+import { Chip } from "@mui/material";
 import {
   CheckCircle as ConnectedIcon,
   Error as ErrorIcon,
   RemoveCircle as DisabledIcon,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
 
-type StatusType = 'connected' | 'error' | 'disabled' | 'running' | 'stopped';
+type StatusType = "connected" | "error" | "disabled" | "running" | "stopped";
 
 interface StatusBadgeProps {
   status: StatusType;
@@ -18,29 +18,29 @@ interface StatusBadgeProps {
 
 const statusConfig = {
   connected: {
-    color: 'success' as const,
+    color: "success" as const,
     icon: <ConnectedIcon />,
-    label: 'Connected',
+    label: "Connected",
   },
   error: {
-    color: 'error' as const,
+    color: "error" as const,
     icon: <ErrorIcon />,
-    label: 'Error',
+    label: "Error",
   },
   disabled: {
-    color: 'default' as const,
+    color: "default" as const,
     icon: <DisabledIcon />,
-    label: 'Disabled',
+    label: "Disabled",
   },
   running: {
-    color: 'primary' as const,
+    color: "primary" as const,
     icon: <ConnectedIcon />,
-    label: 'Running',
+    label: "Running",
   },
   stopped: {
-    color: 'default' as const,
+    color: "default" as const,
     icon: <DisabledIcon />,
-    label: 'Stopped',
+    label: "Stopped",
   },
 };
 

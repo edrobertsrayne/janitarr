@@ -45,7 +45,7 @@ export interface CycleResult {
  */
 export async function runAutomationCycle(
   isManual = false,
-  dryRun = false
+  dryRun = false,
 ): Promise<CycleResult> {
   const errors: string[] = [];
 
@@ -130,10 +130,10 @@ export async function runAutomationCycle(
           result.serverName,
           result.serverType,
           result.category,
-          result.error ?? "Unknown error"
+          result.error ?? "Unknown error",
         );
         errors.push(
-          `Search trigger failed for ${result.serverName} (${result.category}): ${result.error}`
+          `Search trigger failed for ${result.serverName} (${result.category}): ${result.error}`,
         );
       }
     }
@@ -148,7 +148,7 @@ export async function runAutomationCycle(
           serverType as "radarr" | "sonarr",
           "missing",
           counts.missing,
-          isManual
+          isManual,
         );
       }
 
@@ -158,7 +158,7 @@ export async function runAutomationCycle(
           serverType as "radarr" | "sonarr",
           "cutoff",
           counts.cutoff,
-          isManual
+          isManual,
         );
       }
     }
@@ -208,20 +208,20 @@ export function formatCycleResult(result: CycleResult): string {
   // Detection summary
   lines.push("Detection:");
   lines.push(
-    `  Found: ${result.detectionResults.totalMissing} missing, ${result.detectionResults.totalCutoff} cutoff`
+    `  Found: ${result.detectionResults.totalMissing} missing, ${result.detectionResults.totalCutoff} cutoff`,
   );
   lines.push(
-    `  Servers: ${result.detectionResults.successCount} successful, ${result.detectionResults.failureCount} failed`
+    `  Servers: ${result.detectionResults.successCount} successful, ${result.detectionResults.failureCount} failed`,
   );
   lines.push("");
 
   // Search summary
   lines.push("Search Triggering:");
   lines.push(
-    `  Triggered: ${result.searchResults.missingTriggered} missing, ${result.searchResults.cutoffTriggered} cutoff`
+    `  Triggered: ${result.searchResults.missingTriggered} missing, ${result.searchResults.cutoffTriggered} cutoff`,
   );
   lines.push(
-    `  Total: ${result.totalSearches} searches, ${result.searchResults.failureCount} failures`
+    `  Total: ${result.totalSearches} searches, ${result.searchResults.failureCount} failures`,
   );
   lines.push("");
 

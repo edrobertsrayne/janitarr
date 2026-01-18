@@ -72,6 +72,7 @@ bunx eslint .
 4. Test all views and functionality
 
 **Test checklist:**
+
 - [ ] Navigation works between all views
 - [ ] Theme toggle cycles through light/dark/system
 - [ ] Mobile responsive design (resize browser)
@@ -110,12 +111,14 @@ ui/
 ### Routing
 
 React Router v7 with client-side routing:
+
 - `/` - Dashboard (default)
 - `/servers` - Server management
 - `/logs` - Activity logs
 - `/settings` - Configuration
 
 All routes share a common layout with:
+
 - Responsive navigation drawer (sidebar on desktop, hamburger menu on mobile)
 - AppBar with title and theme toggle
 - Main content area
@@ -123,6 +126,7 @@ All routes share a common layout with:
 ### Theme System
 
 Three-mode theme implementation:
+
 - **Light mode** - Standard light theme
 - **Dark mode** - Dark theme
 - **System mode** - Follows OS preference
@@ -139,6 +143,7 @@ Uses Material-UI breakpoints for consistent responsive behavior.
 ### API Integration
 
 The UI communicates with the backend API at `/api/*` endpoints:
+
 - `/api/servers` - Server CRUD operations
 - `/api/logs` - Activity log retrieval
 - `/api/config` - Configuration management
@@ -153,21 +158,25 @@ No known limitations at this time.
 ## Troubleshooting
 
 ### Dev server won't start
+
 - Check that port 5173 is available
 - Ensure dependencies are installed: `bun install`
 - Verify you're in the devenv: `direnv allow`
 
 ### API requests fail
+
 - Ensure the backend server is running on port 3000
 - Check the proxy configuration in `vite.config.ts`
 - Verify CORS settings on the backend
 
 ### Build fails
+
 - Run type checking: `bunx tsc --noEmit`
 - Check for linting errors: `bunx eslint .`
 - Ensure all dependencies are installed
 
 ### Theme not persisting
+
 - Check browser localStorage is enabled
 - Verify ThemeContext is properly wrapping the app
 - Clear browser cache and reload

@@ -2,11 +2,7 @@
  * Type definitions for Web API requests and responses
  */
 
-import type {
-  ServerType,
-  LogEntry,
-  LogEntryType,
-} from "../types";
+import type { ServerType, LogEntry, LogEntryType } from "../types";
 
 /** HTTP methods supported by the API */
 export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
@@ -150,7 +146,10 @@ export const HttpStatus = {
 } as const;
 
 /** Helper to create successful JSON response */
-export function jsonSuccess<T>(data: T, status: number = HttpStatus.OK): Response {
+export function jsonSuccess<T>(
+  data: T,
+  status: number = HttpStatus.OK,
+): Response {
   return new Response(JSON.stringify({ success: true, data }), {
     status,
     headers: { "Content-Type": "application/json" },
@@ -158,7 +157,10 @@ export function jsonSuccess<T>(data: T, status: number = HttpStatus.OK): Respons
 }
 
 /** Helper to create error JSON response */
-export function jsonError(error: string, status: number = HttpStatus.BAD_REQUEST): Response {
+export function jsonError(
+  error: string,
+  status: number = HttpStatus.BAD_REQUEST,
+): Response {
   return new Response(JSON.stringify({ success: false, error }), {
     status,
     headers: { "Content-Type": "application/json" },
@@ -184,7 +186,11 @@ export function parseQueryParams(url: URL): Record<string, string> {
 }
 
 /** Helper to extract path parameters */
-export function extractPathParam(path: string, pattern: RegExp, groupIndex: number = 1): string | null {
+export function extractPathParam(
+  path: string,
+  pattern: RegExp,
+  groupIndex: number = 1,
+): string | null {
   const match = path.match(pattern);
   return match?.[groupIndex] ?? null;
 }

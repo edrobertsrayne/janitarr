@@ -37,7 +37,9 @@ interface DurationHistogram {
 const durationHistograms = new Map<string, DurationHistogram>();
 
 /** Standard buckets for HTTP request duration (in seconds) */
-const DURATION_BUCKETS = [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10];
+const DURATION_BUCKETS = [
+  0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10,
+];
 
 /** Singleton counter storage */
 const counters: Counters = {
@@ -65,7 +67,7 @@ export function incrementSearchCounter(
   serverType: "radarr" | "sonarr",
   category: "missing" | "cutoff",
   count: number,
-  failed = false
+  failed = false,
 ): void {
   const key = `${serverType}:${category}`;
   const map = failed ? counters.searchesFailed : counters.searchesTriggered;
@@ -80,7 +82,7 @@ export function recordHttpRequest(
   method: string,
   path: string,
   status: number,
-  durationMs: number
+  durationMs: number,
 ): void {
   // Record request counter
   const counterKey = `${method}:${path}:${status}`;
@@ -139,7 +141,7 @@ function formatMetric(
   name: string,
   type: "counter" | "gauge" | "histogram",
   help: string,
-  values: Array<{ labels?: Record<string, string>; value: number | string }>
+  values: Array<{ labels?: Record<string, string>; value: number | string }>,
 ): string {
   const lines: string[] = [];
 
@@ -167,7 +169,7 @@ function formatHistogram(
   name: string,
   help: string,
   histograms: Map<string, DurationHistogram>,
-  labelKeys: string[]
+  labelKeys: string[],
 ): string {
   const lines: string[] = [];
 
@@ -220,29 +222,38 @@ export function collectMetrics(): string {
   metrics.push(
     formatMetric("janitarr_info", "gauge", "Application version information", [
       { labels: { version: getAppVersion() }, value: 1 },
-    ])
+    ]),
   );
 
   // Uptime
   metrics.push(
-    formatMetric("janitarr_uptime_seconds", "counter", "Time since process start", [
-      { value: getUptimeSeconds() },
-    ])
+    formatMetric(
+      "janitarr_uptime_seconds",
+      "counter",
+      "Time since process start",
+      [{ value: getUptimeSeconds() }],
+    ),
   );
 
   // Scheduler metrics
   const schedulerStatus = getStatus();
 
   metrics.push(
-    formatMetric("janitarr_scheduler_enabled", "gauge", "Whether scheduler is enabled", [
-      { value: schedulerStatus.config.enabled ? 1 : 0 },
-    ])
+    formatMetric(
+      "janitarr_scheduler_enabled",
+      "gauge",
+      "Whether scheduler is enabled",
+      [{ value: schedulerStatus.config.enabled ? 1 : 0 }],
+    ),
   );
 
   metrics.push(
-    formatMetric("janitarr_scheduler_running", "gauge", "Whether scheduler is running", [
-      { value: schedulerStatus.isRunning ? 1 : 0 },
-    ])
+    formatMetric(
+      "janitarr_scheduler_running",
+      "gauge",
+      "Whether scheduler is running",
+      [{ value: schedulerStatus.isRunning ? 1 : 0 }],
+    ),
   );
 
   metrics.push(
@@ -250,14 +261,17 @@ export function collectMetrics(): string {
       "janitarr_scheduler_cycle_active",
       "gauge",
       "Whether automation cycle is active",
-      [{ value: schedulerStatus.isCycleActive ? 1 : 0 }]
-    )
+      [{ value: schedulerStatus.isCycleActive ? 1 : 0 }],
+    ),
   );
 
   metrics.push(
-    formatMetric("janitarr_scheduler_cycles_total", "counter", "Total automation cycles executed", [
-      { value: counters.schedulerCyclesTotal },
-    ])
+    formatMetric(
+      "janitarr_scheduler_cycles_total",
+      "counter",
+      "Total automation cycles executed",
+      [{ value: counters.schedulerCyclesTotal }],
+    ),
   );
 
   metrics.push(
@@ -265,8 +279,8 @@ export function collectMetrics(): string {
       "janitarr_scheduler_cycles_failed_total",
       "counter",
       "Total failed automation cycles",
-      [{ value: counters.schedulerCyclesFailed }]
-    )
+      [{ value: counters.schedulerCyclesFailed }],
+    ),
   );
 
   // Next run timestamp
@@ -277,13 +291,16 @@ export function collectMetrics(): string {
         "janitarr_scheduler_next_run_timestamp",
         "gauge",
         "Unix timestamp of next scheduled run",
-        [{ value: timestamp }]
-      )
+        [{ value: timestamp }],
+      ),
     );
   }
 
   // Search metrics - triggered
-  const triggeredValues: Array<{ labels: Record<string, string>; value: number }> = [];
+  const triggeredValues: Array<{
+    labels: Record<string, string>;
+    value: number;
+  }> = [];
   for (const [key, count] of counters.searchesTriggered) {
     const [serverType, category] = key.split(":");
     triggeredValues.push({
@@ -297,13 +314,14 @@ export function collectMetrics(): string {
         "janitarr_searches_triggered_total",
         "counter",
         "Total searches triggered by type",
-        triggeredValues
-      )
+        triggeredValues,
+      ),
     );
   }
 
   // Search metrics - failed
-  const failedValues: Array<{ labels: Record<string, string>; value: number }> = [];
+  const failedValues: Array<{ labels: Record<string, string>; value: number }> =
+    [];
   for (const [key, count] of counters.searchesFailed) {
     const [serverType, category] = key.split(":");
     failedValues.push({
@@ -317,8 +335,8 @@ export function collectMetrics(): string {
         "janitarr_searches_failed_total",
         "counter",
         "Total failed searches by type",
-        failedValues
-      )
+        failedValues,
+      ),
     );
   }
 
@@ -330,8 +348,12 @@ export function collectMetrics(): string {
     // Count servers by type
     const radarrCount = servers.filter((s) => s.type === "radarr").length;
     const sonarrCount = servers.filter((s) => s.type === "sonarr").length;
-    const radarrEnabled = servers.filter((s) => s.type === "radarr" && s.enabled).length;
-    const sonarrEnabled = servers.filter((s) => s.type === "sonarr" && s.enabled).length;
+    const radarrEnabled = servers.filter(
+      (s) => s.type === "radarr" && s.enabled,
+    ).length;
+    const sonarrEnabled = servers.filter(
+      (s) => s.type === "sonarr" && s.enabled,
+    ).length;
 
     metrics.push(
       formatMetric(
@@ -341,15 +363,20 @@ export function collectMetrics(): string {
         [
           { labels: { type: "radarr" }, value: radarrCount },
           { labels: { type: "sonarr" }, value: sonarrCount },
-        ]
-      )
+        ],
+      ),
     );
 
     metrics.push(
-      formatMetric("janitarr_servers_enabled", "gauge", "Number of enabled servers by type", [
-        { labels: { type: "radarr" }, value: radarrEnabled },
-        { labels: { type: "sonarr" }, value: sonarrEnabled },
-      ])
+      formatMetric(
+        "janitarr_servers_enabled",
+        "gauge",
+        "Number of enabled servers by type",
+        [
+          { labels: { type: "radarr" }, value: radarrEnabled },
+          { labels: { type: "sonarr" }, value: sonarrEnabled },
+        ],
+      ),
     );
   } catch (error) {
     // Database not available, skip server metrics
@@ -363,30 +390,40 @@ export function collectMetrics(): string {
     // Test database connection
     const dbConnected = db.testConnection();
     metrics.push(
-      formatMetric("janitarr_database_connected", "gauge", "Database connection status", [
-        { value: dbConnected ? 1 : 0 },
-      ])
+      formatMetric(
+        "janitarr_database_connected",
+        "gauge",
+        "Database connection status",
+        [{ value: dbConnected ? 1 : 0 }],
+      ),
     );
 
     // Get log count
     const logCount = db.getLogCount();
     metrics.push(
-      formatMetric("janitarr_logs_total", "gauge", "Total log entries in database", [
-        { value: logCount },
-      ])
+      formatMetric(
+        "janitarr_logs_total",
+        "gauge",
+        "Total log entries in database",
+        [{ value: logCount }],
+      ),
     );
   } catch (error) {
     // Database not available
     console.error("Failed to collect database metrics:", error);
     metrics.push(
-      formatMetric("janitarr_database_connected", "gauge", "Database connection status", [
-        { value: 0 },
-      ])
+      formatMetric(
+        "janitarr_database_connected",
+        "gauge",
+        "Database connection status",
+        [{ value: 0 }],
+      ),
     );
   }
 
   // HTTP metrics - request counter
-  const httpValues: Array<{ labels: Record<string, string>; value: number }> = [];
+  const httpValues: Array<{ labels: Record<string, string>; value: number }> =
+    [];
   for (const [key, count] of counters.httpRequests) {
     const [method, path, status] = key.split(":");
     httpValues.push({
@@ -396,7 +433,12 @@ export function collectMetrics(): string {
   }
   if (httpValues.length > 0) {
     metrics.push(
-      formatMetric("janitarr_http_requests_total", "counter", "Total HTTP requests", httpValues)
+      formatMetric(
+        "janitarr_http_requests_total",
+        "counter",
+        "Total HTTP requests",
+        httpValues,
+      ),
     );
   }
 
@@ -407,8 +449,8 @@ export function collectMetrics(): string {
         "janitarr_http_request_duration_seconds",
         "HTTP request duration in seconds",
         durationHistograms,
-        ["method", "path"]
-      )
+        ["method", "path"],
+      ),
     );
   }
 

@@ -2,7 +2,7 @@
  * Logs view - Activity logs with real-time streaming
  */
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from "react";
 import {
   Box,
   Card,
@@ -24,21 +24,21 @@ import {
   ListItem,
   ListItemText,
   Divider,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Search as SearchIcon,
   Download as ExportIcon,
   Delete as ClearIcon,
   Refresh as RefreshIcon,
   Circle as ConnectionIcon,
-} from '@mui/icons-material';
-import { formatDistanceToNow } from 'date-fns';
+} from "@mui/icons-material";
+import { formatDistanceToNow } from "date-fns";
 
-import { getLogs, deleteLogs, exportLogs } from '../services/api';
-import { WebSocketClient } from '../services/websocket';
-import type { LogEntry, LogEntryType } from '../types';
-import LoadingSpinner from '../components/common/LoadingSpinner';
-import ConfirmDialog from '../components/common/ConfirmDialog';
+import { getLogs, deleteLogs, exportLogs } from "../services/api";
+import { WebSocketClient } from "../services/websocket";
+import type { LogEntry, LogEntryType } from "../types";
+import LoadingSpinner from "../components/common/LoadingSpinner";
+import ConfirmDialog from "../components/common/ConfirmDialog";
 
 export default function Logs() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
@@ -58,16 +58,18 @@ export default function Logs() {
     }
     return null; // Return null if in test environment, preventing instantiation
   });
-  const [wsStatus, setWsStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
+  const [wsStatus, setWsStatus] = useState<
+    "connecting" | "connected" | "disconnected" | "error"
+  >("disconnected");
   const [autoScroll] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [typeFilter, setTypeFilter] = useState<LogEntryType | 'all'>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState<LogEntryType | "all">("all");
   const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
-    severity: 'success' | 'error';
-  }>({ open: false, message: '', severity: 'success' });
+    severity: "success" | "error";
+  }>({ open: false, message: "", severity: "success" });
 
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -75,10 +77,10 @@ export default function Logs() {
     // Check for test data injection in E2E environment
     if ((window as any).__JANITARR_TEST_LOGS__) {
       setLogs((window as any).__JANITARR_TEST_LOGS__);
-      setWsStatus('connected'); // Simulate connected status for test
+      setWsStatus("connected"); // Simulate connected status for test
       setLoading(false);
       // In test environment, bypass actual API calls and WebSocket connection
-      console.log('Using __JANITARR_TEST_LOGS__ for initial logs');
+      console.log("Using __JANITARR_TEST_LOGS__ for initial logs");
       return; // Skip normal initialization
     }
 
@@ -90,9 +92,9 @@ export default function Logs() {
       wsClient.subscribe();
     }
 
-
     return () => {
-      if (wsClient) { // Disconnect only if wsClient was instantiated
+      if (wsClient) {
+        // Disconnect only if wsClient was instantiated
         wsClient.disconnect();
       }
     };
@@ -114,26 +116,26 @@ export default function Logs() {
       setLogs([]);
       setSnackbar({
         open: true,
-        message: 'Logs cleared successfully',
-        severity: 'success',
+        message: "Logs cleared successfully",
+        severity: "success",
       });
     } else {
       setSnackbar({
         open: true,
-        message: result.error || 'Failed to clear logs',
-        severity: 'error',
+        message: result.error || "Failed to clear logs",
+        severity: "error",
       });
     }
 
     setClearConfirmOpen(false);
   };
 
-  const handleExport = async (format: 'json' | 'csv') => {
+  const handleExport = async (format: "json" | "csv") => {
     const blob = await exportLogs(undefined, format);
 
     if (blob) {
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = `janitarr-logs-${Date.now()}.${format}`;
       document.body.appendChild(a);
@@ -144,53 +146,56 @@ export default function Logs() {
       setSnackbar({
         open: true,
         message: `Logs exported as ${format.toUpperCase()}`,
-        severity: 'success',
+        severity: "success",
       });
     } else {
       setSnackbar({
         open: true,
-        message: 'Failed to export logs',
-        severity: 'error',
+        message: "Failed to export logs",
+        severity: "error",
       });
     }
   };
 
   const getLogIcon = (type: LogEntryType): string => {
     switch (type) {
-      case 'cycle_start':
-        return '▶️';
-      case 'cycle_end':
-        return '✅';
-      case 'search':
-        return '🔍';
-      case 'error':
-        return '❌';
+      case "cycle_start":
+        return "▶️";
+      case "cycle_end":
+        return "✅";
+      case "search":
+        return "🔍";
+      case "error":
+        return "❌";
       default:
-        return '📝';
+        return "📝";
     }
   };
 
   const getLogColor = (type: LogEntryType): string => {
     switch (type) {
-      case 'cycle_start':
-        return '#2196f3';
-      case 'cycle_end':
-        return '#4caf50';
-      case 'search':
-        return '#00bcd4';
-      case 'error':
-        return '#f44336';
+      case "cycle_start":
+        return "#2196f3";
+      case "cycle_end":
+        return "#4caf50";
+      case "search":
+        return "#00bcd4";
+      case "error":
+        return "#f44336";
       default:
-        return '#9e9e9e';
+        return "#9e9e9e";
     }
   };
 
   const filteredLogs = logs.filter((log) => {
-    if (typeFilter !== 'all' && log.type !== typeFilter) {
+    if (typeFilter !== "all" && log.type !== typeFilter) {
       return false;
     }
 
-    if (searchQuery && !log.message.toLowerCase().includes(searchQuery.toLowerCase())) {
+    if (
+      searchQuery &&
+      !log.message.toLowerCase().includes(searchQuery.toLowerCase())
+    ) {
       return false;
     }
 
@@ -204,39 +209,66 @@ export default function Logs() {
   return (
     <Box>
       {/* Toolbar */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-        <Typography variant="h4" sx={{ mb: 0 }}>Logs</Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          mb: 3,
+          flexWrap: "wrap",
+          gap: 2,
+        }}
+      >
+        <Typography variant="h4" sx={{ mb: 0 }}>
+          Logs
+        </Typography>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            flexWrap: "wrap",
+          }}
+        >
           <Chip
             icon={<ConnectionIcon />}
             label={wsStatus}
             size="small"
             aria-label={`WebSocket connection status: ${wsStatus}`}
             color={
-              wsStatus === 'connected'
-                ? 'success'
-                : wsStatus === 'connecting'
-                ? 'warning'
-                : 'default'
+              wsStatus === "connected"
+                ? "success"
+                : wsStatus === "connecting"
+                  ? "warning"
+                  : "default"
             }
           />
           <Button
             size="small"
-            startIcon={<ExportIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
-            onClick={() => handleExport('json')}
-            sx={{ minWidth: { xs: '60px', sm: 'auto' } }}
+            startIcon={
+              <ExportIcon sx={{ display: { xs: "none", sm: "inline-flex" } }} />
+            }
+            onClick={() => handleExport("json")}
+            sx={{ minWidth: { xs: "60px", sm: "auto" } }}
           >
             JSON
           </Button>
           <Button
             size="small"
-            startIcon={<ExportIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
-            onClick={() => handleExport('csv')}
-            sx={{ minWidth: { xs: '50px', sm: 'auto' } }}
+            startIcon={
+              <ExportIcon sx={{ display: { xs: "none", sm: "inline-flex" } }} />
+            }
+            onClick={() => handleExport("csv")}
+            sx={{ minWidth: { xs: "50px", sm: "auto" } }}
           >
             CSV
           </Button>
-          <IconButton onClick={loadLogs} title="Refresh" aria-label="Refresh logs" sx={{ minWidth: 44, minHeight: 44 }}>
+          <IconButton
+            onClick={loadLogs}
+            title="Refresh"
+            aria-label="Refresh logs"
+            sx={{ minWidth: 44, minHeight: 44 }}
+          >
             <RefreshIcon />
           </IconButton>
           <IconButton
@@ -254,13 +286,18 @@ export default function Logs() {
       {/* Filters */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
             <TextField
               placeholder="Search logs..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               InputProps={{
-                startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} aria-hidden="true" />,
+                startAdornment: (
+                  <SearchIcon
+                    sx={{ mr: 1, color: "text.secondary" }}
+                    aria-hidden="true"
+                  />
+                ),
               }}
               size="small"
               fullWidth
@@ -271,7 +308,9 @@ export default function Logs() {
               <Select
                 value={typeFilter}
                 label="Type Filter"
-                onChange={(e) => setTypeFilter(e.target.value as LogEntryType | 'all')}
+                onChange={(e) =>
+                  setTypeFilter(e.target.value as LogEntryType | "all")
+                }
               >
                 <MenuItem value="all">All Types</MenuItem>
                 <MenuItem value="cycle_start">Cycle Start</MenuItem>
@@ -281,7 +320,11 @@ export default function Logs() {
               </Select>
             </FormControl>
           </Stack>
-          <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ mt: 1, display: "block" }}
+          >
             {filteredLogs.length} of {logs.length} logs
           </Typography>
         </CardContent>
@@ -294,24 +337,31 @@ export default function Logs() {
         <Paper
           ref={listRef}
           sx={{
-            maxHeight: '70vh',
-            overflow: 'auto',
+            maxHeight: "70vh",
+            overflow: "auto",
           }}
         >
-          <List aria-label="Activity logs" role="log" aria-live="polite" aria-atomic="false">
+          <List
+            aria-label="Activity logs"
+            role="log"
+            aria-live="polite"
+            aria-atomic="false"
+          >
             {filteredLogs.map((log, index) => (
               <Box key={log.id}>
                 <ListItem
                   sx={{
                     borderLeft: `4px solid ${getLogColor(log.type)}`,
-                    '&:hover': {
-                      bgcolor: 'action.hover',
+                    "&:hover": {
+                      bgcolor: "action.hover",
                     },
                   }}
                 >
                   <ListItemText
                     primary={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
                         <span>{getLogIcon(log.type)}</span>
                         <Chip label={log.type} size="small" />
                         {log.serverName && (
@@ -324,7 +374,11 @@ export default function Logs() {
                         {log.isManual && (
                           <Chip label="Manual" size="small" color="warning" />
                         )}
-                        <Typography variant="caption" color="text.secondary" component="span">
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          component="span"
+                        >
                           {formatDistanceToNow(new Date(log.timestamp), {
                             addSuffix: true,
                           })}
@@ -333,15 +387,21 @@ export default function Logs() {
                     }
                     secondary={
                       <Box>
-                        <Typography variant="body2" component="span">{log.message}</Typography>
+                        <Typography variant="body2" component="span">
+                          {log.message}
+                        </Typography>
                         {log.count && (
-                          <Typography variant="caption" color="text.secondary" component="span">
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            component="span"
+                          >
                             {log.count} items • {log.category}
                           </Typography>
                         )}
                       </Box>
                     }
-                    secondaryTypographyProps={{ component: 'div' }}
+                    secondaryTypographyProps={{ component: "div" }}
                   />
                 </ListItem>
                 {index < filteredLogs.length - 1 && <Divider />}
@@ -367,7 +427,7 @@ export default function Logs() {
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       >
         <Alert
           severity={snackbar.severity}

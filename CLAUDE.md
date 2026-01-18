@@ -1,149 +1,216 @@
-## Setup
+# Janitarr - AI Agent Instructions
 
-The development environment uses [devenv](https://devenv.sh) with direnv for automatic environment loading.
+Janitarr is an automation tool for Radarr and Sonarr media servers, written in Go. It automates content discovery and search triggering with configurable schedules and limits.
+
+## Development Environment
+
+The project uses [devenv](https://devenv.sh) with direnv for automatic environment loading.
 
 **First-time setup:**
-```bash
-direnv allow  # Authorize the development environment
-```
-
-This provides all necessary dependencies including Bun runtime. The environment loads automatically when entering the project directory.
-
-**Install project dependencies:**
-```bash
-bun install
-```
-
-## Build & Run
-
-**Development mode** (with auto-reload):
-```bash
-bun run dev
-```
-
-**Production mode**:
-```bash
-bun run start
-```
-
-**CLI commands** use the pattern:
-```bash
-bun run src/index.ts <command>
-```
-
-## Validation
-
-Run after making changes:
 
 ```bash
-bun test tests/       # Run backend test suite
-cd ui && bunx vitest run  # Run frontend tests
-bun run test:all      # Run both backend and frontend tests
-bunx tsc --noEmit     # Type checking (backend)
-cd ui && bunx tsc -b --noEmit  # Type checking (frontend)
-bunx eslint .         # Linting
+direnv allow                          # Authorize the development environment
 ```
 
-**UI testing:**
+This provides Go, templ, Air, Tailwind CSS, and Playwright. The environment loads automatically when entering the project directory.
 
-The project uses Playwright for automated UI testing with headless Chromium (provided by devenv).
+## Build Commands
 
 ```bash
-bunx playwright test                    # Run all UI tests
-bunx playwright test --ui              # Run with interactive UI mode
-bunx playwright test --headed          # Run with visible browser
-bunx playwright show-report            # View HTML test report
+# Generate templ templates and build
+make build
 
-**Note:** When running UI tests or any browser-based tests, always ensure they are executed in headless mode (e.g., using `playwright test --headless` or configuring Playwright accordingly) as the development environment may not have a graphical display (X server) installed.
+# Run the application
+./janitarr --help
+./janitarr start                      # Production mode
+./janitarr dev                        # Development mode with verbose logging
+
+# Development with hot reload
+make dev                              # Runs Air for auto-rebuild on file changes
+air                                   # Alternative: run Air directly
+
+# Generate templates only
+templ generate
+
+# Build Tailwind CSS
+npx tailwindcss -i ./static/css/input.css -o ./static/css/app.css
 ```
 
-UI tests are located in `tests/ui/` and test against http://localhost:5173.
+## Test Commands
 
-**Before running UI tests**, start both servers:
+Run these after making changes:
 
 ```bash
-cd ui && bun run dev                    # Start UI dev server (terminal 1)
-cd .. && bun run start                  # Start backend (terminal 2)
+# Run all Go tests
+go test ./...
+
+# Run tests with race detection
+go test -race ./...
+
+# Run tests with coverage
+go test -cover ./...
+
+# Run specific package tests
+go test ./src/crypto/...
+go test ./src/database/...
+go test ./src/api/...
+go test ./src/services/...
+
+# Run E2E tests (requires running server)
+bunx playwright test --headless
+bunx playwright show-report           # View test report
 ```
 
-**Manual testing** is also supported - navigate to http://localhost:5173 in your browser.
+**Before running E2E tests**, start the server:
 
-## Test Environment
+```bash
+./janitarr start                      # Terminal 1
+bunx playwright test --headless       # Terminal 2
+```
 
-Test API credentials are in `.env` (development only, not for production).
-Integration tests connect to real Radarr/Sonarr instances specified in `.env`.
+## Code Style
+
+### Go Conventions
+
+- **Package naming**: lowercase, single word when possible (`crypto`, `database`, `api`)
+- **File naming**: lowercase with underscores (`server_manager.go`, `api_client.go`)
+- **Exports**: Only export what needs to be public; prefer unexported by default
+- **Error handling**: Return errors, wrap with context using `fmt.Errorf("context: %w", err)`
+- **Testing**: Table-driven tests preferred, use `testify` assertions sparingly
+
+### Error Pattern
+
+```go
+func (s *ServerManager) AddServer(name, url string) (*Server, error) {
+    if name == "" {
+        return nil, fmt.Errorf("server name is required")
+    }
+
+    server, err := s.db.AddServer(name, url)
+    if err != nil {
+        return nil, fmt.Errorf("adding server: %w", err)
+    }
+
+    return server, nil
+}
+```
+
+### Project Structure
+
+```
+src/                    # All Go source code
+├── main.go             # Entry point
+├── cli/                # Cobra CLI commands
+├── api/                # Radarr/Sonarr API clients
+├── database/           # SQLite operations
+├── services/           # Business logic
+├── web/                # HTTP server and handlers
+├── templates/          # templ HTML templates
+├── logger/             # Activity logging
+└── metrics/            # Prometheus metrics
+static/                 # CSS and JS assets
+migrations/             # SQL migration files
+tests/                  # E2E tests
+```
+
+## Testing Strategy
+
+- **Unit tests**: In `*_test.go` files alongside implementation
+- **Table-driven tests**: Preferred for functions with multiple cases
+- **Mock HTTP**: Use `httptest.Server` for API client tests
+- **In-memory SQLite**: Use `:memory:` for database tests
+- **E2E tests**: Playwright in `tests/ui/` directory
+
+### Test Helpers
+
+```go
+// Create test database
+func testDB(t *testing.T) *database.DB {
+    t.Helper()
+    db, err := database.New(":memory:", t.TempDir()+"/key")
+    if err != nil {
+        t.Fatalf("creating test db: %v", err)
+    }
+    t.Cleanup(func() { db.Close() })
+    return db
+}
+```
 
 ## Database
 
 **Location:** `./data/janitarr.db` (auto-created on first run)
 **Override:** Set `JANITARR_DB_PATH` environment variable
+**Driver:** modernc.org/sqlite (pure Go, no CGO)
 
 The `data/` directory is gitignored.
 
 ## Common Workflows
 
-**First-time setup:**
+**Add a new CLI command:**
+
+1. Create `src/cli/<command>.go`
+2. Add command to `src/cli/root.go`
+3. Test with `go run ./src <command> --help`
+
+**Add a new API endpoint:**
+
+1. Create handler in `src/web/handlers/api/<handler>.go`
+2. Add tests in `src/web/handlers/api/<handler>_test.go`
+3. Register route in `src/web/server.go`
+
+**Add a new page:**
+
+1. Create template in `src/templates/pages/<page>.templ`
+2. Run `templ generate`
+3. Create handler in `src/web/handlers/pages/<page>.go`
+4. Register route in `src/web/server.go`
+
+**Modify database schema:**
+
+1. Create new migration in `migrations/<number>_<name>.sql`
+2. Update `src/database/database.go` migration logic
+3. Update affected Go structs
+
+## Integration Testing
+
+Test API credentials are in `.env` (development only).
+Integration tests connect to real Radarr/Sonarr instances specified in `.env`:
+
 ```bash
-bun run src/index.ts server add                     # Add servers with validation
-bun run src/index.ts config set limits.missing 10   # Configure limits
+RADARR_URL=http://localhost:7878
+RADARR_API_KEY=your-api-key
+SONARR_URL=http://localhost:8989
+SONARR_API_KEY=your-api-key
 ```
 
-**Testing server connections:**
-```bash
-bun run src/index.ts server test <name>
-```
+## Security Notes
 
-**Manual automation run:**
-```bash
-bun run src/index.ts scan   # Preview what will be searched
-bun run src/index.ts run    # Execute searches
-bun run src/index.ts logs   # Review results
-```
-
-**Scheduler operations:**
-```bash
-bun run src/index.ts start   # Start daemon
-bun run src/index.ts status  # Check next run time
-bun run src/index.ts stop    # Stop daemon
-```
-
-## Code Standards
-
-**Type Safety:**
-- All types defined in `src/types.ts`
-- Strict TypeScript with no implicit `any`
-- Database row types separate from domain types
-
-**Result Pattern:**
-Services return typed result objects:
-```typescript
-{ success: boolean, data?: T, error?: string }
-```
-
-**Error Handling:**
-- Validation errors return early with descriptive messages
-- API failures logged but don't crash the application
-- Partial results when some operations fail
-
-**Naming Conventions:**
-- Services: Verb-based functions (`addServer`, `detectAll`, `triggerSearches`)
-- Types: Noun-based interfaces (`ServerConfig`, `DetectionResult`, `LogEntry`)
-- Files: Lowercase kebab-case (`server-manager.ts`, `api-client.ts`)
-
-**Testing:**
-- Unit tests for pure logic (validation, formatting, utilities)
-- Integration tests for API client (real server connections)
-- UI tests use Playwright with headless Chromium (tests/ui/)
-- Mock-free where possible (use in-memory SQLite for tests)
-- Playwright auto-waiting preferred over manual timeouts
+- API keys are encrypted at rest using AES-256-GCM
+- Encryption key stored in `data/.janitarr.key`
+- Default host binding is `localhost` (prevents external access)
+- No authentication in v1 - relies on network-level access control
+- Never log decrypted API keys
 
 ## AI Assistant Guidelines
 
-**Always use Context7 MCP** for the following scenarios:
-- Library/API documentation lookups
-- Code generation and implementation patterns
-- Setup and configuration guidance for tools and frameworks
-- Best practices for specific technologies
-- Up-to-date syntax and feature information
+**Use Context7 MCP** for:
 
-Context7 provides reliable, current documentation with real code examples. Use it proactively rather than relying on potentially outdated training data.
+- Go standard library documentation
+- Chi router patterns
+- templ template syntax
+- htmx attributes and patterns
+- Cobra CLI patterns
+
+**When implementing features:**
+
+1. Write tests first (TDD approach)
+2. Run `go test ./...` after changes
+3. Run `templ generate` after modifying `.templ` files
+4. Check for race conditions with `go test -race ./...`
+
+**Reference files:**
+
+- `src-ts/` - Original TypeScript implementation (reference only)
+- `ui-ts/` - Original React UI (reference only)
+- `specs/` - Feature specifications
+- `MIGRATION_PLAN.md` - Detailed migration tasks

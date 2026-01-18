@@ -2,16 +2,22 @@
  * Theme context for managing light/dark mode
  */
 
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import { lightTheme, darkTheme } from '../theme';
-import type { ThemeMode } from '../types';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useMemo,
+} from "react";
+import { ThemeProvider as MuiThemeProvider } from "@mui/material/styles";
+import CssBaseline from "@mui/material/CssBaseline";
+import { lightTheme, darkTheme } from "../theme";
+import type { ThemeMode } from "../types";
 
 interface ThemeContextValue {
   mode: ThemeMode;
   setMode: (mode: ThemeMode) => void;
-  effectiveMode: 'light' | 'dark';
+  effectiveMode: "light" | "dark";
 }
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
@@ -26,30 +32,30 @@ interface ThemeProviderProps {
 export function ThemeProvider({ children }: ThemeProviderProps) {
   // Load theme preference from localStorage, default to 'system'
   const [mode, setModeState] = useState<ThemeMode>(() => {
-    const stored = localStorage.getItem('janitarr-theme-mode');
-    return (stored as ThemeMode) || 'system';
+    const stored = localStorage.getItem("janitarr-theme-mode");
+    return (stored as ThemeMode) || "system";
   });
 
   // Determine if system prefers dark mode
-  const [systemPrefersDark, setSystemPrefersDark] = useState(() =>
-    window.matchMedia('(prefers-color-scheme: dark)').matches
+  const [systemPrefersDark, setSystemPrefersDark] = useState(
+    () => window.matchMedia("(prefers-color-scheme: dark)").matches,
   );
 
   // Listen for system theme changes
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleChange = (e: MediaQueryListEvent) => {
       setSystemPrefersDark(e.matches);
     };
 
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
 
   // Calculate effective theme mode
-  const effectiveMode: 'light' | 'dark' = useMemo(() => {
-    if (mode === 'system') {
-      return systemPrefersDark ? 'dark' : 'light';
+  const effectiveMode: "light" | "dark" = useMemo(() => {
+    if (mode === "system") {
+      return systemPrefersDark ? "dark" : "light";
     }
     return mode;
   }, [mode, systemPrefersDark]);
@@ -57,10 +63,10 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   // Update localStorage when mode changes
   const setMode = (newMode: ThemeMode) => {
     setModeState(newMode);
-    localStorage.setItem('janitarr-theme-mode', newMode);
+    localStorage.setItem("janitarr-theme-mode", newMode);
   };
 
-  const theme = effectiveMode === 'dark' ? darkTheme : lightTheme;
+  const theme = effectiveMode === "dark" ? darkTheme : lightTheme;
 
   const contextValue: ThemeContextValue = {
     mode,
@@ -84,7 +90,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 export function useTheme() {
   const context = useContext(ThemeContext);
   if (!context) {
-    throw new Error('useTheme must be used within ThemeProvider');
+    throw new Error("useTheme must be used within ThemeProvider");
   }
   return context;
 }

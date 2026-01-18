@@ -5,51 +5,71 @@ This directory contains the design specifications for Janitarr, an automation to
 ## About These Specifications
 
 Each specification document follows a consistent structure:
+
 - **Context**: Background and purpose of the feature
 - **Requirements**: User stories with acceptance criteria
 - **Edge Cases & Constraints**: Technical considerations and limitations
 
 The specifications are implementation-agnostic and focus on _what_ the system should do rather than _how_ it should be built.
 
+## Technology Stack
+
+Janitarr is implemented in Go with the following technologies:
+
+- **Language**: Go 1.22+
+- **Web Framework**: Chi (go-chi/chi/v5)
+- **Database**: modernc.org/sqlite (pure Go, no CGO)
+- **CLI**: Cobra (spf13/cobra)
+- **Templates**: templ (a-h/templ)
+- **Frontend**: htmx + Alpine.js + Tailwind CSS
+
+See [go-architecture.md](./go-architecture.md) for Go-specific patterns and conventions.
+
 ## Specifications by Category
 
 ### Configuration
 
-| Spec | Code | Purpose |
-|------|------|---------|
-| [server-configuration.md](./server-configuration.md) | `src/services/server-manager.ts`<br>`src/storage/database.ts` | Managing Radarr and Sonarr server connections, credentials, and validation |
+| Spec                                                 | Code                                                          | Purpose                                                                    |
+| ---------------------------------------------------- | ------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| [server-configuration.md](./server-configuration.md) | `src/services/server_manager.go`<br>`src/database/servers.go` | Managing Radarr and Sonarr server connections, credentials, and validation |
 
 ### Detection
 
-| Spec | Code | Purpose |
-|------|------|---------|
-| [missing-content-detection.md](./missing-content-detection.md) | `src/services/detector.ts`<br>`src/lib/api-client.ts` | Identifying monitored episodes and movies that are missing from media libraries |
-| [quality-cutoff-detection.md](./quality-cutoff-detection.md) | `src/services/detector.ts`<br>`src/lib/api-client.ts` | Identifying media that exists but hasn't met the configured quality profile cutoff |
+| Spec                                                           | Code                                                                     | Purpose                                                                            |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| [missing-content-detection.md](./missing-content-detection.md) | `src/services/detector.go`<br>`src/api/radarr.go`<br>`src/api/sonarr.go` | Identifying monitored episodes and movies that are missing from media libraries    |
+| [quality-cutoff-detection.md](./quality-cutoff-detection.md)   | `src/services/detector.go`<br>`src/api/radarr.go`<br>`src/api/sonarr.go` | Identifying media that exists but hasn't met the configured quality profile cutoff |
 
 ### Actions
 
-| Spec | Code | Purpose |
-|------|------|---------|
-| [search-triggering.md](./search-triggering.md) | `src/services/search-trigger.ts`<br>`src/lib/api-client.ts` | Initiating content searches in Radarr/Sonarr with user-defined limits per category<br>**Includes:** Dry-run mode for previewing searches |
+| Spec                                           | Code                                                    | Purpose                                                                                                                                  |
+| ---------------------------------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| [search-triggering.md](./search-triggering.md) | `src/services/search_trigger.go`<br>`src/api/client.go` | Initiating content searches in Radarr/Sonarr with user-defined limits per category<br>**Includes:** Dry-run mode for previewing searches |
 
 ### Automation
 
-| Spec | Code | Purpose |
-|------|------|---------|
-| [automatic-scheduling.md](./automatic-scheduling.md) | `src/lib/scheduler.ts`<br>`src/services/automation.ts` | Configuring and executing detection and search operations on a scheduled interval<br>**Includes:** Manual triggers, dry-run preview mode |
-| [unified-service-startup.md](./unified-service-startup.md) | `src/cli/commands.ts`<br>`src/web/server.ts`<br>`src/lib/metrics.ts` | Running scheduler daemon and web server together with unified startup commands<br>**Includes:** Development mode, production mode, health checks, Prometheus metrics |
+| Spec                                                       | Code                                                                                      | Purpose                                                                                                                                                              |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [automatic-scheduling.md](./automatic-scheduling.md)       | `src/services/scheduler.go`<br>`src/services/automation.go`                               | Configuring and executing detection and search operations on a scheduled interval<br>**Includes:** Manual triggers, dry-run preview mode                             |
+| [unified-service-startup.md](./unified-service-startup.md) | `src/cli/start.go`<br>`src/cli/dev.go`<br>`src/web/server.go`<br>`src/metrics/metrics.go` | Running scheduler daemon and web server together with unified startup commands<br>**Includes:** Development mode, production mode, health checks, Prometheus metrics |
 
 ### Monitoring
 
-| Spec | Code | Purpose |
-|------|------|---------|
-| [activity-logging.md](./activity-logging.md) | `src/lib/logger.ts`<br>`src/storage/database.ts` | Recording all triggered searches, automation cycles, and failures for audit and troubleshooting |
+| Spec                                         | Code                                             | Purpose                                                                                         |
+| -------------------------------------------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| [activity-logging.md](./activity-logging.md) | `src/logger/logger.go`<br>`src/database/logs.go` | Recording all triggered searches, automation cycles, and failures for audit and troubleshooting |
 
 ### User Interface
 
-| Spec | Code | Purpose |
-|------|------|---------|
-| [web-frontend.md](./web-frontend.md) | TBD | Modern web interface for managing settings, servers, and monitoring activity through a browser<br>**Includes:** Material Design 3 UI, WebSocket log streaming (HTTP only) |
+| Spec                                 | Code                                          | Purpose                                                                                                                                                              |
+| ------------------------------------ | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [web-frontend.md](./web-frontend.md) | `src/templates/`<br>`src/web/handlers/pages/` | Modern web interface using templ templates, htmx for dynamic updates, and Alpine.js for interactivity<br>**Includes:** Tailwind CSS styling, WebSocket log streaming |
+
+### Architecture
+
+| Spec                                       | Purpose                                                       |
+| ------------------------------------------ | ------------------------------------------------------------- |
+| [go-architecture.md](./go-architecture.md) | Go-specific patterns, conventions, and implementation details |
 
 ## Implementation Flow
 
@@ -76,6 +96,7 @@ If you're new to the project, read the specifications in this recommended order:
 ## Contributing
 
 When adding new features:
+
 1. Create a specification document in this directory first
 2. Follow the existing document structure (Context → Requirements → Edge Cases)
 3. Update this README to include your new specification in the appropriate category

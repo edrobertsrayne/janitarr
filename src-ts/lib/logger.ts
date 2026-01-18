@@ -5,7 +5,12 @@
  * to SQLite and automatically purged after 30 days.
  */
 
-import type { ServerType, LogEntry, LogEntryType, SearchCategory } from "../types";
+import type {
+  ServerType,
+  LogEntry,
+  LogEntryType,
+  SearchCategory,
+} from "../types";
 import { getDatabase } from "../storage/database";
 
 /**
@@ -14,11 +19,13 @@ import { getDatabase } from "../storage/database";
 function broadcastLogEntry(entry: LogEntry): void {
   try {
     // Dynamically import to avoid issues when web server is not running
-    import("../web/websocket").then(({ broadcastLog }) => {
-      broadcastLog(entry);
-    }).catch(() => {
-      // Silently ignore if web server is not loaded
-    });
+    import("../web/websocket")
+      .then(({ broadcastLog }) => {
+        broadcastLog(entry);
+      })
+      .catch(() => {
+        // Silently ignore if web server is not loaded
+      });
   } catch {
     // Silently ignore if web server is not available
   }
@@ -29,7 +36,9 @@ export function logCycleStart(isManual = false): LogEntry {
   const db = getDatabase();
   const entry = db.addLog({
     type: "cycle_start",
-    message: isManual ? "Manual automation cycle started" : "Scheduled automation cycle started",
+    message: isManual
+      ? "Manual automation cycle started"
+      : "Scheduled automation cycle started",
     isManual,
   });
   broadcastLogEntry(entry);
@@ -40,7 +49,7 @@ export function logCycleStart(isManual = false): LogEntry {
 export function logCycleEnd(
   totalSearches: number,
   failures: number,
-  isManual = false
+  isManual = false,
 ): LogEntry {
   const db = getDatabase();
   const message =
@@ -64,7 +73,7 @@ export function logSearches(
   serverType: ServerType,
   category: SearchCategory,
   count: number,
-  isManual = false
+  isManual = false,
 ): LogEntry {
   const db = getDatabase();
   const categoryLabel = category === "missing" ? "missing" : "cutoff";
@@ -86,7 +95,7 @@ export function logSearches(
 export function logServerError(
   serverName: string,
   serverType: ServerType,
-  reason: string
+  reason: string,
 ): LogEntry {
   const db = getDatabase();
   const entry = db.addLog({
@@ -104,7 +113,7 @@ export function logSearchError(
   serverName: string,
   serverType: ServerType,
   category: SearchCategory,
-  reason: string
+  reason: string,
 ): LogEntry {
   const db = getDatabase();
   const categoryLabel = category === "missing" ? "missing" : "cutoff";

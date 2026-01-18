@@ -17,8 +17,6 @@ import {
   SearchLimits,
 } from "../types";
 
-
-
 /** Default database path */
 const DEFAULT_DB_PATH = "./data/janitarr.db";
 
@@ -59,7 +57,9 @@ interface LogRow {
 export class DatabaseManager {
   private db: Database;
 
-  constructor(dbPath: string = process.env.JANITARR_DB_PATH ?? DEFAULT_DB_PATH) {
+  constructor(
+    dbPath: string = process.env.JANITARR_DB_PATH ?? DEFAULT_DB_PATH,
+  ) {
     // Ensure directory exists
     const dir = dbPath.substring(0, dbPath.lastIndexOf("/"));
     if (dir) {
@@ -122,12 +122,15 @@ export class DatabaseManager {
    * Set a config value only if not already set
    */
   private setConfigDefault(key: string, value: string): void {
-    const existing = this.db.query<ConfigRow, [string]>(
-      "SELECT * FROM config WHERE key = ?"
-    ).get(key);
+    const existing = this.db
+      .query<ConfigRow, [string]>("SELECT * FROM config WHERE key = ?")
+      .get(key);
 
     if (!existing) {
-      this.db.run("INSERT INTO config (key, value) VALUES (?, ?)", [key, value]);
+      this.db.run("INSERT INTO config (key, value) VALUES (?, ?)", [
+        key,
+        value,
+      ]);
     }
   }
 
@@ -136,38 +139,38 @@ export class DatabaseManager {
    */
   private migrateLimitKeys(): void {
     // Check if old keys exist
-    const oldMissingLimit = this.db.query<ConfigRow, [string]>(
-      "SELECT value FROM config WHERE key = ?"
-    ).get("limits.missing");
+    const oldMissingLimit = this.db
+      .query<ConfigRow, [string]>("SELECT value FROM config WHERE key = ?")
+      .get("limits.missing");
 
-    const oldCutoffLimit = this.db.query<ConfigRow, [string]>(
-      "SELECT value FROM config WHERE key = ?"
-    ).get("limits.cutoff");
+    const oldCutoffLimit = this.db
+      .query<ConfigRow, [string]>("SELECT value FROM config WHERE key = ?")
+      .get("limits.cutoff");
 
     // Migrate old missing limit to both movies and episodes
     if (oldMissingLimit) {
-      this.db.run(
-        "INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)",
-        ["limits.missing.movies", oldMissingLimit.value]
-      );
-      this.db.run(
-        "INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)",
-        ["limits.missing.episodes", oldMissingLimit.value]
-      );
+      this.db.run("INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)", [
+        "limits.missing.movies",
+        oldMissingLimit.value,
+      ]);
+      this.db.run("INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)", [
+        "limits.missing.episodes",
+        oldMissingLimit.value,
+      ]);
       // Remove old key
       this.db.run("DELETE FROM config WHERE key = ?", ["limits.missing"]);
     }
 
     // Migrate old cutoff limit to both movies and episodes
     if (oldCutoffLimit) {
-      this.db.run(
-        "INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)",
-        ["limits.cutoff.movies", oldCutoffLimit.value]
-      );
-      this.db.run(
-        "INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)",
-        ["limits.cutoff.episodes", oldCutoffLimit.value]
-      );
+      this.db.run("INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)", [
+        "limits.cutoff.movies",
+        oldCutoffLimit.value,
+      ]);
+      this.db.run("INSERT OR IGNORE INTO config (key, value) VALUES (?, ?)", [
+        "limits.cutoff.episodes",
+        oldCutoffLimit.value,
+      ]);
       // Remove old key
       this.db.run("DELETE FROM config WHERE key = ?", ["limits.cutoff"]);
     }
@@ -197,8 +200,10 @@ export class DatabaseManager {
   /**
    * Add a new server
    */
-  async addServer(server: Omit<ServerConfig, "createdAt" | "updatedAt">): Promise<ServerConfig> {
-    const { getEncryptionKey, encryptApiKey } = await import('../lib/crypto');
+  async addServer(
+    server: Omit<ServerConfig, "createdAt" | "updatedAt">,
+  ): Promise<ServerConfig> {
+    const { getEncryptionKey, encryptApiKey } = await import("../lib/crypto");
     const now = new Date().toISOString();
     const fullServer: ServerConfig = {
       ...server,
@@ -207,7 +212,10 @@ export class DatabaseManager {
     };
 
     const encryptionKey = await getEncryptionKey();
-    const encryptedApiKey = await encryptApiKey(fullServer.apiKey, encryptionKey);
+    const encryptedApiKey = await encryptApiKey(
+      fullServer.apiKey,
+      encryptionKey,
+    );
 
     this.db.run(
       `INSERT INTO servers (id, name, url, api_key, type, created_at, updated_at)
@@ -220,7 +228,7 @@ export class DatabaseManager {
         fullServer.type,
         now,
         now,
-      ]
+      ],
     );
 
     return fullServer;
@@ -230,16 +238,25 @@ export class DatabaseManager {
    * Get all servers
    */
   async getAllServers(): Promise<ServerConfig[]> {
-    const rows = this.db.query<ServerRow, []>("SELECT * FROM servers ORDER BY name").all();
-    return Promise.all(rows.map(row => this.rowToServer(row)));
+    const rows = this.db
+      .query<ServerRow, []>("SELECT * FROM servers ORDER BY name")
+      .all();
+    return Promise.all(rows.map((row) => this.rowToServer(row)));
   }
 
   /**
    * Get all servers without decrypting API keys (for metrics)
    */
-  listServers(): Array<{ id: string; name: string; type: ServerType; enabled: boolean }> {
-    const rows = this.db.query<ServerRow, []>("SELECT * FROM servers ORDER BY name").all();
-    return rows.map(row => ({
+  listServers(): Array<{
+    id: string;
+    name: string;
+    type: ServerType;
+    enabled: boolean;
+  }> {
+    const rows = this.db
+      .query<ServerRow, []>("SELECT * FROM servers ORDER BY name")
+      .all();
+    return rows.map((row) => ({
       id: row.id,
       name: row.name,
       type: row.type as ServerType,
@@ -251,9 +268,9 @@ export class DatabaseManager {
    * Get a server by ID
    */
   async getServer(id: string): Promise<ServerConfig | null> {
-    const row = this.db.query<ServerRow, [string]>(
-      "SELECT * FROM servers WHERE id = ?"
-    ).get(id);
+    const row = this.db
+      .query<ServerRow, [string]>("SELECT * FROM servers WHERE id = ?")
+      .get(id);
 
     return row ? await this.rowToServer(row) : null;
   }
@@ -262,9 +279,9 @@ export class DatabaseManager {
    * Get a server by name
    */
   async getServerByName(name: string): Promise<ServerConfig | null> {
-    const row = this.db.query<ServerRow, [string]>(
-      "SELECT * FROM servers WHERE name = ?"
-    ).get(name);
+    const row = this.db
+      .query<ServerRow, [string]>("SELECT * FROM servers WHERE name = ?")
+      .get(name);
 
     return row ? await this.rowToServer(row) : null;
   }
@@ -273,11 +290,14 @@ export class DatabaseManager {
    * Get servers by type
    */
   async getServersByType(type: ServerType): Promise<ServerConfig[]> {
-    const rows = this.db.query<ServerRow, [string]>(
-      "SELECT * FROM servers WHERE type = ? ORDER BY name"
-    ).all(type);
+    const rows = this.db
+      .query<
+        ServerRow,
+        [string]
+      >("SELECT * FROM servers WHERE type = ? ORDER BY name")
+      .all(type);
 
-    return Promise.all(rows.map(row => this.rowToServer(row)));
+    return Promise.all(rows.map((row) => this.rowToServer(row)));
   }
 
   /**
@@ -299,9 +319,9 @@ export class DatabaseManager {
    */
   async updateServer(
     id: string,
-    updates: Partial<Pick<ServerConfig, "name" | "url" | "apiKey">>
+    updates: Partial<Pick<ServerConfig, "name" | "url" | "apiKey">>,
   ): Promise<ServerConfig | null> {
-    const { getEncryptionKey, encryptApiKey } = await import('../lib/crypto');
+    const { getEncryptionKey, encryptApiKey } = await import("../lib/crypto");
     const existing = await this.getServer(id); // Now async
     if (!existing) return null;
 
@@ -328,12 +348,14 @@ export class DatabaseManager {
 
     if (updates.apiKey !== undefined) {
       const encryptionKey = await getEncryptionKey();
-      const encryptedApiKey = await encryptApiKey(updates.apiKey, encryptionKey);
-      this.db.run("UPDATE servers SET api_key = ?, updated_at = ? WHERE id = ?", [
-        encryptedApiKey,
-        now,
-        id,
-      ]);
+      const encryptedApiKey = await encryptApiKey(
+        updates.apiKey,
+        encryptionKey,
+      );
+      this.db.run(
+        "UPDATE servers SET api_key = ?, updated_at = ? WHERE id = ?",
+        [encryptedApiKey, now, id],
+      );
       changesMade = true;
     }
 
@@ -354,7 +376,7 @@ export class DatabaseManager {
    * Convert database row to ServerConfig
    */
   private async rowToServer(row: ServerRow): Promise<ServerConfig> {
-    const { getEncryptionKey, decryptApiKey } = await import('../lib/crypto');
+    const { getEncryptionKey, decryptApiKey } = await import("../lib/crypto");
     const encryptionKey = await getEncryptionKey();
     const decryptedApiKey = await decryptApiKey(row.api_key, encryptionKey);
     return {
@@ -374,9 +396,9 @@ export class DatabaseManager {
    * Get a config value
    */
   getConfig(key: string): string | null {
-    const row = this.db.query<ConfigRow, [string]>(
-      "SELECT value FROM config WHERE key = ?"
-    ).get(key);
+    const row = this.db
+      .query<ConfigRow, [string]>("SELECT value FROM config WHERE key = ?")
+      .get(key);
 
     return row?.value ?? null;
   }
@@ -385,10 +407,10 @@ export class DatabaseManager {
    * Set a config value
    */
   setConfig(key: string, value: string): void {
-    this.db.run(
-      `INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)`,
-      [key, value]
-    );
+    this.db.run(`INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)`, [
+      key,
+      value,
+    ]);
   }
 
   /**
@@ -397,14 +419,29 @@ export class DatabaseManager {
   getAppConfig(): AppConfig {
     return {
       schedule: {
-        intervalHours: parseInt(this.getConfig("schedule.intervalHours") ?? "6", 10),
+        intervalHours: parseInt(
+          this.getConfig("schedule.intervalHours") ?? "6",
+          10,
+        ),
         enabled: this.getConfig("schedule.enabled") === "true",
       },
       searchLimits: {
-        missingMoviesLimit: parseInt(this.getConfig("limits.missing.movies") ?? "10", 10),
-        missingEpisodesLimit: parseInt(this.getConfig("limits.missing.episodes") ?? "10", 10),
-        cutoffMoviesLimit: parseInt(this.getConfig("limits.cutoff.movies") ?? "5", 10),
-        cutoffEpisodesLimit: parseInt(this.getConfig("limits.cutoff.episodes") ?? "5", 10),
+        missingMoviesLimit: parseInt(
+          this.getConfig("limits.missing.movies") ?? "10",
+          10,
+        ),
+        missingEpisodesLimit: parseInt(
+          this.getConfig("limits.missing.episodes") ?? "10",
+          10,
+        ),
+        cutoffMoviesLimit: parseInt(
+          this.getConfig("limits.cutoff.movies") ?? "5",
+          10,
+        ),
+        cutoffEpisodesLimit: parseInt(
+          this.getConfig("limits.cutoff.episodes") ?? "5",
+          10,
+        ),
       },
     };
   }
@@ -418,7 +455,10 @@ export class DatabaseManager {
   }): void {
     if (config.schedule) {
       if (config.schedule.intervalHours !== undefined) {
-        this.setConfig("schedule.intervalHours", config.schedule.intervalHours.toString());
+        this.setConfig(
+          "schedule.intervalHours",
+          config.schedule.intervalHours.toString(),
+        );
       }
       if (config.schedule.enabled !== undefined) {
         this.setConfig("schedule.enabled", config.schedule.enabled.toString());
@@ -427,16 +467,28 @@ export class DatabaseManager {
 
     if (config.searchLimits) {
       if (config.searchLimits.missingMoviesLimit !== undefined) {
-        this.setConfig("limits.missing.movies", config.searchLimits.missingMoviesLimit.toString());
+        this.setConfig(
+          "limits.missing.movies",
+          config.searchLimits.missingMoviesLimit.toString(),
+        );
       }
       if (config.searchLimits.missingEpisodesLimit !== undefined) {
-        this.setConfig("limits.missing.episodes", config.searchLimits.missingEpisodesLimit.toString());
+        this.setConfig(
+          "limits.missing.episodes",
+          config.searchLimits.missingEpisodesLimit.toString(),
+        );
       }
       if (config.searchLimits.cutoffMoviesLimit !== undefined) {
-        this.setConfig("limits.cutoff.movies", config.searchLimits.cutoffMoviesLimit.toString());
+        this.setConfig(
+          "limits.cutoff.movies",
+          config.searchLimits.cutoffMoviesLimit.toString(),
+        );
       }
       if (config.searchLimits.cutoffEpisodesLimit !== undefined) {
-        this.setConfig("limits.cutoff.episodes", config.searchLimits.cutoffEpisodesLimit.toString());
+        this.setConfig(
+          "limits.cutoff.episodes",
+          config.searchLimits.cutoffEpisodesLimit.toString(),
+        );
       }
     }
   }
@@ -463,7 +515,7 @@ export class DatabaseManager {
         entry.count ?? null,
         entry.message,
         entry.isManual ? 1 : 0,
-      ]
+      ],
     );
 
     return { id, timestamp, ...entry };
@@ -473,9 +525,12 @@ export class DatabaseManager {
    * Get recent log entries
    */
   getLogs(limit = 100, offset = 0): LogEntry[] {
-    const rows = this.db.query<LogRow, [number, number]>(
-      "SELECT * FROM logs ORDER BY timestamp DESC LIMIT ? OFFSET ?"
-    ).all(limit, offset);
+    const rows = this.db
+      .query<
+        LogRow,
+        [number, number]
+      >("SELECT * FROM logs ORDER BY timestamp DESC LIMIT ? OFFSET ?")
+      .all(limit, offset);
 
     return rows.map(this.rowToLog);
   }
@@ -484,9 +539,9 @@ export class DatabaseManager {
    * Get log count
    */
   getLogCount(): number {
-    const row = this.db.query<{ count: number }, []>(
-      "SELECT COUNT(*) as count FROM logs"
-    ).get();
+    const row = this.db
+      .query<{ count: number }, []>("SELECT COUNT(*) as count FROM logs")
+      .get();
 
     return row?.count ?? 0;
   }
@@ -494,13 +549,17 @@ export class DatabaseManager {
   /**
    * Get filtered logs with pagination
    */
-  getLogsPaginated(filters: {
-    type?: LogEntryType;
-    server?: string;
-    startDate?: string;
-    endDate?: string;
-    search?: string;
-  }, limit = 100, offset = 0): LogEntry[] {
+  getLogsPaginated(
+    filters: {
+      type?: LogEntryType;
+      server?: string;
+      startDate?: string;
+      endDate?: string;
+      search?: string;
+    },
+    limit = 100,
+    offset = 0,
+  ): LogEntry[] {
     let query = "SELECT * FROM logs WHERE 1=1";
     const params: (string | number)[] = [];
 
@@ -532,7 +591,9 @@ export class DatabaseManager {
     query += " ORDER BY timestamp DESC LIMIT ? OFFSET ?";
     params.push(limit, offset);
 
-    const rows = this.db.query<LogRow, (string | number)[]>(query).all(...params);
+    const rows = this.db
+      .query<LogRow, (string | number)[]>(query)
+      .all(...params);
     return rows.map(this.rowToLog);
   }
 
@@ -545,28 +606,37 @@ export class DatabaseManager {
     lastCheckTime: string | null;
   } {
     // Get server name first
-    const server = this.db.query<ServerRow, [string]>(
-      "SELECT name FROM servers WHERE id = ?"
-    ).get(serverId);
+    const server = this.db
+      .query<ServerRow, [string]>("SELECT name FROM servers WHERE id = ?")
+      .get(serverId);
 
     if (!server) {
       return { totalSearches: 0, errorCount: 0, lastCheckTime: null };
     }
 
     // Count total searches for this server
-    const searchCount = this.db.query<{ count: number }, [string]>(
-      "SELECT COUNT(*) as count FROM logs WHERE server_name = ? AND type = 'search'"
-    ).get(server.name);
+    const searchCount = this.db
+      .query<
+        { count: number },
+        [string]
+      >("SELECT COUNT(*) as count FROM logs WHERE server_name = ? AND type = 'search'")
+      .get(server.name);
 
     // Count errors for this server
-    const errorCount = this.db.query<{ count: number }, [string]>(
-      "SELECT COUNT(*) as count FROM logs WHERE server_name = ? AND type = 'error'"
-    ).get(server.name);
+    const errorCount = this.db
+      .query<
+        { count: number },
+        [string]
+      >("SELECT COUNT(*) as count FROM logs WHERE server_name = ? AND type = 'error'")
+      .get(server.name);
 
     // Get last check time (most recent log entry)
-    const lastLog = this.db.query<{ timestamp: string }, [string]>(
-      "SELECT timestamp FROM logs WHERE server_name = ? ORDER BY timestamp DESC LIMIT 1"
-    ).get(server.name);
+    const lastLog = this.db
+      .query<
+        { timestamp: string },
+        [string]
+      >("SELECT timestamp FROM logs WHERE server_name = ? ORDER BY timestamp DESC LIMIT 1")
+      .get(server.name);
 
     return {
       totalSearches: searchCount?.count ?? 0,
@@ -585,26 +655,35 @@ export class DatabaseManager {
     errorsLast24h: number;
   } {
     // Count total servers
-    const serverCount = this.db.query<{ count: number }, []>(
-      "SELECT COUNT(*) as count FROM servers"
-    ).get();
+    const serverCount = this.db
+      .query<{ count: number }, []>("SELECT COUNT(*) as count FROM servers")
+      .get();
 
     // Get last cycle end time
-    const lastCycle = this.db.query<{ timestamp: string }, []>(
-      "SELECT timestamp FROM logs WHERE type = 'cycle_end' ORDER BY timestamp DESC LIMIT 1"
-    ).get();
+    const lastCycle = this.db
+      .query<
+        { timestamp: string },
+        []
+      >("SELECT timestamp FROM logs WHERE type = 'cycle_end' ORDER BY timestamp DESC LIMIT 1")
+      .get();
 
     // Count searches in last 24 hours
     const yesterday = new Date();
     yesterday.setHours(yesterday.getHours() - 24);
-    const searchCount = this.db.query<{ count: number }, [string]>(
-      "SELECT COUNT(*) as count FROM logs WHERE type = 'search' AND timestamp >= ?"
-    ).get(yesterday.toISOString());
+    const searchCount = this.db
+      .query<
+        { count: number },
+        [string]
+      >("SELECT COUNT(*) as count FROM logs WHERE type = 'search' AND timestamp >= ?")
+      .get(yesterday.toISOString());
 
     // Count errors in last 24 hours
-    const errorCount = this.db.query<{ count: number }, [string]>(
-      "SELECT COUNT(*) as count FROM logs WHERE type = 'error' AND timestamp >= ?"
-    ).get(yesterday.toISOString());
+    const errorCount = this.db
+      .query<
+        { count: number },
+        [string]
+      >("SELECT COUNT(*) as count FROM logs WHERE type = 'error' AND timestamp >= ?")
+      .get(yesterday.toISOString());
 
     return {
       totalServers: serverCount?.count ?? 0,
@@ -629,10 +708,9 @@ export class DatabaseManager {
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - LOG_RETENTION_DAYS);
 
-    const result = this.db.run(
-      "DELETE FROM logs WHERE timestamp < ?",
-      [cutoff.toISOString()]
-    );
+    const result = this.db.run("DELETE FROM logs WHERE timestamp < ?", [
+      cutoff.toISOString(),
+    ]);
 
     return result.changes;
   }

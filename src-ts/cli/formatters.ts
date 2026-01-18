@@ -47,21 +47,12 @@ export function formatServerTable(servers: ServerInfo[]): string {
     return chalk.gray("No servers configured");
   }
 
-  const lines: string[] = [
-    header("Configured Servers"),
-    "",
-  ];
+  const lines: string[] = [header("Configured Servers"), ""];
 
   // Calculate column widths
-  const nameWidth = Math.max(
-    ...servers.map((s) => s.name.length),
-    4
-  );
+  const nameWidth = Math.max(...servers.map((s) => s.name.length), 4);
   const typeWidth = 6; // "radarr" or "sonarr"
-  const urlWidth = Math.max(
-    ...servers.map((s) => s.url.length),
-    3
-  );
+  const urlWidth = Math.max(...servers.map((s) => s.url.length), 3);
 
   // Header row
   const headerRow = [
@@ -82,7 +73,7 @@ export function formatServerTable(servers: ServerInfo[]): string {
         typeColor(server.type.padEnd(typeWidth)),
         chalk.gray(server.url.padEnd(urlWidth)),
         chalk.dim(server.maskedApiKey),
-      ].join("  ")
+      ].join("  "),
     );
   }
 
@@ -104,10 +95,7 @@ export function formatLogTable(logs: LogEntry[]): string {
     return chalk.gray("No log entries");
   }
 
-  const lines: string[] = [
-    header("Activity Logs"),
-    "",
-  ];
+  const lines: string[] = [header("Activity Logs"), ""];
 
   for (const log of logs) {
     const timestamp = formatTimestamp(log.timestamp);
@@ -118,8 +106,15 @@ export function formatLogTable(logs: LogEntry[]): string {
 
     // Add details for search logs
     if (log.type === "search" && log.serverName) {
-      const serverType = log.serverType === "radarr" ? chalk.magenta("Radarr") : chalk.cyan("Sonarr");
-      lines.push(chalk.gray(`  └─ ${serverType} - ${log.serverName}${log.count ? ` (${log.count} items)` : ""}`));
+      const serverType =
+        log.serverType === "radarr"
+          ? chalk.magenta("Radarr")
+          : chalk.cyan("Sonarr");
+      lines.push(
+        chalk.gray(
+          `  └─ ${serverType} - ${log.serverName}${log.count ? ` (${log.count} items)` : ""}`,
+        ),
+      );
     }
   }
 
@@ -181,13 +176,15 @@ function formatTimestamp(date: Date): string {
  * Format configuration as key-value pairs
  */
 export function formatConfig(config: AppConfig): string {
-  const lines: string[] = [
-    header("Configuration"),
-    "",
-  ];
+  const lines: string[] = [header("Configuration"), ""];
 
   lines.push(chalk.bold("Schedule:"));
-  lines.push(keyValue("  Enabled", config.schedule.enabled ? chalk.green("Yes") : chalk.red("No")));
+  lines.push(
+    keyValue(
+      "  Enabled",
+      config.schedule.enabled ? chalk.green("Yes") : chalk.red("No"),
+    ),
+  );
   lines.push(keyValue("  Interval", `${config.schedule.intervalHours} hours`));
   lines.push("");
 
@@ -197,32 +194,32 @@ export function formatConfig(config: AppConfig): string {
       "  Missing movies",
       config.searchLimits.missingMoviesLimit === 0
         ? chalk.gray("Disabled")
-        : `${config.searchLimits.missingMoviesLimit} items`
-    )
+        : `${config.searchLimits.missingMoviesLimit} items`,
+    ),
   );
   lines.push(
     keyValue(
       "  Missing episodes",
       config.searchLimits.missingEpisodesLimit === 0
         ? chalk.gray("Disabled")
-        : `${config.searchLimits.missingEpisodesLimit} items`
-    )
+        : `${config.searchLimits.missingEpisodesLimit} items`,
+    ),
   );
   lines.push(
     keyValue(
       "  Cutoff movies",
       config.searchLimits.cutoffMoviesLimit === 0
         ? chalk.gray("Disabled")
-        : `${config.searchLimits.cutoffMoviesLimit} items`
-    )
+        : `${config.searchLimits.cutoffMoviesLimit} items`,
+    ),
   );
   lines.push(
     keyValue(
       "  Cutoff episodes",
       config.searchLimits.cutoffEpisodesLimit === 0
         ? chalk.gray("Disabled")
-        : `${config.searchLimits.cutoffEpisodesLimit} items`
-    )
+        : `${config.searchLimits.cutoffEpisodesLimit} items`,
+    ),
   );
 
   return lines.join("\n");
@@ -254,41 +251,56 @@ export function formatCycleSummary(result: {
   totalSearches: number;
   totalFailures: number;
 }): string {
-  const lines: string[] = [
-    header("Automation Cycle Complete"),
-    "",
-  ];
+  const lines: string[] = [header("Automation Cycle Complete"), ""];
 
   lines.push(chalk.bold("Detection:"));
   lines.push(
-    keyValue("  Missing items", chalk.yellow(result.detectionResults.totalMissing.toString()))
+    keyValue(
+      "  Missing items",
+      chalk.yellow(result.detectionResults.totalMissing.toString()),
+    ),
   );
   lines.push(
-    keyValue("  Cutoff items", chalk.yellow(result.detectionResults.totalCutoff.toString()))
+    keyValue(
+      "  Cutoff items",
+      chalk.yellow(result.detectionResults.totalCutoff.toString()),
+    ),
   );
   lines.push(
-    keyValue("  Servers checked", chalk.cyan(result.detectionResults.successCount.toString()))
+    keyValue(
+      "  Servers checked",
+      chalk.cyan(result.detectionResults.successCount.toString()),
+    ),
   );
   if (result.detectionResults.failureCount > 0) {
     lines.push(
-      keyValue("  Failures", chalk.red(result.detectionResults.failureCount.toString()))
+      keyValue(
+        "  Failures",
+        chalk.red(result.detectionResults.failureCount.toString()),
+      ),
     );
   }
   lines.push("");
 
   lines.push(chalk.bold("Searches:"));
   lines.push(
-    keyValue("  Missing searches", chalk.cyan(result.searchResults.missingTriggered.toString()))
+    keyValue(
+      "  Missing searches",
+      chalk.cyan(result.searchResults.missingTriggered.toString()),
+    ),
   );
   lines.push(
-    keyValue("  Cutoff searches", chalk.cyan(result.searchResults.cutoffTriggered.toString()))
+    keyValue(
+      "  Cutoff searches",
+      chalk.cyan(result.searchResults.cutoffTriggered.toString()),
+    ),
   );
   lines.push(
-    keyValue("  Total triggered", chalk.green(result.totalSearches.toString()))
+    keyValue("  Total triggered", chalk.green(result.totalSearches.toString())),
   );
   if (result.totalFailures > 0) {
     lines.push(
-      keyValue("  Failures", chalk.red(result.totalFailures.toString()))
+      keyValue("  Failures", chalk.red(result.totalFailures.toString())),
     );
   }
 
@@ -298,32 +310,38 @@ export function formatCycleSummary(result: {
 /**
  * Format detection-only results
  */
-export function formatDetectionSummary(results: {
-  serverId: string;
-  serverName: string;
-  serverType: string;
-  missingCount: number;
-  cutoffCount: number;
-  error?: string;
-}[]): string {
-  const lines: string[] = [
-    header("Detection Scan Results"),
-    "",
-  ];
+export function formatDetectionSummary(
+  results: {
+    serverId: string;
+    serverName: string;
+    serverType: string;
+    missingCount: number;
+    cutoffCount: number;
+    error?: string;
+  }[],
+): string {
+  const lines: string[] = [header("Detection Scan Results"), ""];
 
   let totalMissing = 0;
   let totalCutoff = 0;
 
   for (const result of results) {
-    const serverType = result.serverType === "radarr" ? chalk.magenta("Radarr") : chalk.cyan("Sonarr");
+    const serverType =
+      result.serverType === "radarr"
+        ? chalk.magenta("Radarr")
+        : chalk.cyan("Sonarr");
 
     if (result.error) {
-      lines.push(`${serverType} - ${chalk.white(result.serverName)}: ${chalk.red("Failed")}`);
+      lines.push(
+        `${serverType} - ${chalk.white(result.serverName)}: ${chalk.red("Failed")}`,
+      );
       lines.push(chalk.gray(`  Error: ${result.error}`));
     } else {
       lines.push(`${serverType} - ${chalk.white(result.serverName)}:`);
       lines.push(
-        chalk.gray(`  Missing: ${chalk.yellow(result.missingCount.toString())} | Cutoff: ${chalk.yellow(result.cutoffCount.toString())}`)
+        chalk.gray(
+          `  Missing: ${chalk.yellow(result.missingCount.toString())} | Cutoff: ${chalk.yellow(result.cutoffCount.toString())}`,
+        ),
       );
       totalMissing += result.missingCount;
       totalCutoff += result.cutoffCount;
@@ -333,11 +351,9 @@ export function formatDetectionSummary(results: {
   lines.push("");
   lines.push(chalk.bold("Total:"));
   lines.push(
-    keyValue("  Missing items", chalk.yellow(totalMissing.toString()))
+    keyValue("  Missing items", chalk.yellow(totalMissing.toString())),
   );
-  lines.push(
-    keyValue("  Cutoff items", chalk.yellow(totalCutoff.toString()))
-  );
+  lines.push(keyValue("  Cutoff items", chalk.yellow(totalCutoff.toString())));
 
   return lines.join("\n");
 }

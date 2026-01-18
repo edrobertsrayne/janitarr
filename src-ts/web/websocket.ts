@@ -5,7 +5,11 @@
  */
 
 import type { ServerWebSocket } from "bun";
-import type { WSClientMessage, WSServerMessage, WebSocketFilters } from "./types";
+import type {
+  WSClientMessage,
+  WSServerMessage,
+  WebSocketFilters,
+} from "./types";
 import type { LogEntry } from "../types";
 
 /** WebSocket connection data */
@@ -76,7 +80,9 @@ export const websocketHandlers = {
    */
   close(ws: ServerWebSocket<WebSocketData>) {
     clients.delete(ws);
-    console.log(`WebSocket client disconnected. Total clients: ${clients.size}`);
+    console.log(
+      `WebSocket client disconnected. Total clients: ${clients.size}`,
+    );
   },
 
   /**
@@ -119,7 +125,10 @@ export function broadcastLog(log: LogEntry): void {
 /**
  * Determine if a log entry should be sent to a client based on their filters
  */
-function shouldSendToClient(log: LogEntry, filters?: WebSocketFilters): boolean {
+function shouldSendToClient(
+  log: LogEntry,
+  filters?: WebSocketFilters,
+): boolean {
   if (!filters) {
     return true; // No filters, send all logs
   }
@@ -154,7 +163,10 @@ export function getClientCount(): number {
  * @param code - WebSocket close code (default: 1001 Going Away)
  * @param reason - Human-readable close reason
  */
-export function closeAllClients(code = 1001, reason = "Server shutting down"): void {
+export function closeAllClients(
+  code = 1001,
+  reason = "Server shutting down",
+): void {
   for (const client of clients) {
     try {
       // Send close frame with code and reason

@@ -53,34 +53,34 @@ func runStatus(cmd *cobra.Command, args []string) error {
 	// let's just indicate if a cycle is active.
 
 	statusInfo := struct {
-		Scheduler      services.SchedulerStatus `json:"scheduler"`
-		ServerCounts   struct {
-			Total   int `json:"total"`
-			Radarr  int `json:"radarr"`
-			Sonarr  int `json:"sonarr"`
+		Scheduler    services.SchedulerStatus `json:"scheduler"`
+		ServerCounts struct {
+			Total  int `json:"total"`
+			Radarr int `json:"radarr"`
+			Sonarr int `json:"sonarr"`
 		} `json:"serverCounts"`
 		LastCycle struct {
-			Active bool `json:"active"`
+			Active  bool       `json:"active"`
 			LastRun *time.Time `json:"lastRun,omitempty"`
 			NextRun *time.Time `json:"nextRun,omitempty"`
 		} `json:"lastCycle"`
 	}{
 		Scheduler: schedulerStatus,
 		ServerCounts: struct {
-			Total   int `json:"total"`
-			Radarr  int `json:"radarr"`
-			Sonarr  int `json:"sonarr"`
+			Total  int `json:"total"`
+			Radarr int `json:"radarr"`
+			Sonarr int `json:"sonarr"`
 		}{
-			Total:   len(servers),
-			Radarr:  radarrCount,
-			Sonarr:  sonarrCount,
+			Total:  len(servers),
+			Radarr: radarrCount,
+			Sonarr: sonarrCount,
 		},
 		LastCycle: struct {
-			Active bool `json:"active"`
+			Active  bool       `json:"active"`
 			LastRun *time.Time `json:"lastRun,omitempty"`
 			NextRun *time.Time `json:"nextRun,omitempty"`
 		}{
-			Active: schedulerStatus.IsCycleActive,
+			Active:  schedulerStatus.IsCycleActive,
 			LastRun: schedulerStatus.LastRun,
 			NextRun: schedulerStatus.NextRun,
 		},

@@ -95,10 +95,10 @@
 
           if [ "$gemini_mode" = true ]; then
             echo "Using gemini --yolo"
-            cat PROMPT_build.md | bunx gemini --output-format stream-json --yolo
+            cat PROMPT_build.md | bunx gemini --yolo
           else
             echo "Using claude"
-            cat PROMPT_build.md | claude -p --output-format stream-json --verbose --dangerously-skip-permissions
+            cat PROMPT_build.md | claude -p --model sonnet --dangerously-skip-permissions
           fi
 
           current_iteration=$((current_iteration + 1))
