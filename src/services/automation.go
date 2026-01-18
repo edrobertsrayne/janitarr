@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/user/janitarr/src/database"
 	"github.com/user/janitarr/src/logger"
 )
@@ -29,9 +31,9 @@ type AutomationLogger interface {
 }
 
 // AutomationDB defines the interface for database operations needed by Automation.
+// Note: AddLogEntry removed as logger handles that.
 type AutomationDB interface {
-	GetAppConfig() (*database.AppConfig, error)
-	AddLogEntry(entry *database.LogEntry) error
+	GetAppConfig() database.AppConfig
 }
 
 // Automation orchestrates the detection, search triggering, and logging process.
@@ -43,12 +45,14 @@ type Automation struct {
 }
 
 // NewAutomation creates a new Automation service.
-func NewAutomation(db AutomationDB, detector AutomationDetector, trigger AutomationSearchTrigger, logger AutomationLogger) *Automation {
+// The db parameter should now represent the database operations needed by Automation,
+// and the logger parameter should be a logger.Logger instance.
+func NewAutomation(db AutomationDB, detector AutomationDetector, trigger AutomationSearchTrigger, appLogger AutomationLogger) *Automation {
 	return &Automation{
 		db:       db,
 		detector: detector,
 		trigger:  trigger,
-		logger:   logger,
+		logger:   appLogger,
 	}
 }
 
@@ -63,14 +67,7 @@ func (a *Automation) RunCycle(ctx context.Context, isManual, dryRun bool) (*Cycl
 	}
 
 	// 1. Get application configuration for search limits
-	config, err := a.db.GetAppConfig()
-	if err != nil {
-		cycleResult.Success = false
-		cycleResult.Errors = append(cycleResult.Errors, fmt.Sprintf("failed to get app config: %v", err))
-		a.logger.LogCycleEnd(0, 0, isManual)
-		cycleResult.Duration = time.Since(startTime)
-		return cycleResult, fmt.Errorf("failed to get app config: %w", err)
-	}
+	config := a.db.GetAppConfig()
 
 	// 2. Detect missing and cutoff content
 	detectionResults, err := a.detector.DetectAll(ctx)

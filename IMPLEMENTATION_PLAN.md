@@ -821,19 +821,19 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
   }
   ```
 
-- [ ] Implement `logs`:
-  - [ ] Show recent entries (default: 20)
-  - [ ] `-n, --limit` flag for count
-  - [ ] `--all` flag for all entries (paginated)
-  - [ ] `--json` flag for JSON output
-  - [ ] `--clear` flag with confirmation prompt
-  - [ ] Format: timestamp, type icon, message
-  - [ ] Color-code errors red
-- [ ] Create `src/cli/logs_test.go`:
-  - [ ] `TestLogs_Default` - shows 20 entries
-  - [ ] `TestLogs_Limit` - respects limit flag
-  - [ ] `TestLogs_JSON` - verifies JSON format
-  - [ ] `TestLogs_Clear` - clears with confirmation
+- [x] Implement `logs`:
+  - [x] Show recent entries (default: 20)
+  - [x] `-n, --limit` flag for count
+  - [x] `--all` flag for all entries (paginated)
+  - [x] `--json` flag for JSON output
+  - [x] `--clear` flag with confirmation prompt
+  - [x] Format: timestamp, type icon, message
+  - [x] Color-code errors red
+- [x] Create `src/cli/logs_test.go`:
+  - [x] `TestLogs_Default` - shows 20 entries
+  - [x] `TestLogs_Limit` - respects limit flag
+  - [x] `TestLogs_JSON` - verifies JSON format
+  - [x] `TestLogs_Clear` - clears with confirmation
 - [ ] Verify: `go build ./src && ./janitarr logs --help`
 
 ### Register All Commands
