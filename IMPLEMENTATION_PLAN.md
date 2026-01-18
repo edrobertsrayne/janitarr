@@ -950,7 +950,7 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
 
 **Reference:** `src-ts/web/routes/*.ts`
 
-- [ ] Create `src/web/handlers/api/types.go` with shared request/response types:
+- [x] Create `src/web/handlers/api/types.go` with shared request/response types:
 
   ```go
   type ErrorResponse struct {
