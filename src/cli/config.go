@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -43,8 +42,9 @@ func runConfigShow(cmd *cobra.Command, args []string) error {
 	}
 	defer db.Close()
 
-	appConfig := database.GetAppConfigFunc(db)
+	appConfig := db.GetAppConfig()
 
+	outputJSON, _ := cmd.Flags().GetBool("json")
 	if outputJSON {
 		encoder := json.NewEncoder(cmd.OutOrStdout())
 		encoder.SetIndent("", "  ")
@@ -105,10 +105,10 @@ func runConfigSet(cmd *cobra.Command, args []string) error {
 		}
 		appConfig.SearchLimits.CutoffEpisodesLimit = intVal
 	default:
-		return fmt.Errorf(errorMsg("Unknown configuration key: %s", key))
+		return fmt.Errorf(errorMsg(fmt.Sprintf("Unknown configuration key: %s", key)))
 	}
 
-	if err := database.SetAppConfigFunc(db, appConfig); err != nil {
+	if err := db.SetAppConfig(appConfig); err != nil {
 		return fmt.Errorf("failed to set app config: %w", err)
 	}
 

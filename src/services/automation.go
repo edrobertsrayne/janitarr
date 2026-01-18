@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
-
 	"github.com/user/janitarr/src/database"
 	"github.com/user/janitarr/src/logger"
 )

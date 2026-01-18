@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/user/janitarr/src/database"
@@ -109,10 +108,10 @@ func runServerAdd(cmd *cobra.Command, args []string) error {
 
 	hideCursor()
 	showProgress("Testing connection")
-	
+
 	// Test connection and add server
 	addedServer, err := serverManager.AddServer(ctx, name, url, apiKey, serverType)
-	
+
 	clearLine()
 	showCursor()
 
@@ -125,8 +124,6 @@ func runServerAdd(cmd *cobra.Command, args []string) error {
 }
 
 func runServerList(cmd *cobra.Command, args []string) error {
-	ctx := context.Background()
-
 	db, err := database.New(dbPath, "./data/.janitarr.key") // Assuming keyPath is managed globally or passed
 	if err != nil {
 		return fmt.Errorf("failed to open database: %w", err)
@@ -192,13 +189,10 @@ func runServerEdit(cmd *cobra.Command, args []string) error {
 		newURL = existingServer.URL
 	}
 
-	// API Key
-	fmt.Printf(info("Enter new API Key (current: %s...): "), existingServer.APIKey[0:4]) // Only show first 4 chars for security
+	// API Key (prompt for new one, leave unchanged if blank)
+	fmt.Print(info("Enter new API Key (leave blank to keep current): "))
 	newAPIKeyInput, _ := reader.ReadString('\n')
 	newAPIKey := strings.TrimSpace(newAPIKeyInput)
-	if newAPIKey == "" {
-		newAPIKey = existingServer.APIKey
-	}
 
 	updates := services.ServerUpdate{}
 	if newName != existingServer.Name {
@@ -207,7 +201,7 @@ func runServerEdit(cmd *cobra.Command, args []string) error {
 	if newURL != existingServer.URL {
 		updates.URL = &newURL
 	}
-	if newAPIKey != existingServer.APIKey {
+	if newAPIKey != "" {
 		updates.APIKey = &newAPIKey
 	}
 

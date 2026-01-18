@@ -1,6 +1,9 @@
 package services
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 // ServerInfo represents a server for display (without API key).
 type ServerInfo struct {

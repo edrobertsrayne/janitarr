@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -12,7 +11,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/user/janitarr/src/database"
@@ -178,22 +176,6 @@ func TestLogsCommand(t *testing.T) {
 		assert.Contains(output, errorMsg("failed to clear logs: db clear error"))
 		mockDB.AssertExpectations(t)
 	})
-}
-
-// executeCommand is a helper to execute a cobra command and capture its output
-func executeCommand(root *cobra.Command, args ...string) (string, error) {
-	buf := new(bytes.Buffer)
-	root.SetOut(buf)
-	root.SetErr(buf)
-	root.SetArgs(args)
-
-	err := root.Execute()
-	return buf.String(), err
-}
-
-// keyValue is a helper to format key-value pairs for table output verification
-func keyValue(key, value string) string {
-	return fmt.Sprintf("%-" + "20" + "s %s", key+":", value)
 }
 
 // confirmAction is a helper function to simulate user confirmation for tests.

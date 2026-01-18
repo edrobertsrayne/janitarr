@@ -1,18 +1,25 @@
 package cli
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
-	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/user/janitarr/src/database"
 	"github.com/user/janitarr/src/logger"
 )
+
+// confirmAction prompts the user for y/N confirmation
+var confirmAction = func(prompt string) bool {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Printf(warning(prompt + " (y/N): "))
+	confirmation, _ := reader.ReadString('\n')
+	return strings.ToLower(strings.TrimSpace(confirmation)) == "y"
+}
 
 var logsCmd = &cobra.Command{
 	Use:   "logs",
@@ -44,8 +51,8 @@ func runLogs(cmd *cobra.Command, args []string) error {
 			fmt.Println(info("Log clearing cancelled."))
 			return nil
 		}
-		if err := database.ClearLogsFunc(db); err != nil {
-			return fmt.Errorf(errorMsg("failed to clear logs: %w", err))
+		if err := db.ClearLogs(); err != nil {
+			return fmt.Errorf(errorMsg(fmt.Sprintf("failed to clear logs: %v", err)))
 		}
 		fmt.Println(success("All logs cleared successfully."))
 		return nil
@@ -54,13 +61,13 @@ func runLogs(cmd *cobra.Command, args []string) error {
 	var logEntries []logger.LogEntry
 	if showAll {
 		// Implement pagination if needed for very large datasets, for now fetch all
-		logEntries, err = database.GetLogsFunc(context.Background(), 0, 0, nil, nil) // Limit 0 means all
+		logEntries, err = db.GetLogs(context.Background(), 0, 0, nil, nil) // Limit 0 means all
 	} else {
-		logEntries, err = database.GetLogsFunc(context.Background(), limit, 0, nil, nil)
+		logEntries, err = db.GetLogs(context.Background(), limit, 0, nil, nil)
 	}
 
 	if err != nil {
-		return fmt.Errorf(errorMsg("failed to retrieve logs: %w", err))
+		return fmt.Errorf(errorMsg(fmt.Sprintf("failed to retrieve logs: %v", err)))
 	}
 
 	if outputJSON {
@@ -78,45 +85,4 @@ func runLogs(cmd *cobra.Command, args []string) error {
 	fmt.Println(formatLogTable(logEntries))
 
 	return nil
-}
-
-// formatLogTable formats log entries into a human-readable table.
-func formatLogTable(logs []logger.LogEntry) string {
-	var sb strings.Builder
-	sb.WriteString("-------------------------------------------------------------------------------------------------------------------\n")
-	sb.WriteString(fmt.Sprintf("%-25s | %-15s | %-15s | %-15s | %-40s\n", "TIMESTAMP", "TYPE", "SERVER", "CATEGORY", "MESSAGE"))
-	sb.WriteString("-------------------------------------------------------------------------------------------------------------------")
-
-	for _, entry := range logs {
-		timestamp := entry.Timestamp.Format("2006-01-02 15:04:05")
-		logType := formatLogType(entry.Type)
-		server := entry.ServerName
-		if server == "" {
-			server = "-"
-		}
-		category := entry.Category
-		if category == "" {
-			category = "-"
-		}
-		message := entry.Message
-
-		sb.WriteString(fmt.Sprintf("%-25s | %-15s | %-15s | %-15s | %-40s\n",
-			timestamp, logType, server, category, message))
-	}
-	sb.WriteString("-------------------------------------------------------------------------------------------------------------------")
-	return sb.String()
-}
-
-// formatLogType applies color coding based on log type
-func formatLogType(logType logger.LogEntryType) string {
-	switch logType {
-	case logger.LogTypeError:
-		return errorMsg(string(logType))
-	case logger.LogTypeCycleStart, logger.LogTypeCycleEnd:
-		return info(string(logType))
-	case logger.LogTypeSearch:
-		return success(string(logType))
-	default:
-		return string(logType)
-	}
 }

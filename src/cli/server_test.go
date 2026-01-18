@@ -1,58 +1,18 @@
 package cli
 
 import (
-	"bytes"
-	"context"
-	"encoding/json"
+	"errors"
 	"fmt"
-	"io"
 	"os"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/user/janitarr/src/database"
 	"github.com/user/janitarr/src/services"
 )
-
-// MockServerManager for testing CLI commands
-type MockServerManager struct {
-	mock.Mock
-}
-
-func (m *MockServerManager) AddServer(ctx context.Context, name, url, apiKey, serverType string) (*services.ServerInfo, error) {
-	args := m.Called(ctx, name, url, apiKey, serverType)
-	return args.Get(0).(*services.ServerInfo), args.Error(1)
-}
-
-func (m *MockServerManager) UpdateServer(ctx context.Context, id string, updates services.ServerUpdate) error {
-	args := m.Called(ctx, id, updates)
-	return args.Error(0)
-}
-
-func (m *MockServerManager) RemoveServer(id string) error {
-	args := m.Called(id)
-	return args.Error(0)
-}
-
-func (m *MockServerManager) TestConnection(ctx context.Context, id string) (*services.ConnectionResult, error) {
-	args := m.Called(ctx, id)
-	return args.Get(0).(*services.ConnectionResult), args.Error(1)
-}
-
-func (m *MockServerManager) ListServers() ([]services.ServerInfo, error) {
-	args := m.Called()
-	return args.Get(0).([]services.ServerInfo), args.Error(1)
-}
-
-func (m *MockServerManager) GetServer(ctx context.Context, idOrName string) (*services.ServerInfo, error) {
-	args := m.Called(ctx, idOrName)
-	return args.Get(0).(*services.ServerInfo), args.Error(1)
-}
 
 func createTestDB(t *testing.T) *database.DB {
 	t.Helper()
@@ -62,23 +22,6 @@ func createTestDB(t *testing.T) *database.DB {
 	}
 	t.Cleanup(func() { db.Close() })
 	return db
-}
-
-// executeCommand is a helper to execute Cobra commands and capture output
-func executeCommand(root *cobra.Command, args ...string) (output string, err error) {
-	_, output, err = executeCommandC(root, args...)
-	return output, err
-}
-
-func executeCommandC(root *cobra.Command, args ...string) (c *cobra.Command, output string, err error) {
-	buf := new(bytes.Buffer)
-	root.SetOut(buf)
-	root.SetErr(buf)
-	root.SetArgs(args)
-
-	c, err = root.ExecuteC()
-
-	return c, buf.String(), err
 }
 
 // Helper function to simulate stdin input

@@ -42,7 +42,7 @@ func runScan(cmd *cobra.Command, args []string) error {
 	showCursor()
 
 	if err != nil {
-		return fmt.Errorf(errorMsg("Error during scan: %w", err))
+		return fmt.Errorf(errorMsg(fmt.Sprintf("Error during scan: %v", err)))
 	}
 
 	if outputJSON {
