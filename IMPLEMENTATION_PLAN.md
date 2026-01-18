@@ -337,7 +337,7 @@ janitarr/
 
 **Reference:** `src-ts/services/server-manager.ts`
 
-- [ ] Create `src/services/types.go` with shared types:
+- [x] Create `src/services/types.go` with shared types:
 
   ```go
   type ServerInfo struct {
@@ -363,27 +363,27 @@ janitarr/
   }
   ```
 
-- [ ] Create `src/services/server_manager_test.go`:
-  - [ ] `TestAddServer_Success` - creates server and tests connection
-  - [ ] `TestAddServer_DuplicateName` - rejects duplicate names
-  - [ ] `TestAddServer_DuplicateURLType` - rejects duplicate URL+type combo
-  - [ ] `TestAddServer_ConnectionFailed` - fails on bad connection
-  - [ ] `TestUpdateServer_Success` - updates and validates connection
-  - [ ] `TestUpdateServer_NotFound` - returns error for missing server
-  - [ ] `TestRemoveServer_Success` - deletes server
-  - [ ] `TestTestConnection_Success` - returns version info
-  - [ ] `TestGetServer_ByID` - finds by UUID
-  - [ ] `TestGetServer_ByName` - finds by name (case-insensitive)
-- [ ] Create `src/services/server_manager.go`:
-  - [ ] `type ServerManager struct { db *database.DB, apiFactory func(url, key string) APIClient }`
-  - [ ] `NewServerManager(db *database.DB) *ServerManager`
-  - [ ] `AddServer(name, url, apiKey, serverType string) (*ServerInfo, error)`
-  - [ ] `UpdateServer(id string, updates ServerUpdate) error`
-  - [ ] `RemoveServer(id string) error`
-  - [ ] `TestConnection(id string) (*ConnectionResult, error)`
-  - [ ] `ListServers() ([]ServerInfo, error)`
-  - [ ] `GetServer(idOrName string) (*ServerInfo, error)`
-- [ ] Verify: `go test ./src/services/... -run Server`
+- [x] Create `src/services/server_manager_test.go`:
+  - [x] `TestAddServer_Success` - creates server and tests connection
+  - [x] `TestAddServer_DuplicateName` - rejects duplicate names
+  - [x] `TestAddServer_DuplicateURLType` - rejects duplicate URL+type combo
+  - [x] `TestAddServer_ConnectionFailed` - fails on bad connection
+  - [x] `TestUpdateServer_Success` - updates and validates connection
+  - [x] `TestUpdateServer_NotFound` - returns error for missing server
+  - [x] `TestRemoveServer_Success` - deletes server
+  - [x] `TestTestConnection_Success` - returns version info
+  - [x] `TestGetServer_ByID` - finds by UUID
+  - [x] `TestGetServer_ByName` - finds by name (case-insensitive)
+- [x] Create `src/services/server_manager.go`:
+  - [x] `type ServerManager struct { db *database.DB, apiFactory func(url, key string) APIClient }`
+  - [x] `NewServerManager(db *database.DB) *ServerManager`
+  - [x] `AddServer(name, url, apiKey, serverType string) (*ServerInfo, error)`
+  - [x] `UpdateServer(id string, updates ServerUpdate) error`
+  - [x] `RemoveServer(id string) error`
+  - [x] `TestConnection(id string) (*ConnectionResult, error)`
+  - [x] `ListServers() ([]ServerInfo, error)`
+  - [x] `GetServer(idOrName string) (*ServerInfo, error)`
+- [x] Verify: `go test ./src/services/... -run Server`
 
 ### Detector Service
 
