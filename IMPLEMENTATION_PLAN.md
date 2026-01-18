@@ -863,7 +863,7 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
   }
   ```
 
-- [ ] Verify all commands registered: `go build ./src && ./janitarr --help`
+- [x] Verify all commands registered: `go build ./src && ./janitarr --help`
 
 ---
 
