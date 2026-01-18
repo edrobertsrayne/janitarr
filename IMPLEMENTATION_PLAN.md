@@ -798,7 +798,7 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
   - [x] `TestRun_JSON` - verifies JSON format
   - [x] `TestScan_JSON` - verifies JSON format
   - [x] `TestStatus_JSON` - verifies JSON format
-- [ ] Verify: `go build ./src && ./janitarr run --help`
+- [x] Verify: `go build ./src && ./janitarr run --help`
 
 ### Log Commands
 
