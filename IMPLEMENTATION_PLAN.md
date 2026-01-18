@@ -838,7 +838,7 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
 
 ### Register All Commands
 
-- [ ] Update `src/cli/root.go` to register all subcommands:
+- [x] Update `src/cli/root.go` to register all subcommands:
 
   ```go
   func NewRootCmd() *cobra.Command {
