@@ -338,6 +338,92 @@ func TestTestConnection_Unauthorized(t *testing.T) {
 	}
 }
 
+func TestTestNewConnection_Success_Radarr(t *testing.T) {
+	db := testDB(t)
+	server := mockRadarrServer()
+	defer server.Close()
+
+	mgr := NewServerManager(db)
+
+	// Test connection without saving the server
+	result, err := mgr.TestNewConnection(context.Background(), server.URL, "test-api-key", "radarr")
+	if err != nil {
+		t.Fatalf("unexpected error testing new connection: %v", err)
+	}
+
+	if !result.Success {
+		t.Errorf("expected successful connection, got error: %s", result.Error)
+	}
+	if result.Version != "4.7.5.7809" {
+		t.Errorf("expected version '4.7.5.7809', got '%s'", result.Version)
+	}
+	if result.AppName != "Radarr" {
+		t.Errorf("expected appName 'Radarr', got '%s'", result.AppName)
+	}
+}
+
+func TestTestNewConnection_Success_Sonarr(t *testing.T) {
+	db := testDB(t)
+	server := mockSonarrServer()
+	defer server.Close()
+
+	mgr := NewServerManager(db)
+
+	// Test connection without saving the server
+	result, err := mgr.TestNewConnection(context.Background(), server.URL, "test-api-key", "sonarr")
+	if err != nil {
+		t.Fatalf("unexpected error testing new connection: %v", err)
+	}
+
+	if !result.Success {
+		t.Errorf("expected successful connection, got error: %s", result.Error)
+	}
+	if result.Version != "3.0.10.1567" {
+		t.Errorf("expected version '3.0.10.1567', got '%s'", result.Version)
+	}
+	if result.AppName != "Sonarr" {
+		t.Errorf("expected appName 'Sonarr', got '%s'", result.AppName)
+	}
+}
+
+func TestTestNewConnection_InvalidType(t *testing.T) {
+	db := testDB(t)
+	server := mockRadarrServer()
+	defer server.Close()
+
+	mgr := NewServerManager(db)
+
+	// Test with invalid server type
+	_, err := mgr.TestNewConnection(context.Background(), server.URL, "test-api-key", "invalid")
+	if err == nil {
+		t.Fatal("expected error for invalid server type")
+	}
+	if err.Error() != "invalid server type: invalid" {
+		t.Errorf("expected 'invalid server type: invalid', got '%s'", err.Error())
+	}
+}
+
+func TestTestNewConnection_Failed(t *testing.T) {
+	db := testDB(t)
+	server := mockFailingServer()
+	defer server.Close()
+
+	mgr := NewServerManager(db)
+
+	// Test connection to a failing server
+	result, err := mgr.TestNewConnection(context.Background(), server.URL, "test-api-key", "radarr")
+	if err != nil {
+		t.Fatalf("unexpected error testing new connection: %v", err)
+	}
+
+	if result.Success {
+		t.Error("expected failed connection")
+	}
+	if result.Error == "" {
+		t.Error("expected error message in result")
+	}
+}
+
 func TestGetServer_ByID(t *testing.T) {
 	db := testDB(t)
 	server := mockRadarrServer()

@@ -223,6 +223,36 @@ func (m *ServerManager) TestConnection(ctx context.Context, id string) (*Connect
 	}, nil
 }
 
+// TestNewConnection tests a connection to a new server before saving it.
+func (m *ServerManager) TestNewConnection(ctx context.Context, url, apiKey, serverType string) (*ConnectionResult, error) {
+	// Validate server type
+	serverType = strings.ToLower(serverType)
+	if serverType != "radarr" && serverType != "sonarr" {
+		return nil, fmt.Errorf("invalid server type: %s", serverType)
+	}
+
+	// Normalize URL (remove trailing slash, ensure protocol)
+	url = api.NormalizeURL(url)
+
+	// Create API client
+	client := m.apiFactory(url, apiKey, serverType)
+
+	// Test connection
+	status, err := client.TestConnection(ctx)
+	if err != nil {
+		return &ConnectionResult{
+			Success: false,
+			Error:   err.Error(),
+		}, nil
+	}
+
+	return &ConnectionResult{
+		Success: true,
+		Version: status.Version,
+		AppName: status.AppName,
+	}, nil
+}
+
 // ListServers returns all servers (without API keys).
 func (m *ServerManager) ListServers() ([]ServerInfo, error) {
 	servers, err := m.db.GetAllServers()

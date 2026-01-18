@@ -106,6 +106,7 @@ type ServerManagerInterface interface {
 	UpdateServer(ctx context.Context, id string, updates ServerUpdate) error
 	RemoveServer(id string) error
 	TestConnection(ctx context.Context, id string) (*ConnectionResult, error)
+	TestNewConnection(ctx context.Context, url, apiKey, serverType string) (*ConnectionResult, error)
 	ListServers() ([]ServerInfo, error)
 	GetServer(ctx context.Context, idOrName string) (*ServerInfo, error)
 }

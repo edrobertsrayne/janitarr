@@ -173,13 +173,8 @@ func (h *ServerHandlers) TestNewServerConnection(w http.ResponseWriter, r *http.
 		return
 	}
 
-	// Create a temporary server object to test connection
-	testServerInfo := &services.ServerInfo{
-		URL:  payload.URL,
-		Type: payload.Type,
-	}
-
-	result, err := h.ServerManager.TestConnection(r.Context(), testServerInfo.ID) // ID will be empty, will trigger specific logic in TestConnection if implemented for new server
+	// Test the connection using the new TestNewConnection method
+	result, err := h.ServerManager.TestNewConnection(r.Context(), payload.URL, payload.APIKey, payload.Type)
 	if err != nil {
 		jsonError(w, fmt.Sprintf("Connection test failed: %v", err), http.StatusServiceUnavailable)
 		return

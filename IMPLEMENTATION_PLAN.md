@@ -1870,3 +1870,84 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
 - systemd service file
 - Configuration file support
 - Multi-user authentication
+
+---
+
+## Phase 8: Bug Fixes
+
+### Fix "Server Not Found" Error When Adding Server via Web UI
+
+**Status:** [x] Completed
+
+**Problem:** When adding a server through the web interface, the "Test Connection" button returns a "server not found" error. The CLI works correctly.
+
+**Root Cause:** The `TestNewServerConnection` handler at `src/web/handlers/api/servers.go:164-189` incorrectly passes an empty server ID to `TestConnection()`, which then tries to look up a non-existent server in the database.
+
+**Solution:** Add a new `TestNewConnection()` method that accepts raw credentials (URL, API key, type) instead of a server ID, then update the handler to use it.
+
+#### Implementation Steps
+
+- [x] **Step 1:** Add `TestNewConnection` to Interface
+  - **File:** `src/services/types.go` (line 109)
+  - Added new method signature to `ServerManagerInterface`
+
+- [x] **Step 2:** Implement `TestNewConnection` in ServerManager
+  - **File:** `src/services/server_manager.go` (lines 226-254)
+  - Implemented method that:
+    - Validates the server type
+    - Normalizes the URL
+    - Creates an API client with the provided credentials
+    - Tests the connection and returns the result
+
+- [x] **Step 3:** Fix the Handler
+  - **File:** `src/web/handlers/api/servers.go` (lines 176-177)
+  - Updated `TestNewServerConnection` to call `h.ServerManager.TestNewConnection(r.Context(), payload.URL, payload.APIKey, payload.Type)`
+  - Removed the unused `testServerInfo` variable
+
+#### Files Modified
+
+1. `src/services/types.go` - Added interface method
+2. `src/services/server_manager.go` - Added implementation
+3. `src/web/handlers/api/servers.go` - Fixed handler to use new method
+4. `src/services/server_manager_test.go` - Added 4 test cases
+
+#### Verification
+
+- [x] **Unit tests:** Added 4 tests for `TestNewConnection` in `src/services/server_manager_test.go`:
+  - `TestTestNewConnection_Success_Radarr` - Tests successful Radarr connection
+  - `TestTestNewConnection_Success_Sonarr` - Tests successful Sonarr connection
+  - `TestTestNewConnection_InvalidType` - Tests invalid server type validation
+  - `TestTestNewConnection_Failed` - Tests connection failure handling
+  - All tests passing: `go test ./src/services/... -run TestTestNewConnection -v`
+
+- [x] **Manual tests with credentials from .env:**
+  - Tested Radarr: Returns `{"success":true,"version":"6.0.4.10291","appName":"Radarr"}`
+  - Tested Sonarr: Returns `{"success":true,"version":"4.0.16.2944","appName":"Sonarr"}`
+  - Tested invalid type: Returns proper error message
+  - Tested invalid URL: Returns proper connection failure with error details
+
+---
+
+## Air Hot Reload Removal
+
+**Status:** Planned
+
+**Decision:** Remove Air hot reload tool from the development environment.
+
+**Rationale:** The project uses AI agents for development, making hot reloading unnecessary. Developers rebuild the application as needed rather than relying on automatic file watching.
+
+### Changes to Make
+
+- [ ] Delete `.air.toml` configuration file
+- [ ] Remove `pkgs.air` from `devenv.nix` packages
+- [ ] Remove `make dev` target from `Makefile`
+- [ ] Remove Air from enterShell message in `devenv.nix`
+- [ ] Update `CLAUDE.md` to remove Air documentation
+- [ ] Update `specs/go-architecture.md` to remove Air references
+- [ ] Update `specs/unified-service-startup.md` to remove Air requirements
+
+### Impact
+
+- The `make dev` command will no longer be available
+- Use `make build` to rebuild the application
+- The `./janitarr dev` command (verbose logging mode) remains unchanged
