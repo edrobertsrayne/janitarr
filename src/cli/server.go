@@ -38,12 +38,21 @@ var serverEditCmd = &cobra.Command{
 	RunE:  runServerEdit,
 }
 
+var serverRemoveCmd = &cobra.Command{
+	Use:   "remove <id-or-name>",
+	Short: "Remove a media server",
+	Args:  cobra.ExactArgs(1),
+	RunE:  runServerRemove,
+}
+
 func init() {
 	serverCmd.AddCommand(serverAddCmd)
 	serverCmd.AddCommand(serverListCmd)
 	serverCmd.AddCommand(serverEditCmd)
+	serverCmd.AddCommand(serverRemoveCmd)
 
 	serverListCmd.Flags().Bool("json", false, "Output list as JSON")
+	serverRemoveCmd.Flags().BoolP("force", "f", false, "Skip confirmation prompt")
 }
 
 func runServerAdd(cmd *cobra.Command, args []string) error {
@@ -71,7 +80,7 @@ func runServerAdd(cmd *cobra.Command, args []string) error {
 			serverType = typeInput
 			break
 		}
-		fmt.Println(errorMsg("Invalid server type. Must be 'radarr' or 'sonarr'."))
+		fmt.Println(errorMsg("Invalid server type. Must be 'radarr' or 'sonarr'"))
 	}
 
 	// URL
@@ -220,5 +229,52 @@ func runServerEdit(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Println(success(fmt.Sprintf("Server '%s' updated successfully!", newName)))
+	return nil
+}
+
+func runServerRemove(cmd *cobra.Command, args []string) error {
+	ctx := context.Background()
+	reader := bufio.NewReader(os.Stdin)
+	idOrName := args[0]
+
+	db, err := database.New(dbPath, "./data/.janitarr.key")
+	if err != nil {
+		return fmt.Errorf("failed to open database: %w", err)
+	}
+	defer db.Close()
+
+	serverManager := services.NewServerManagerFunc(db)
+
+	serverToRemove, err := serverManager.GetServer(ctx, idOrName)
+	if err != nil {
+		return fmt.Errorf("failed to find server '%s': %w", idOrName, err)
+	}
+	if serverToRemove == nil {
+		return fmt.Errorf(errorMsg("Server '%s' not found."), idOrName)
+	}
+
+	force, _ := cmd.Flags().GetBool("force")
+	if !force {
+		fmt.Printf(warning("Are you sure you want to remove server '%s' (%s)? (y/N): "), serverToRemove.Name, serverToRemove.Type)
+		confirmation, _ := reader.ReadString('\n')
+		if strings.ToLower(strings.TrimSpace(confirmation)) != "y" {
+			fmt.Println(info("Server removal cancelled."))
+			return nil
+		}
+	}
+
+	hideCursor()
+	showProgress(fmt.Sprintf("Removing server '%s'", serverToRemove.Name))
+
+	err = serverManager.RemoveServer(serverToRemove.ID)
+
+	clearLine()
+	showCursor()
+
+	if err != nil {
+		return fmt.Errorf("failed to remove server: %w", err)
+	}
+
+	fmt.Println(success(fmt.Sprintf("Server '%s' removed successfully!", serverToRemove.Name)))
 	return nil
 }
