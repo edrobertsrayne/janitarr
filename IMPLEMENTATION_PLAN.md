@@ -922,7 +922,7 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
 
 **Reference:** `src-ts/web/server.ts` (middleware section)
 
-- [ ] Create `src/web/middleware/logging.go`:
+- [x] Create `src/web/middleware/logging.go`:
   ```go
   func RequestLogger(next http.Handler) http.Handler {
       return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -937,14 +937,14 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
       })
   }
   ```
-- [ ] Create `src/web/middleware/recovery.go`:
-  - [ ] Recover from panics
-  - [ ] Log stack trace (dev mode: include in response)
-  - [ ] Return 500 JSON error
-- [ ] Create `src/web/middleware/metrics.go`:
-  - [ ] Record request count by method/path/status
-  - [ ] Record request duration histogram
-- [ ] Verify: `go test ./src/web/middleware/...`
+- [x] Create `src/web/middleware/recovery.go`:
+  - [x] Recover from panics
+  - [x] Log stack trace (dev mode: include in response)
+  - [x] Return 500 JSON error
+- [x] Create `src/web/middleware/metrics.go`:
+  - [x] Record request count by method/path/status
+  - [x] Record request duration histogram
+- [x] Verify: `go test ./src/web/middleware/...`
 
 ### API Handlers (with tests)
 

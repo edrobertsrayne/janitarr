@@ -2,13 +2,15 @@ package web
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	chiMiddleware "github.com/go-chi/chi/v5/middleware" // Renamed to avoid conflict
 	"github.com/user/janitarr/src/database"
 	"github.com/user/janitarr/src/logger"
+	webMiddleware "github.com/user/janitarr/src/web/middleware" // Custom middleware package
 	"github.com/user/janitarr/src/services"
 )
 
@@ -27,16 +29,19 @@ type Server struct {
 	config    ServerConfig
 	router    chi.Router
 	httpSrv   *http.Server
+	metrics   *webMiddleware.Metrics // Add metrics instance
 	// wsHub     *websocket.LogHub // Placeholder for later
 }
 
 // NewServer creates a new HTTP server instance.
 func NewServer(config ServerConfig) *Server {
 	r := chi.NewRouter()
+	metrics := webMiddleware.NewMetrics() // Initialize metrics
 	return &Server{
 		config:  config,
 		router:  r,
 		httpSrv: &http.Server{Addr: fmt.Sprintf("%s:%d", config.Host, config.Port), Handler: r},
+		metrics: metrics,
 	}
 }
 
@@ -61,13 +66,13 @@ func (s *Server) setupRoutes() {
 	r := s.router
 
 	// Middleware
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Recoverer)
+	r.Use(chiMiddleware.RequestID)
+	r.Use(chiMiddleware.RealIP)
+	r.Use(webMiddleware.Recoverer(s.config.IsDev)) // Use custom recoverer
 	if s.config.IsDev {
-		r.Use(s.requestLogger) // Custom request logger for dev
+		r.Use(webMiddleware.RequestLogger) // Use custom request logger
 	}
-	// r.Use(s.metricsMiddleware) // Placeholder for later
+	r.Use(s.metrics.MetricsMiddleware) // Use custom metrics middleware
 
 	// API routes
 	r.Route("/api", func(r chi.Router) {
@@ -86,16 +91,6 @@ func (s *Server) setupRoutes() {
 	// Static files and pages
 	r.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	// r.Get("/*", s.handlePage) // Placeholder for templ pages
-}
-
-// requestLogger is a simple request logger for development mode.
-func (s *Server) requestLogger(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
-		ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
-		next.ServeHTTP(ww, r)
-		fmt.Printf("[%s] %s %s %s %v\n", r.Method, r.RequestURI, r.RemoteAddr, r.Proto, time.Since(start))
-	})
 }
 
 // handleHealth is a placeholder for the health check endpoint.
