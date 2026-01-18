@@ -672,11 +672,11 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
   - [x] `--json` flag for JSON output
   - [x] Default: formatted table with columns: Name, Type, URL, Enabled
   - [x] Show "(no servers)" if empty
-- [ ] Implement `server edit <id-or-name>`:
-  - [ ] Look up server by ID or name
-  - [ ] Prompt with current values as defaults
-  - [ ] Test connection before saving
-  - [ ] Skip if no changes made
+- [x] Implement `server edit <id-or-name>`:
+  - [x] Look up server by ID or name
+  - [x] Prompt with current values as defaults
+  - [x] Test connection before saving
+  - [x] Skip if no changes made
 - [ ] Implement `server remove <id-or-name>`:
   - [ ] Look up server by ID or name
   - [ ] Prompt for confirmation (y/N)
@@ -688,6 +688,7 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
   - [x] `TestServerAdd_Interactive` - simulates input
   - [x] `TestServerList_JSON` - verifies JSON format
   - [x] `TestServerList_Table` - verifies table format
+  - [x] `TestServerEdit` - verifies edit functionality
   - [ ] `TestServerRemove_Confirmation` - tests y/N prompt
 - [ ] Verify: `go build ./src && ./janitarr server --help`
 

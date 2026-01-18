@@ -1,4 +1,3 @@
-// Package services provides business logic services for Janitarr.
 package services
 
 import "time"
@@ -54,7 +53,7 @@ type TriggerResult struct {
 	ServerName string `json:"serverName"`
 	ServerType string `json:"serverType"`
 	Category   string `json:"category"` // "missing" or "cutoff"
-	ItemIDs    []int  `json:"itemIds"`
+	ItemIDs    []int  `json:"itemIDs"`
 	Success    bool   `json:"success"`
 	Error      string `json:"error,omitempty"`
 }
@@ -90,11 +89,15 @@ type CycleResult struct {
 
 // ServerManagerInterface defines the interface for the ServerManager service.
 type ServerManagerInterface interface {
-	AddServer(name, url, apiKey, serverType string) (*ServerInfo, error)
-	UpdateServer(id string, updates ServerUpdate) error
+	AddServer(ctx context.Context, name, url, apiKey, serverType string) (*ServerInfo, error)
+	UpdateServer(ctx context.Context, id string, updates ServerUpdate) error
 	RemoveServer(id string) error
-	TestConnection(id string) (*ConnectionResult, error)
+	TestConnection(ctx context.Context, id string) (*ConnectionResult, error)
 	ListServers() ([]ServerInfo, error)
-	GetServer(idOrName string) (*ServerInfo, error)
+	GetServer(ctx context.Context, idOrName string) (*ServerInfo, error)
 }
 
+// StringPtr is a helper function to return a pointer to a string.
+func StringPtr(s string) *string {
+	return &s
+}

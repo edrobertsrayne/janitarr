@@ -31,9 +31,17 @@ var serverListCmd = &cobra.Command{
 	RunE:  runServerList,
 }
 
+var serverEditCmd = &cobra.Command{
+	Use:   "edit <id-or-name>",
+	Short: "Edit an existing media server",
+	Args:  cobra.ExactArgs(1),
+	RunE:  runServerEdit,
+}
+
 func init() {
 	serverCmd.AddCommand(serverAddCmd)
 	serverCmd.AddCommand(serverListCmd)
+	serverCmd.AddCommand(serverEditCmd)
 
 	serverListCmd.Flags().Bool("json", false, "Output list as JSON")
 }
@@ -63,7 +71,7 @@ func runServerAdd(cmd *cobra.Command, args []string) error {
 			serverType = typeInput
 			break
 		}
-		fmt.Println(errorMsg("Invalid server type. Must be 'radarr' or 'sonarr'"))
+		fmt.Println(errorMsg("Invalid server type. Must be 'radarr' or 'sonarr'."))
 	}
 
 	// URL
@@ -131,5 +139,86 @@ func runServerList(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Println(formatServerTable(servers))
+	return nil
+}
+
+func runServerEdit(cmd *cobra.Command, args []string) error {
+	ctx := context.Background()
+	reader := bufio.NewReader(os.Stdin)
+	idOrName := args[0]
+
+	db, err := database.New(dbPath, "./data/.janitarr.key")
+	if err != nil {
+		return fmt.Errorf("failed to open database: %w", err)
+	}
+	defer db.Close()
+
+	serverManager := services.NewServerManagerFunc(db)
+
+	existingServer, err := serverManager.GetServer(ctx, idOrName)
+	if err != nil {
+		return fmt.Errorf("failed to find server '%s': %w", idOrName, err)
+	}
+	if existingServer == nil {
+		return fmt.Errorf(errorMsg("Server '%s' not found."), idOrName)
+	}
+
+	fmt.Println(header(fmt.Sprintf("Edit Server: %s", existingServer.Name)))
+	fmt.Println("--------------------\n")
+	fmt.Println(info("Leave blank to keep current value."))
+
+	// Name
+	fmt.Printf(info("Enter new name (current: %s): "), existingServer.Name)
+	newNameInput, _ := reader.ReadString('\n')
+	newName := strings.TrimSpace(newNameInput)
+	if newName == "" {
+		newName = existingServer.Name
+	}
+
+	// URL
+	fmt.Printf(info("Enter new URL (current: %s): "), existingServer.URL)
+	newURLInput, _ := reader.ReadString('\n')
+	newURL := strings.TrimSpace(newURLInput)
+	if newURL == "" {
+		newURL = existingServer.URL
+	}
+
+	// API Key
+	fmt.Printf(info("Enter new API Key (current: %s...): "), existingServer.APIKey[0:4]) // Only show first 4 chars for security
+	newAPIKeyInput, _ := reader.ReadString('\n')
+	newAPIKey := strings.TrimSpace(newAPIKeyInput)
+	if newAPIKey == "" {
+		newAPIKey = existingServer.APIKey
+	}
+
+	updates := services.ServerUpdate{}
+	if newName != existingServer.Name {
+		updates.Name = &newName
+	}
+	if newURL != existingServer.URL {
+		updates.URL = &newURL
+	}
+	if newAPIKey != existingServer.APIKey {
+		updates.APIKey = &newAPIKey
+	}
+
+	if updates.Name == nil && updates.URL == nil && updates.APIKey == nil {
+		fmt.Println(info("No changes detected. Skipping update."))
+		return nil
+	}
+
+	hideCursor()
+	showProgress("Testing connection and updating server")
+
+	err = serverManager.UpdateServer(ctx, existingServer.ID, updates)
+
+	clearLine()
+	showCursor()
+
+	if err != nil {
+		return fmt.Errorf("failed to update server: %w", err)
+	}
+
+	fmt.Println(success(fmt.Sprintf("Server '%s' updated successfully!", newName)))
 	return nil
 }
