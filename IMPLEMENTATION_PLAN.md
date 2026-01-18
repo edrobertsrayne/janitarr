@@ -308,30 +308,30 @@ janitarr/
 
 **Reference:** `src-ts/lib/api-client.ts`
 
-- [ ] Create `src/api/types.go` with response structs:
-  - [ ] `SystemStatus` - version, appName
-  - [ ] `Movie` - id, title, hasFile, monitored
-  - [ ] `Episode` - id, title, hasFile, monitored, seriesTitle
-  - [ ] `PagedResponse[T]` - totalRecords, records
-- [ ] Create `src/api/client_test.go`:
-  - [ ] `TestURLNormalization` - trailing slashes, protocol
-  - [ ] `TestTimeout` - request timeout handling
-  - [ ] `TestErrorResponses` - 401, 404, 500 handling
-  - [ ] Use `httptest.NewServer` for mocking
-- [ ] Create `src/api/client.go`:
-  - [ ] `type Client struct { baseURL, apiKey string, http *http.Client }`
-  - [ ] `NewClient(url, apiKey string) *Client` - 15s timeout
-  - [ ] `Get(ctx, path string, result interface{}) error`
-  - [ ] `Post(ctx, path string, body, result interface{}) error`
-  - [ ] `normalizeURL(url string) string` - ensure http(s)://, remove trailing /
-- [ ] Create `src/api/radarr_test.go` and `src/api/radarr.go`:
-  - [ ] `GetSystemStatus(ctx) (*SystemStatus, error)`
-  - [ ] `GetMissing(ctx, page, pageSize) (*PagedResponse[Movie], error)`
-  - [ ] `GetCutoffUnmet(ctx, page, pageSize) (*PagedResponse[Movie], error)`
-  - [ ] `TriggerSearch(ctx, movieIds []int) error`
-- [ ] Create `src/api/sonarr_test.go` and `src/api/sonarr.go`:
-  - [ ] Same methods as Radarr but for Episode type
-- [ ] Verify: `go test ./src/api/...`
+- [x] Create `src/api/types.go` with response structs:
+  - [x] `SystemStatus` - version, appName
+  - [x] `Movie` - id, title, hasFile, monitored
+  - [x] `Episode` - id, title, hasFile, monitored, seriesTitle
+  - [x] `PagedResponse[T]` - totalRecords, records
+- [x] Create `src/api/client_test.go`:
+  - [x] `TestURLNormalization` - trailing slashes, protocol
+  - [x] `TestTimeout` - request timeout handling
+  - [x] `TestErrorResponses` - 401, 404, 500 handling
+  - [x] Use `httptest.NewServer` for mocking
+- [x] Create `src/api/client.go`:
+  - [x] `type Client struct { baseURL, apiKey string, http *http.Client }`
+  - [x] `NewClient(url, apiKey string) *Client` - 15s timeout
+  - [x] `Get(ctx, path string, result interface{}) error`
+  - [x] `Post(ctx, path string, body, result interface{}) error`
+  - [x] `normalizeURL(url string) string` - ensure http(s)://, remove trailing /
+- [x] Create `src/api/radarr_test.go` and `src/api/radarr.go`:
+  - [x] `GetSystemStatus(ctx) (*SystemStatus, error)`
+  - [x] `GetMissing(ctx, page, pageSize) (*PagedResponse[Movie], error)`
+  - [x] `GetCutoffUnmet(ctx, page, pageSize) (*PagedResponse[Movie], error)`
+  - [x] `TriggerSearch(ctx, movieIds []int) error`
+- [x] Create `src/api/sonarr_test.go` and `src/api/sonarr.go`:
+  - [x] Same methods as Radarr but for Episode type
+- [x] Verify: `go test ./src/api/...`
 
 ### Server Manager Service
 
