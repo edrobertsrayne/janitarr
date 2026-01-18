@@ -993,23 +993,23 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
 
 **Reference:** `src-ts/web/routes/servers.ts`
 
-- [ ] Create `src/web/handlers/api/servers.go`:
-  - [ ] `GET /api/servers` - list all servers (exclude apiKey)
-  - [ ] `GET /api/servers/{id}` - get single server
-  - [ ] `POST /api/servers` - create server (tests connection first)
-  - [ ] `PUT /api/servers/{id}` - update server
-  - [ ] `DELETE /api/servers/{id}` - delete server
-  - [ ] `POST /api/servers/test` - test new server config
-  - [ ] `POST /api/servers/{id}/test` - test existing server
-- [ ] Create `src/web/handlers/api/servers_test.go`:
-  - [ ] `TestListServers_Empty` - returns empty array
-  - [ ] `TestListServers_WithData` - returns servers
-  - [ ] `TestCreateServer_Success` - creates and returns
-  - [ ] `TestCreateServer_DuplicateName` - returns 409
-  - [ ] `TestCreateServer_ConnectionFailed` - returns 400
-  - [ ] `TestUpdateServer_Success` - updates fields
-  - [ ] `TestDeleteServer_Success` - removes server
-  - [ ] `TestTestServer_Success` - returns version info
+- [x] Create `src/web/handlers/api/servers.go`:
+  - [x] `GET /api/servers` - list all servers (exclude apiKey)
+  - [x] `GET /api/servers/{id}` - get single server
+  - [x] `POST /api/servers` - create server (tests connection first)
+  - [x] `PUT /api/servers/{id}` - update server
+  - [x] `DELETE /api/servers/{id}` - delete server
+  - [x] `POST /api/servers/test` - test new server config
+  - [x] `POST /api/servers/{id}/test` - test existing server
+- [x] Create `src/web/handlers/api/servers_test.go`:
+  - [x] `TestListServers_Empty` - returns empty array
+  - [x] `TestListServers_WithData` - returns servers
+  - [x] `TestCreateServer_Success` - creates and returns
+  - [x] `TestCreateServer_DuplicateName` - returns 409
+  - [x] `TestCreateServer_ConnectionFailed` - returns 400
+  - [x] `TestUpdateServer_Success` - updates fields
+  - [x] `TestDeleteServer_Success` - removes server
+  - [x] `TestTestServer_Success` - returns version info
 
 #### Logs Endpoints
 

@@ -77,13 +77,25 @@ func (s *Server) setupRoutes() {
 
 	// Handlers
 	configHandlers := api.NewConfigHandlers(s.config.DB)
+	serverManager := services.NewServerManager(s.config.DB)
+	serverHandlers := api.NewServerHandlers(serverManager, s.config.DB) // Pass DB to server handlers
 
 	// API routes
 	r.Route("/api", func(r chi.Router) {
 		r.Get("/health", s.handleHealth)
-		r.Get("/config", configHandlers.GetConfig) // Register config route
+		r.Get("/config", configHandlers.GetConfig)
 		r.Patch("/config", configHandlers.PatchConfig)
 		r.Put("/config/reset", configHandlers.ResetConfig)
+
+		r.Get("/servers", serverHandlers.ListServers)
+		r.Post("/servers", serverHandlers.CreateServer)
+		r.Post("/servers/test", serverHandlers.TestNewServerConnection) // Test new server config
+		r.Route("/servers/{id}", func(r chi.Router) {
+			r.Get("/", serverHandlers.GetServer)
+			r.Put("/", serverHandlers.UpdateServer)
+			r.Delete("/", serverHandlers.DeleteServer)
+			r.Post("/test", serverHandlers.TestServerConnection) // Test existing server
+		})
 	})
 
 	// Prometheus metrics
