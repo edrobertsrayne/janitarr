@@ -1015,19 +1015,19 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
 
 **Reference:** `src-ts/web/routes/logs.ts`
 
-- [ ] Create `src/web/handlers/api/logs.go`:
-  - [ ] `GET /api/logs` - list logs with pagination
+- [x] Create `src/web/handlers/api/logs.go`:
+  - [x] `GET /api/logs` - list logs with pagination
     - Query params: `limit`, `offset`, `type`, `server`
-  - [ ] `DELETE /api/logs` - clear all logs
-  - [ ] `GET /api/logs/export` - export as JSON or CSV
+  - [x] `DELETE /api/logs` - clear all logs
+  - [x] `GET /api/logs/export` - export as JSON or CSV
     - Query params: `format` (json/csv)
-- [ ] Create `src/web/handlers/api/logs_test.go`:
-  - [ ] `TestGetLogs_Default` - returns recent logs
-  - [ ] `TestGetLogs_Pagination` - respects limit/offset
-  - [ ] `TestGetLogs_FilterByType` - filters by type
-  - [ ] `TestDeleteLogs_ClearsAll` - removes all logs
-  - [ ] `TestExportLogs_JSON` - returns JSON array
-  - [ ] `TestExportLogs_CSV` - returns CSV file
+- [x] Create `src/web/handlers/api/logs_test.go`:
+  - [x] `TestGetLogs_Default` - returns recent logs
+  - [x] `TestGetLogs_Pagination` - respects limit/offset
+  - [x] `TestGetLogs_FilterByType` - filters by type
+  - [x] `TestDeleteLogs_ClearsAll` - removes all logs
+  - [x] `TestExportLogs_JSON` - returns JSON array
+  - [x] `TestExportLogs_CSV` - returns CSV file
 
 #### Automation Endpoints
 

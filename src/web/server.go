@@ -78,7 +78,8 @@ func (s *Server) setupRoutes() {
 	// Handlers
 	configHandlers := api.NewConfigHandlers(s.config.DB)
 	serverManager := services.NewServerManager(s.config.DB)
-	serverHandlers := api.NewServerHandlers(serverManager, s.config.DB) // Pass DB to server handlers
+	serverHandlers := api.NewServerHandlers(serverManager, s.config.DB)
+	logHandlers := api.NewLogHandlers(s.config.DB) // Instantiate LogHandlers
 
 	// API routes
 	r.Route("/api", func(r chi.Router) {
@@ -96,6 +97,10 @@ func (s *Server) setupRoutes() {
 			r.Delete("/", serverHandlers.DeleteServer)
 			r.Post("/test", serverHandlers.TestServerConnection) // Test existing server
 		})
+
+		r.Get("/logs", logHandlers.ListLogs)      // List logs
+		r.Delete("/logs", logHandlers.ClearLogs)  // Clear logs
+		r.Get("/logs/export", logHandlers.ExportLogs) // Export logs
 	})
 
 	// Prometheus metrics
@@ -107,10 +112,4 @@ func (s *Server) setupRoutes() {
 	// Static files and pages
 	r.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	// r.Get("/*", s.handlePage) // Placeholder for templ pages
-}
-
-// handleHealth is a placeholder for the health check endpoint.
-func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte("OK"))
 }
