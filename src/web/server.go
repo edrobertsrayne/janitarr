@@ -10,9 +10,10 @@ import (
 	chiMiddleware "github.com/go-chi/chi/v5/middleware" // Renamed to avoid conflict
 	"github.com/user/janitarr/src/database"
 	"github.com/user/janitarr/src/logger"
-	"github.com/user/janitarr/src/web/handlers/api" // Import api package
-	webMiddleware "github.com/user/janitarr/src/web/middleware" // Custom middleware package
+	"github.com/user/janitarr/src/metrics"
 	"github.com/user/janitarr/src/services"
+	"github.com/user/janitarr/src/web/handlers/api"             // Import api package
+	webMiddleware "github.com/user/janitarr/src/web/middleware" // Custom middleware package
 )
 
 // ServerConfig holds configuration for the HTTP server.
@@ -27,22 +28,22 @@ type ServerConfig struct {
 
 // Server represents the HTTP server.
 type Server struct {
-	config    ServerConfig
-	router    chi.Router
-	httpSrv   *http.Server
-	metrics   *webMiddleware.Metrics // Add metrics instance
+	config            ServerConfig
+	router            chi.Router
+	httpSrv           *http.Server
+	prometheusMetrics *metrics.Metrics // Prometheus metrics
 	// wsHub     *websocket.LogHub // Placeholder for later
 }
 
 // NewServer creates a new HTTP server instance.
 func NewServer(config ServerConfig) *Server {
 	r := chi.NewRouter()
-	metrics := webMiddleware.NewMetrics() // Initialize metrics
+	prometheusMetrics := metrics.NewMetrics() // Initialize Prometheus metrics
 	return &Server{
-		config:  config,
-		router:  r,
-		httpSrv: &http.Server{Addr: fmt.Sprintf("%s:%d", config.Host, config.Port), Handler: r},
-		metrics: metrics,
+		config:            config,
+		router:            r,
+		httpSrv:           &http.Server{Addr: fmt.Sprintf("%s:%d", config.Host, config.Port), Handler: r},
+		prometheusMetrics: prometheusMetrics,
 	}
 }
 
@@ -62,6 +63,17 @@ func (s *Server) CloseWebSockets() {
 	// TODO: Implement WebSocket hub shutdown logic
 }
 
+// metricsMiddleware wraps HTTP requests to record metrics
+func (s *Server) metricsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		ww := chiMiddleware.NewWrapResponseWriter(w, r.ProtoMajor)
+		next.ServeHTTP(ww, r)
+		duration := time.Since(start)
+		s.prometheusMetrics.RecordHTTPRequest(r.Method, r.URL.Path, ww.Status(), duration)
+	})
+}
+
 // setupRoutes configures the HTTP routes and middleware.
 func (s *Server) setupRoutes() {
 	r := s.router
@@ -73,17 +85,19 @@ func (s *Server) setupRoutes() {
 	if s.config.IsDev {
 		r.Use(webMiddleware.RequestLogger) // Use custom request logger
 	}
-	r.Use(s.metrics.MetricsMiddleware) // Use custom metrics middleware
+	r.Use(s.metricsMiddleware) // Use Prometheus metrics middleware
 
 	// Handlers
 	configHandlers := api.NewConfigHandlers(s.config.DB)
 	serverManager := services.NewServerManager(s.config.DB)
 	serverHandlers := api.NewServerHandlers(serverManager, s.config.DB)
 	logHandlers := api.NewLogHandlers(s.config.DB)
-	
+	healthHandlers := api.NewHealthHandlers(s.config.DB, s.config.Scheduler)
+
 	automationService := services.NewAutomation(s.config.DB, services.NewDetector(s.config.DB), services.NewSearchTrigger(s.config.DB), s.config.Logger)
 	automationHandlers := api.NewAutomationHandlers(s.config.DB, automationService, s.config.Scheduler, s.config.Logger)
-	statsHandlers := api.NewStatsHandlers(s.config.DB) // Instantiate StatsHandlers
+	statsHandlers := api.NewStatsHandlers(s.config.DB)             // Instantiate StatsHandlers
+	metricsHandlers := api.NewMetricsHandlers(s.prometheusMetrics) // Instantiate MetricsHandlers
 
 	// API routes
 	r.Route("/api", func(r chi.Router) {
@@ -102,8 +116,8 @@ func (s *Server) setupRoutes() {
 			r.Post("/test", serverHandlers.TestServerConnection) // Test existing server
 		})
 
-		r.Get("/logs", logHandlers.ListLogs)      // List logs
-		r.Delete("/logs", logHandlers.ClearLogs)  // Clear logs
+		r.Get("/logs", logHandlers.ListLogs)          // List logs
+		r.Delete("/logs", logHandlers.ClearLogs)      // Clear logs
 		r.Get("/logs/export", logHandlers.ExportLogs) // Export logs
 
 		r.Post("/automation/trigger", automationHandlers.TriggerAutomationCycle)
@@ -114,7 +128,7 @@ func (s *Server) setupRoutes() {
 	})
 
 	// Prometheus metrics
-	// r.Get("/metrics", s.handleMetrics) // Placeholder for later
+	r.Get("/metrics", metricsHandlers.GetMetrics)
 
 	// WebSocket
 	// r.Get("/ws/logs", s.wsHub.ServeWS) // Placeholder for later

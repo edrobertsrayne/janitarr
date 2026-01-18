@@ -748,7 +748,7 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
 
 **Reference:** `src-ts/cli/commands.ts` (lines 300-450)
 
-- [ ] Create `src/cli/run.go`:
+- [x] Create `src/cli/run.go`:
 
   ```go
   var runCmd = &cobra.Command{
@@ -769,7 +769,7 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
   - [x] Display cycle summary
   - [x] `--dry-run` flag: show what would be searched
   - [x] `--json` flag: JSON output
-- [ ] Create `src/cli/scan.go`:
+- [x] Create `src/cli/scan.go`:
   ```go
   var scanCmd = &cobra.Command{
       Use:   "scan",
@@ -781,7 +781,7 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
   - [x] Run detection only (no searches)
   - [x] Display results per server
   - [x] `--json` flag for JSON output
-- [ ] Create `src/cli/status.go`:
+- [x] Create `src/cli/status.go`:
   ```go
   var statusCmd = &cobra.Command{
       Use:   "status",
@@ -805,7 +805,7 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
 
 **Reference:** `src-ts/cli/commands.ts` (lines 550-650)
 
-- [ ] Create `src/cli/logs.go`:
+- [x] Create `src/cli/logs.go`:
 
   ```go
   var logsCmd = &cobra.Command{
@@ -1095,7 +1095,7 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
 
 **Reference:** `src-ts/web/routes/metrics.ts`, `specs/unified-service-startup.md`
 
-- [ ] Create `src/metrics/metrics.go`:
+- [x] Create `src/metrics/metrics.go`:
 
   ```go
   type Metrics struct {
@@ -1110,19 +1110,19 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
   }
   ```
 
-  - [ ] `NewMetrics() *Metrics`
-  - [ ] `IncrementCycles(failed bool)`
-  - [ ] `IncrementSearches(serverType, category string, failed bool)`
-  - [ ] `RecordHTTPRequest(method, path string, status int, duration time.Duration)`
-  - [ ] `Format() string` - Prometheus text format
+  - [x] `NewMetrics() *Metrics`
+  - [x] `IncrementCycles(failed bool)`
+  - [x] `IncrementSearches(serverType, category string, failed bool)`
+  - [x] `RecordHTTPRequest(method, path string, status int, duration time.Duration)`
+  - [x] `Format() string` - Prometheus text format
 
-- [ ] Create `src/web/handlers/api/metrics.go`:
-  - [ ] `GET /metrics` - Prometheus text format
-  - [ ] Content-Type: `text/plain; version=0.0.4; charset=utf-8`
-- [ ] Create `src/metrics/metrics_test.go`:
-  - [ ] `TestFormat_PrometheusFormat` - valid output
-  - [ ] `TestIncrementCycles_Monotonic` - counters increase
-  - [ ] `TestRecordHTTPRequest_Labels` - correct labels
+- [x] Create `src/web/handlers/api/metrics.go`:
+  - [x] `GET /metrics` - Prometheus text format
+  - [x] Content-Type: `text/plain; version=0.0.4; charset=utf-8`
+- [x] Create `src/metrics/metrics_test.go`:
+  - [x] `TestFormat_PrometheusFormat` - valid output
+  - [x] `TestIncrementCycles_Monotonic` - counters increase
+  - [x] `TestRecordHTTPRequest_Labels` - correct labels
 
 ### WebSocket
 

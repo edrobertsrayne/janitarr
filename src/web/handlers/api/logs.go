@@ -24,7 +24,7 @@ func NewLogHandlers(db *database.DB) *LogHandlers {
 // ListLogs returns a list of log entries with pagination and filtering.
 func (h *LogHandlers) ListLogs(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	
+
 	limitStr := r.URL.Query().Get("limit")
 	offsetStr := r.URL.Query().Get("offset")
 	typeFilter := r.URL.Query().Get("type")
@@ -75,7 +75,7 @@ func (h *LogHandlers) ClearLogs(w http.ResponseWriter, r *http.Request) {
 // ExportLogs exports log entries as JSON or CSV.
 func (h *LogHandlers) ExportLogs(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	
+
 	format := r.URL.Query().Get("format")
 	if format == "" {
 		format = "json" // Default to JSON
@@ -95,22 +95,22 @@ func (h *LogHandlers) ExportLogs(w http.ResponseWriter, r *http.Request) {
 	case "csv":
 		w.Header().Set("Content-Type", "text/csv")
 		w.Header().Set("Content-Disposition", "attachment; filename=\"janitarr_logs.csv\"")
-		
+
 		// Write CSV header
 		_, _ = w.Write([]byte("ID,Timestamp,Type,ServerName,ServerType,Category,Count,Message,IsManual\n"))
 		for _, entry := range logs {
 			// Basic CSV escaping for simplicity, may need more robust solution for complex strings
 			message := strconv.Quote(entry.Message)
 			fmt.Fprintf(w, "%s,%s,%s,%s,%s,%s,%d,%s,%t\n",
-				entr y.ID,
-				entr y.Timestamp.Format(time.RFC3339),
-				entr y.Type,
-				entr y.ServerName,
-				entr y.ServerType,
-				entr y.Category,
-				entr y.Count,
+				entry.ID,
+				entry.Timestamp.Format(time.RFC3339),
+				entry.Type,
+				entry.ServerName,
+				entry.ServerType,
+				entry.Category,
+				entry.Count,
 				message,
-				entr y.IsManual,
+				entry.IsManual,
 			)
 		}
 	default:
