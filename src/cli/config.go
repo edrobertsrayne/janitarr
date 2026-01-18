@@ -71,41 +71,41 @@ func runConfigSet(cmd *cobra.Command, args []string) error {
 	case "schedule.interval":
 		intVal, parseErr := strconv.Atoi(value)
 		if parseErr != nil || intVal < 1 {
-			return fmt.Errorf(errorMsg("Invalid value for schedule.interval: must be a positive integer"))
+			return fmt.Errorf("invalid value for schedule.interval: must be a positive integer")
 		}
 		appConfig.Schedule.IntervalHours = intVal
 	case "schedule.enabled":
 		boolVal, parseErr := strconv.ParseBool(value)
 		if parseErr != nil {
-			return fmt.Errorf(errorMsg("Invalid value for schedule.enabled: must be 'true' or 'false'"))
+			return fmt.Errorf("invalid value for schedule.enabled: must be 'true' or 'false'")
 		}
 		appConfig.Schedule.Enabled = boolVal
 	case "limits.missing.movies":
 		intVal, parseErr := strconv.Atoi(value)
 		if parseErr != nil || intVal < 0 {
-			return fmt.Errorf(errorMsg("Invalid value for limits.missing.movies: must be a non-negative integer"))
+			return fmt.Errorf("invalid value for limits.missing.movies: must be a non-negative integer")
 		}
 		appConfig.SearchLimits.MissingMoviesLimit = intVal
 	case "limits.missing.episodes":
 		intVal, parseErr := strconv.Atoi(value)
 		if parseErr != nil || intVal < 0 {
-			return fmt.Errorf(errorMsg("Invalid value for limits.missing.episodes: must be a non-negative integer"))
+			return fmt.Errorf("invalid value for limits.missing.episodes: must be a non-negative integer")
 		}
 		appConfig.SearchLimits.MissingEpisodesLimit = intVal
 	case "limits.cutoff.movies":
 		intVal, parseErr := strconv.Atoi(value)
 		if parseErr != nil || intVal < 0 {
-			return fmt.Errorf(errorMsg("Invalid value for limits.cutoff.movies: must be a non-negative integer"))
+			return fmt.Errorf("invalid value for limits.cutoff.movies: must be a non-negative integer")
 		}
 		appConfig.SearchLimits.CutoffMoviesLimit = intVal
 	case "limits.cutoff.episodes":
 		intVal, parseErr := strconv.Atoi(value)
 		if parseErr != nil || intVal < 0 {
-			return fmt.Errorf(errorMsg("Invalid value for limits.cutoff.episodes: must be a non-negative integer"))
+			return fmt.Errorf("invalid value for limits.cutoff.episodes: must be a non-negative integer")
 		}
 		appConfig.SearchLimits.CutoffEpisodesLimit = intVal
 	default:
-		return fmt.Errorf(errorMsg(fmt.Sprintf("Unknown configuration key: %s", key)))
+		return fmt.Errorf("unknown configuration key: %s", key)
 	}
 
 	if err := db.SetAppConfig(appConfig); err != nil {

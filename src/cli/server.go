@@ -66,7 +66,7 @@ func runServerAdd(cmd *cobra.Command, args []string) error {
 	name, _ := reader.ReadString('\n')
 	name = strings.TrimSpace(name)
 	if name == "" {
-		return fmt.Errorf(errorMsg("Server name cannot be empty"))
+		return fmt.Errorf("server name cannot be empty")
 	}
 
 	// Type
@@ -87,7 +87,7 @@ func runServerAdd(cmd *cobra.Command, args []string) error {
 	url, _ := reader.ReadString('\n')
 	url = strings.TrimSpace(url)
 	if url == "" {
-		return fmt.Errorf(errorMsg("Server URL cannot be empty"))
+		return fmt.Errorf("server URL cannot be empty")
 	}
 
 	// API Key
@@ -95,7 +95,7 @@ func runServerAdd(cmd *cobra.Command, args []string) error {
 	apiKey, _ := reader.ReadString('\n')
 	apiKey = strings.TrimSpace(apiKey)
 	if apiKey == "" {
-		return fmt.Errorf(errorMsg("API Key cannot be empty"))
+		return fmt.Errorf("API Key cannot be empty")
 	}
 
 	db, err := database.New(dbPath, "./data/.janitarr.key")
@@ -166,11 +166,11 @@ func runServerEdit(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to find server '%s': %w", idOrName, err)
 	}
 	if existingServer == nil {
-		return fmt.Errorf(errorMsg("Server '%s' not found."), idOrName)
+		return fmt.Errorf("server '%s' not found", idOrName)
 	}
 
 	fmt.Println(header(fmt.Sprintf("Edit Server: %s", existingServer.Name)))
-	fmt.Println("--------------------\n")
+	fmt.Println("--------------------")
 	fmt.Println(info("Leave blank to keep current value."))
 
 	// Name
@@ -244,7 +244,7 @@ func runServerRemove(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to find server '%s': %w", idOrName, err)
 	}
 	if serverToRemove == nil {
-		return fmt.Errorf(errorMsg("Server '%s' not found."), idOrName)
+		return fmt.Errorf("server '%s' not found", idOrName)
 	}
 
 	force, _ := cmd.Flags().GetBool("force")

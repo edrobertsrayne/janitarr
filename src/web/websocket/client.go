@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"encoding/json"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -24,10 +25,11 @@ const (
 
 // Client represents a WebSocket client connection.
 type Client struct {
-	hub     *LogHub
-	conn    *websocket.Conn
-	send    chan []byte
-	filters *WebSocketFilters
+	hub       *LogHub
+	conn      *websocket.Conn
+	send      chan []byte
+	filtersMu sync.RWMutex
+	filters   *WebSocketFilters
 }
 
 // readPump pumps messages from the websocket connection to the hub.
@@ -62,10 +64,14 @@ func (c *Client) readPump() {
 		switch msg.Type {
 		case "subscribe":
 			if msg.Filters != nil {
+				c.filtersMu.Lock()
 				c.filters = msg.Filters
+				c.filtersMu.Unlock()
 			}
 		case "unsubscribe":
+			c.filtersMu.Lock()
 			c.filters = nil
+			c.filtersMu.Unlock()
 		case "ping":
 			// Send pong
 			response := ServerMessage{
@@ -126,6 +132,9 @@ func (c *Client) writePump() {
 
 // shouldSend determines if an entry should be sent to the client based on filters.
 func (c *Client) shouldSend(entry *logger.LogEntry) bool {
+	c.filtersMu.RLock()
+	defer c.filtersMu.RUnlock()
+
 	if c.filters == nil {
 		return true
 	}

@@ -16,7 +16,7 @@ import (
 // confirmAction prompts the user for y/N confirmation
 var confirmAction = func(prompt string) bool {
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Printf(warning(prompt + " (y/N): "))
+	fmt.Print(warning(prompt + " (y/N): "))
 	confirmation, _ := reader.ReadString('\n')
 	return strings.ToLower(strings.TrimSpace(confirmation)) == "y"
 }
@@ -52,7 +52,7 @@ func runLogs(cmd *cobra.Command, args []string) error {
 			return nil
 		}
 		if err := db.ClearLogs(); err != nil {
-			return fmt.Errorf(errorMsg(fmt.Sprintf("failed to clear logs: %v", err)))
+			return fmt.Errorf("failed to clear logs: %w", err)
 		}
 		fmt.Println(success("All logs cleared successfully."))
 		return nil
@@ -67,7 +67,7 @@ func runLogs(cmd *cobra.Command, args []string) error {
 	}
 
 	if err != nil {
-		return fmt.Errorf(errorMsg(fmt.Sprintf("failed to retrieve logs: %v", err)))
+		return fmt.Errorf("failed to retrieve logs: %w", err)
 	}
 
 	if outputJSON {
