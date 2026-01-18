@@ -70,37 +70,12 @@
     build = {
       description = "Run the build agent against the codebase. Use --gemini to run with Gemini.";
       exec = ''
-        iterations_arg=""
-        gemini_mode=false
-
-        # Parse arguments
-        while (( "$#" )); do
-          case "$1" in
-            --gemini)
-              gemini_mode=true
-              shift
-              ;;
-            *)
-              iterations_arg="$1"
-              shift
-              ;;
-          esac
-        done
-
-        iterations=''${iterations_arg:-5}
+        iterations=''${1:-5}
         current_iteration=0
 
         while [ "$current_iteration" -lt "$iterations" ]; do
           echo "Running build iteration $((current_iteration + 1)) of $iterations"
-
-          if [ "$gemini_mode" = true ]; then
-            echo "Using gemini --yolo"
-            cat PROMPT_build.md | bunx gemini --yolo
-          else
-            echo "Using claude"
-            cat PROMPT_build.md | claude -p --model sonnet --dangerously-skip-permissions
-          fi
-
+          cat PROMPT_build.md | claude -p --model sonnet --dangerously-skip-permissions
           current_iteration=$((current_iteration + 1))
         done
       '';

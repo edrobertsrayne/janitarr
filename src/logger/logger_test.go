@@ -1,96 +1,88 @@
 package logger
 
 import (
+	"context"
 	"testing"
 	"time"
-
-	"github.com/user/janitarr/src/database"
 )
 
-func testLoggerDB(t *testing.T) *database.DB {
-	t.Helper()
-	db, err := database.New(":memory:", t.TempDir()+"/.key")
-	if err != nil {
-		t.Fatalf("creating test db: %v", err)
-	}
-	t.Cleanup(func() { db.Close() })
-	return db
+// mockDB implements LogStorer for testing
+type mockDB struct {
+	logs []LogEntry
+}
+
+func (m *mockDB) AddLog(entry LogEntry) error {
+	m.logs = append(m.logs, entry)
+	return nil
+}
+
+func (m *mockDB) GetLogs(ctx context.Context, limit, offset int, logTypeFilter, serverNameFilter *string) ([]LogEntry, error) {
+	return m.logs, nil
+}
+
+func (m *mockDB) ClearLogs() error {
+	m.logs = nil
+	return nil
 }
 
 func TestLogCycleStart_Persists(t *testing.T) {
-	db := testLoggerDB(t)
+	db := &mockDB{}
 	logger := NewLogger(db)
 
 	logger.LogCycleStart(true)
 
-	logs, _, err := db.GetLogs(1, 0, "", "")
-	if err != nil {
-		t.Fatalf("failed to get logs: %v", err)
+	if len(db.logs) != 1 {
+		t.Fatalf("expected 1 log entry, got %d", len(db.logs))
 	}
-	if len(logs) != 1 {
-		t.Fatalf("expected 1 log entry, got %d", len(logs))
-	}
-	if logs[0].Type != database.LogEntryType(LogTypeCycleStart) {
-		t.Errorf("expected log type %s, got %s", LogTypeCycleStart, logs[0].Type)
+	if db.logs[0].Type != LogTypeCycleStart {
+		t.Errorf("expected log type %s, got %s", LogTypeCycleStart, db.logs[0].Type)
 	}
 }
 
 func TestLogCycleEnd_Persists(t *testing.T) {
-	db := testLoggerDB(t)
+	db := &mockDB{}
 	logger := NewLogger(db)
 
 	logger.LogCycleEnd(10, 2, false)
 
-	logs, _, err := db.GetLogs(1, 0, "", "")
-	if err != nil {
-		t.Fatalf("failed to get logs: %v", err)
+	if len(db.logs) != 1 {
+		t.Fatalf("expected 1 log entry, got %d", len(db.logs))
 	}
-	if len(logs) != 1 {
-		t.Fatalf("expected 1 log entry, got %d", len(logs))
-	}
-	if logs[0].Type != database.LogEntryType(LogTypeCycleEnd) {
-		t.Errorf("expected log type %s, got %s", LogTypeCycleEnd, logs[0].Type)
+	if db.logs[0].Type != LogTypeCycleEnd {
+		t.Errorf("expected log type %s, got %s", LogTypeCycleEnd, db.logs[0].Type)
 	}
 }
 
 func TestLogSearches_Persists(t *testing.T) {
-	db := testLoggerDB(t)
+	db := &mockDB{}
 	logger := NewLogger(db)
 
 	logger.LogSearches("radarr", "radarr", "missing", 5, true)
 
-	logs, _, err := db.GetLogs(1, 0, "", "")
-	if err != nil {
-		t.Fatalf("failed to get logs: %v", err)
+	if len(db.logs) != 1 {
+		t.Fatalf("expected 1 log entry, got %d", len(db.logs))
 	}
-	if len(logs) != 1 {
-		t.Fatalf("expected 1 log entry, got %d", len(logs))
-	}
-	if logs[0].Type != database.LogEntryType(LogTypeSearch) {
-		t.Errorf("expected log type %s, got %s", LogTypeSearch, logs[0].Type)
+	if db.logs[0].Type != LogTypeSearch {
+		t.Errorf("expected log type %s, got %s", LogTypeSearch, db.logs[0].Type)
 	}
 }
 
 func TestLogError_Persists(t *testing.T) {
-	db := testLoggerDB(t)
+	db := &mockDB{}
 	logger := NewLogger(db)
 
 	logger.LogServerError("radarr", "radarr", "connection failed")
 
-	logs, _, err := db.GetLogs(1, 0, "", "")
-	if err != nil {
-		t.Fatalf("failed to get logs: %v", err)
+	if len(db.logs) != 1 {
+		t.Fatalf("expected 1 log entry, got %d", len(db.logs))
 	}
-	if len(logs) != 1 {
-		t.Fatalf("expected 1 log entry, got %d", len(logs))
-	}
-	if logs[0].Type != database.LogEntryType(LogTypeError) {
-		t.Errorf("expected log type %s, got %s", LogTypeError, logs[0].Type)
+	if db.logs[0].Type != LogTypeError {
+		t.Errorf("expected log type %s, got %s", LogTypeError, db.logs[0].Type)
 	}
 }
 
 func TestBroadcast_SendsToSubscribers(t *testing.T) {
-	db := testLoggerDB(t)
+	db := &mockDB{}
 	logger := NewLogger(db)
 
 	sub := logger.Subscribe()
@@ -108,7 +100,7 @@ func TestBroadcast_SendsToSubscribers(t *testing.T) {
 }
 
 func TestUnsubscribe_StopsReceiving(t *testing.T) {
-	db := testLoggerDB(t)
+	db := &mockDB{}
 	logger := NewLogger(db)
 
 	sub := make(chan LogEntry, 1)
