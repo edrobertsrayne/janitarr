@@ -1050,8 +1050,8 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
 
 **Reference:** `src-ts/web/routes/stats.ts`
 
-- [ ] Create `src/web/handlers/api/stats.go`:
-  - [ ] `GET /api/stats/summary` - dashboard stats
+- [x] Create `src/web/handlers/api/stats.go`:
+  - [x] `GET /api/stats/summary` - dashboard stats
     ```go
     type StatsSummary struct {
         ServerCount    int           `json:"serverCount"`
@@ -1060,11 +1060,11 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
         LastCycle      *CycleSummary `json:"lastCycle,omitempty"`
     }
     ```
-  - [ ] `GET /api/stats/servers/{id}` - server-specific stats
-- [ ] Create `src/web/handlers/api/stats_test.go`:
-  - [ ] `TestGetSummary_ReturnsStats` - verifies structure
-  - [ ] `TestGetServerStats_Success` - returns server stats
-  - [ ] `TestGetServerStats_NotFound` - returns 404
+  - [x] `GET /api/stats/servers/{id}` - server-specific stats
+- [x] Create `src/web/handlers/api/stats_test.go`:
+  - [x] `TestGetSummary_ReturnsStats` - verifies structure
+  - [x] `TestGetServerStats_Success` - returns server stats
+  - [x] `TestGetServerStats_NotFound` - returns 404
 
 #### Health Endpoint
 
