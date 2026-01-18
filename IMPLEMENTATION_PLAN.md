@@ -834,7 +834,7 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
   - [x] `TestLogs_Limit` - respects limit flag
   - [x] `TestLogs_JSON` - verifies JSON format
   - [x] `TestLogs_Clear` - clears with confirmation
-- [ ] Verify: `go build ./src && ./janitarr logs --help`
+- [x] Verify: `go build ./src && ./janitarr logs --help`
 
 ### Register All Commands
 
