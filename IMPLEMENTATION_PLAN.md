@@ -870,7 +870,7 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
 ## Phase 5: Web Server & API (TDD)
 
 **Reference:** `src-ts/web/server.ts`, `src-ts/web/routes/*.ts`, `src-ts/web/websocket.ts`
-**Verification:** `go test ./src/web/...`
+- [x] Verify: `go test ./src/web/...`
 
 ### HTTP Server Setup
 
