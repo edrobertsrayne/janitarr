@@ -432,7 +432,7 @@ janitarr/
 
 **Reference:** `src-ts/services/search-trigger.ts`
 
-- [ ] Create trigger types in `src/services/types.go`:
+- [x] Create trigger types in `src/services/types.go`:
 
   ```go
   type SearchLimits struct {
@@ -459,19 +459,19 @@ janitarr/
   }
   ```
 
-- [ ] Create `src/services/search_trigger_test.go`:
-  - [ ] `TestTriggerSearches_RespectsLimits` - doesn't exceed limits
-  - [ ] `TestTriggerSearches_RoundRobin` - distributes evenly across servers
-  - [ ] `TestTriggerSearches_DryRun` - returns counts but doesn't call API
-  - [ ] `TestTriggerSearches_PartialFailure` - continues after failures
-  - [ ] `TestTriggerSearches_NoResults` - handles empty detection
-  - [ ] `TestTriggerSearches_ZeroLimit` - skips category with 0 limit
-- [ ] Create `src/services/search_trigger.go`:
-  - [ ] `type SearchTrigger struct { db *database.DB, apiFactory APIFactory }`
-  - [ ] `NewSearchTrigger(db *database.DB) *SearchTrigger`
-  - [ ] `TriggerSearches(ctx, results *DetectionResults, limits SearchLimits, dryRun bool) (*TriggerResults, error)`
-  - [ ] `distributeSearches(items []int, limit int, serverCount int) [][]int` - round-robin
-- [ ] Verify: `go test ./src/services/... -run Trigger`
+- [x] Create `src/services/search_trigger_test.go`:
+  - [x] `TestTriggerSearches_RespectsLimits` - doesn't exceed limits
+  - [x] `TestTriggerSearches_RoundRobin` - distributes evenly across servers
+  - [x] `TestTriggerSearches_DryRun` - returns counts but doesn't call API
+  - [x] `TestTriggerSearches_PartialFailure` - continues after failures
+  - [x] `TestTriggerSearches_NoResults` - handles empty detection
+  - [x] `TestTriggerSearches_ZeroLimit` - skips category with 0 limit
+- [x] Create `src/services/search_trigger.go`:
+  - [x] `type SearchTrigger struct { db *database.DB, apiFactory APIFactory }`
+  - [x] `NewSearchTrigger(db *database.DB) *SearchTrigger`
+  - [x] `TriggerSearches(ctx, results *DetectionResults, limits SearchLimits, dryRun bool) (*TriggerResults, error)`
+  - [x] `distributeRoundRobin(detectionResults *DetectionResults, allocations map[string]*serverItemAllocation, category string, limit int)` - round-robin
+- [x] Verify: `go test ./src/services/... -run Trigger`
 
 ---
 
@@ -484,7 +484,7 @@ janitarr/
 
 **Reference:** `src-ts/lib/scheduler.ts`
 
-- [ ] Create scheduler types in `src/services/types.go`:
+- [x] Create scheduler types in `src/services/types.go`:
   ```go
   type SchedulerStatus struct {
       IsRunning     bool       `json:"isRunning"`
@@ -494,16 +494,16 @@ janitarr/
       IntervalHours int        `json:"intervalHours"`
   }
   ```
-- [ ] Create `src/services/scheduler_test.go`:
-  - [ ] `TestScheduler_StartStop` - starts timer, stops cleanly
-  - [ ] `TestScheduler_IntervalConfig` - respects configured hours
-  - [ ] `TestScheduler_PreventsConcurrent` - blocks during active cycle
-  - [ ] `TestScheduler_ManualTrigger` - runs immediately
-  - [ ] `TestScheduler_ManualDuringActive` - returns error if cycle running
-  - [ ] `TestScheduler_GracefulShutdown` - waits for active cycle
-  - [ ] `TestScheduler_CallbackError` - handles callback errors
-  - [ ] `TestScheduler_StatusUpdates` - reflects current state
-- [ ] Create `src/services/scheduler.go`:
+- [x] Create `src/services/scheduler_test.go`:
+  - [x] `TestScheduler_StartStop` - starts timer, stops cleanly
+  - [x] `TestScheduler_IntervalConfig` - respects configured hours
+  - [x] `TestScheduler_PreventsConcurrent` - blocks during active cycle
+  - [x] `TestScheduler_ManualTrigger` - runs immediately
+  - [x] `TestScheduler_ManualDuringActive` - returns error if cycle running
+  - [x] `TestScheduler_GracefulShutdown` - waits for active cycle
+  - [x] `TestScheduler_CallbackError` - handles callback errors
+  - [x] `TestScheduler_StatusUpdates` - reflects current state
+- [x] Create `src/services/scheduler.go`:
 
   ```go
   type Scheduler struct {
@@ -519,23 +519,23 @@ janitarr/
   }
   ```
 
-  - [ ] `NewScheduler(intervalHours int, callback func(ctx, isManual bool) error) *Scheduler`
-  - [ ] `Start(ctx context.Context) error` - starts timer loop
-  - [ ] `Stop()` - signals stop, waits for cycle if active
-  - [ ] `TriggerManual(ctx context.Context) error` - runs immediately
-  - [ ] `GetStatus() SchedulerStatus`
-  - [ ] `IsRunning() bool`
-  - [ ] `IsCycleActive() bool`
-  - [ ] `GetTimeUntilNextRun() time.Duration`
-  - [ ] Use `sync.Mutex` for thread safety
+  - [x] `NewScheduler(intervalHours int, callback func(ctx, isManual bool) error) *Scheduler`
+  - [x] `Start(ctx context.Context) error` - starts timer loop
+  - [x] `Stop()` - signals stop, waits for cycle if active
+  - [x] `TriggerManual(ctx context.Context) error` - runs immediately
+  - [x] `GetStatus() SchedulerStatus`
+  - [x] `IsRunning() bool`
+  - [x] `IsCycleActive() bool`
+  - [x] `GetTimeUntilNextRun() time.Duration`
+  - [x] Use `sync.Mutex` for thread safety
 
-- [ ] Verify: `go test ./src/services/... -run Scheduler`
+- [x] Verify: `go test ./src/services/... -run Scheduler`
 
 ### Automation Orchestrator
 
 **Reference:** `src-ts/services/automation.ts`
 
-- [ ] Create cycle result types in `src/services/types.go`:
+- [x] Create cycle result types in `src/services/types.go`:
   ```go
   type CycleResult struct {
       Success          bool             `json:"success"`
@@ -547,29 +547,29 @@ janitarr/
       Duration         time.Duration    `json:"duration"`
   }
   ```
-- [ ] Create `src/services/automation_test.go`:
-  - [ ] `TestRunCycle_Success` - detect -> trigger -> log pipeline
-  - [ ] `TestRunCycle_DetectionFailure` - continues with partial results
-  - [ ] `TestRunCycle_TriggerFailure` - logs errors, returns failure
-  - [ ] `TestRunCycle_DryRun` - no API calls, no logs
-  - [ ] `TestRunCycle_ManualLogging` - marks logs as manual
-  - [ ] `TestRunCycle_ScheduledLogging` - marks logs as scheduled
-  - [ ] `TestRunCycle_EmptyResults` - handles no items to search
-- [ ] Create `src/services/automation.go`:
-  - [ ] `type Automation struct { detector *Detector, trigger *SearchTrigger, logger *Logger, db *database.DB }`
-  - [ ] `NewAutomation(db *database.DB, logger *Logger) *Automation`
-  - [ ] `RunCycle(ctx context.Context, isManual, dryRun bool) (*CycleResult, error)`
-  - [ ] Pipeline: detect -> limit -> trigger -> log results
-  - [ ] Load limits from database config
-- [ ] Create `src/services/automation_formatter.go`:
-  - [ ] `FormatCycleResult(result *CycleResult) string` - human-readable summary
-- [ ] Verify: `go test ./src/services/... -run Automation`
+- [x] Create `src/services/automation_test.go`:
+  - [x] `TestRunCycle_Success` - detect -> trigger -> log pipeline
+  - [x] `TestRunCycle_DetectionFailure` - continues with partial results
+  - [x] `TestRunCycle_TriggerFailure` - logs errors, returns failure
+  - [x] `TestRunCycle_DryRun` - no API calls, no logs
+  - [x] `TestRunCycle_ManualLogging` - marks logs as manual
+  - [x] `TestRunCycle_ScheduledLogging` - marks logs as scheduled
+  - [x] `TestRunCycle_EmptyResults` - handles no items to search
+- [x] Create `src/services/automation.go`:
+  - [x] `type Automation struct { detector *Detector, trigger *SearchTrigger, logger *Logger, db *database.DB }`
+  - [x] `NewAutomation(db *database.DB, logger *Logger) *Automation`
+  - [x] `RunCycle(ctx context.Context, isManual, dryRun bool) (*CycleResult, error)`
+  - [x] Pipeline: detect -> limit -> trigger -> log results
+  - [x] Load limits from database config
+- [x] Create `src/services/automation_formatter.go`:
+  - [x] `FormatCycleResult(result *CycleResult) string` - human-readable summary
+- [x] Verify: `go test ./src/services/... -run Automation`
 
 ### Activity Logger
 
 **Reference:** `src-ts/lib/logger.ts`
 
-- [ ] Create log types in `src/logger/types.go`:
+- [x] Create log types in `src/logger/types.go`:
 
   ```go
   type LogEntryType string
@@ -594,27 +594,27 @@ janitarr/
   }
   ```
 
-- [ ] Create `src/logger/logger_test.go`:
-  - [ ] `TestLogCycleStart_Persists` - saves to database
-  - [ ] `TestLogCycleEnd_Persists` - saves with count
-  - [ ] `TestLogSearch_Persists` - saves with server details
-  - [ ] `TestLogError_Persists` - saves error message
-  - [ ] `TestBroadcast_SendsToSubscribers` - notifies channels
-  - [ ] `TestBroadcast_NoBlockOnSlow` - doesn't block if subscriber slow
-  - [ ] `TestSubscribe_ReceivesLogs` - channel receives entries
-  - [ ] `TestUnsubscribe_StopsReceiving` - channel closed
-- [ ] Create `src/logger/logger.go`:
-  - [ ] `type Logger struct { db *database.DB, mu sync.RWMutex, subscribers map[chan LogEntry]bool }`
-  - [ ] `NewLogger(db *database.DB) *Logger`
-  - [ ] `LogCycleStart(isManual bool) *LogEntry`
-  - [ ] `LogCycleEnd(totalSearches, failures int, isManual bool) *LogEntry`
-  - [ ] `LogSearches(serverName, serverType, category string, count int, isManual bool) *LogEntry`
-  - [ ] `LogServerError(serverName, serverType, reason string) *LogEntry`
-  - [ ] `LogSearchError(serverName, serverType, category, reason string) *LogEntry`
-  - [ ] `Subscribe() <-chan LogEntry` - returns receive-only channel
-  - [ ] `Unsubscribe(ch <-chan LogEntry)` - removes and closes channel
-  - [ ] `broadcast(entry *LogEntry)` - non-blocking send to all subscribers
-- [ ] Verify: `go test ./src/logger/...`
+- [x] Create `src/logger/logger_test.go`:
+  - [x] `TestLogCycleStart_Persists` - saves to database
+  - [x] `TestLogCycleEnd_Persists` - saves with count
+  - [x] `TestLogSearch_Persists` - saves with server details
+  - [x] `TestLogError_Persists` - saves error message
+  - [x] `TestBroadcast_SendsToSubscribers` - notifies channels
+  - [x] `TestBroadcast_NoBlockOnSlow` - doesn't block if subscriber slow
+  - [x] `TestSubscribe_ReceivesLogs` - channel receives entries
+  - [x] `TestUnsubscribe_StopsReceiving` - channel closed
+- [x] Create `src/logger/logger.go`:
+  - [x] `type Logger struct { db *database.DB, mu sync.RWMutex, subscribers map[chan LogEntry]bool }`
+  - [x] `NewLogger(db *database.DB) *Logger`
+  - [x] `LogCycleStart(isManual bool) *LogEntry`
+  - [x] `LogCycleEnd(totalSearches, failures int, isManual bool) *LogEntry`
+  - [x] `LogSearches(serverName, serverType, category string, count int, isManual bool) *LogEntry`
+  - [x] `LogServerError(serverName, serverType, reason string) *LogEntry`
+  - [x] `LogSearchError(serverName, serverType, category, reason string) *LogEntry`
+  - [x] `Subscribe() <-chan LogEntry` - returns receive-only channel
+  - [x] `Unsubscribe(ch <-chan LogEntry)` - removes and closes channel
+  - [x] `broadcast(entry *LogEntry)` - non-blocking send to all subscribers
+- [x] Verify: `go test ./src/logger/...`
 
 ---
 
