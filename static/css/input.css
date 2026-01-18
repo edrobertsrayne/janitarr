@@ -1,3 +1,14 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Custom styles */
+.toast {
+  @apply fixed bottom-4 right-4 px-4 py-2 rounded-lg shadow-lg;
+}
+.toast-success {
+  @apply bg-green-500 text-white;
+}
+.toast-error {
+  @apply bg-red-500 text-white;
+}

@@ -1193,9 +1193,9 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
 
 ### templ Setup
 
-- [ ] Install templ: `go install github.com/a-h/templ/cmd/templ@latest`
-- [ ] Verify templ works: `templ --version`
-- [ ] Create `src/templates/layouts/base.templ`:
+- [x] Install templ: `go install github.com/a-h/templ/cmd/templ@latest`
+- [x] Verify templ works: `templ --version`
+- [x] Create `src/templates/layouts/base.templ`:
 
   ```templ
   package layouts
@@ -1223,12 +1223,12 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
   }
   ```
 
-- [ ] Run `templ generate` to verify templates compile
-- [ ] Verify: `ls src/templates/layouts/base_templ.go` (generated file)
+- [x] Run `templ generate` to verify templates compile
+- [x] Verify: `ls src/templates/layouts/base_templ.go` (generated file)
 
 ### Navigation Component
 
-- [ ] Create `src/templates/components/nav.templ`:
+- [x] Create `src/templates/components/nav.templ`:
 
   ```templ
   package components
@@ -1277,7 +1277,7 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
 
 ### Reusable Components
 
-- [ ] Create `src/templates/components/stats_card.templ`:
+- [x] Create `src/templates/components/stats_card.templ`:
 
   ```templ
   package components
@@ -1293,27 +1293,27 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
   }
   ```
 
-- [ ] Create `src/templates/components/server_card.templ`:
-  - [ ] Server name, type badge, URL
-  - [ ] Status indicator (enabled/disabled)
-  - [ ] Test connection button with htmx
-  - [ ] Edit/Delete action buttons
-- [ ] Create `src/templates/components/log_entry.templ`:
-  - [ ] Timestamp formatting
-  - [ ] Type icon (cycle, search, error)
-  - [ ] Server name and message
-  - [ ] Error styling (red background)
-- [ ] Create `src/templates/components/forms/server_form.templ`:
-  - [ ] Name, type (select), URL, API key inputs
-  - [ ] Form validation with Alpine.js
-  - [ ] Submit with htmx POST/PUT
-  - [ ] Loading state during submission
-- [ ] Create `src/templates/components/forms/config_form.templ`:
-  - [ ] Interval hours input
-  - [ ] Scheduler enabled toggle
-  - [ ] Missing/Cutoff limit inputs
-  - [ ] Save button with htmx
-- [ ] Verify: `templ generate && go build ./src/templates/...`
+- [x] Create `src/templates/components/server_card.templ`:
+  - [x] Server name, type badge, URL
+  - [x] Status indicator (enabled/disabled)
+  - [x] Test connection button with htmx
+  - [x] Edit/Delete action buttons
+- [x] Create `src/templates/components/log_entry.templ`:
+  - [x] Timestamp formatting
+  - [x] Type icon (cycle, search, error)
+  - [x] Server name and message
+  - [x] Error styling (red background)
+- [x] Create `src/templates/components/forms/server_form.templ`:
+  - [x] Name, type (select), URL, API key inputs
+  - [x] Form validation with Alpine.js
+  - [x] Submit with htmx POST/PUT
+  - [x] Loading state during submission
+- [x] Create `src/templates/components/forms/config_form.templ`:
+  - [x] Interval hours input
+  - [x] Scheduler enabled toggle
+  - [x] Missing/Cutoff limit inputs
+  - [x] Save button with htmx
+- [x] Verify: `templ generate && go build ./src/templates/...`
 
 ### Page Handlers
 
@@ -1400,7 +1400,7 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
 
 ### Static Assets
 
-- [ ] Create `static/css/input.css`:
+- [x] Create `static/css/input.css`:
 
   ```css
   @tailwind base;
@@ -1419,7 +1419,7 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
   }
   ```
 
-- [ ] Create `tailwind.config.js`:
+- [x] Create `tailwind.config.js`:
 
   ```javascript
   module.exports = {
@@ -1432,7 +1432,7 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
   };
   ```
 
-- [ ] Download static JS files:
+- [x] Download static JS files:
 
   ```bash
   mkdir -p static/js
@@ -1441,9 +1441,9 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
   curl -o static/js/htmx-ws.min.js https://unpkg.com/htmx.org@1.9.10/dist/ext/ws.js
   ```
 
-- [ ] Build CSS: `npx tailwindcss -i ./static/css/input.css -o ./static/css/app.css`
+- [x] Build CSS: `./node_modules/.bin/tailwindcss -i ./static/css/input.css -o ./static/css/app.css`
 
-- [ ] Verify: `make dev` (Air rebuilds on templ changes)
+- [x] Verify: `make dev` (Air rebuilds on templ changes)
 
 ---
 

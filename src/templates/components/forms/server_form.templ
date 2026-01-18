@@ -1,0 +1,120 @@
+package forms
+
+import "github.com/user/janitarr/src/services"
+
+templ ServerForm(server *services.ServerInfo, isEdit bool) {
+	<div class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4" id="server-modal">
+		<div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+			<h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">
+				if isEdit {
+					Edit Server
+				} else {
+					Add Server
+				}
+			</h2>
+			<form
+				if isEdit {
+					hx-put={ "/api/servers/" + server.ID }
+				} else {
+					hx-post="/api/servers"
+				}
+				hx-target="#servers-container"
+				hx-swap="innerHTML"
+				x-data="{ loading: false }"
+				@htmx:before-request="loading = true"
+				@htmx:after-request="loading = false; document.getElementById('server-modal').remove()">
+				<div class="space-y-4">
+					<div>
+						<label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+						<input
+							type="text"
+							id="name"
+							name="name"
+							if isEdit && server != nil {
+								value={ server.Name }
+							}
+							required
+							class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
+					</div>
+					<div>
+						<label for="type" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Type</label>
+						<select
+							id="type"
+							name="type"
+							required
+							class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+							<option value="">Select type...</option>
+							<option value="radarr" selected?={ isEdit && server != nil && server.Type == "radarr" }>Radarr</option>
+							<option value="sonarr" selected?={ isEdit && server != nil && server.Type == "sonarr" }>Sonarr</option>
+						</select>
+					</div>
+					<div>
+						<label for="url" class="block text-sm font-medium text-gray-700 dark:text-gray-300">URL</label>
+						<input
+							type="url"
+							id="url"
+							name="url"
+							if isEdit && server != nil {
+								value={ server.URL }
+							}
+							placeholder="http://localhost:7878"
+							required
+							class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
+					</div>
+					<div>
+						<label for="apiKey" class="block text-sm font-medium text-gray-700 dark:text-gray-300">API Key</label>
+						<input
+							type="password"
+							id="apiKey"
+							name="apiKey"
+							if isEdit {
+								placeholder="Leave blank to keep current key"
+							} else {
+								required
+							}
+							class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
+					</div>
+					if isEdit && server != nil {
+						<div class="flex items-center">
+							<input
+								type="checkbox"
+								id="enabled"
+								name="enabled"
+								checked?={ server.Enabled }
+								class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600"/>
+							<label for="enabled" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+								Enabled
+							</label>
+						</div>
+					}
+				</div>
+				<div class="mt-6 flex gap-3">
+					<button
+						type="submit"
+						x-bind:disabled="loading"
+						class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-500 dark:hover:bg-blue-600">
+						<span x-show="!loading">
+							if isEdit {
+								Update
+							} else {
+								Add
+							}
+						</span>
+						<span x-show="loading" class="flex items-center justify-center">
+							<svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+								<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+								<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+							</svg>
+						</span>
+					</button>
+					<button
+						type="button"
+						@click="document.getElementById('server-modal').remove()"
+						class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-500">
+						Cancel
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+}

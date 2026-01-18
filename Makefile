@@ -2,7 +2,7 @@
 
 generate:
 	templ generate
-	npx tailwindcss -i ./static/css/input.css -o ./static/css/app.css
+	./node_modules/.bin/tailwindcss -i ./static/css/input.css -o ./static/css/app.css
 
 dev:
 	air

@@ -1,0 +1,138 @@
+package forms
+
+import "github.com/user/janitarr/src/database"
+import "fmt"
+
+templ ConfigForm(config database.AppConfig) {
+	<form
+		hx-post="/api/config"
+		hx-swap="none"
+		x-data="{ loading: false, success: false }"
+		@htmx:before-request="loading = true"
+		@htmx:after-request="loading = false; success = true; setTimeout(() => success = false, 3000)"
+		class="space-y-6">
+		<!-- Schedule Settings -->
+		<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+			<h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Schedule</h3>
+			<div class="space-y-4">
+				<div>
+					<label for="interval" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+						Interval (hours)
+					</label>
+					<input
+						type="number"
+						id="interval"
+						name="schedule.interval"
+						value={ fmt.Sprintf("%d", config.Schedule.IntervalHours) }
+						min="1"
+						max="168"
+						required
+						class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
+					<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+						How often to run the automation cycle (1-168 hours)
+					</p>
+				</div>
+				<div class="flex items-center">
+					<input
+						type="checkbox"
+						id="enabled"
+						name="schedule.enabled"
+						checked?={ config.Schedule.Enabled }
+						value="true"
+						class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600"/>
+					<label for="enabled" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+						Enable scheduler
+					</label>
+				</div>
+			</div>
+		</div>
+		<!-- Search Limits -->
+		<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+			<h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Search Limits</h3>
+			<div class="space-y-4">
+				<div class="grid grid-cols-2 gap-4">
+					<div>
+						<label for="missing-movies" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+							Missing Movies
+						</label>
+						<input
+							type="number"
+							id="missing-movies"
+							name="limits.missing.movies"
+							value={ fmt.Sprintf("%d", config.SearchLimits.MissingMoviesLimit) }
+							min="0"
+							max="1000"
+							required
+							class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
+					</div>
+					<div>
+						<label for="missing-episodes" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+							Missing Episodes
+						</label>
+						<input
+							type="number"
+							id="missing-episodes"
+							name="limits.missing.episodes"
+							value={ fmt.Sprintf("%d", config.SearchLimits.MissingEpisodesLimit) }
+							min="0"
+							max="1000"
+							required
+							class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
+					</div>
+				</div>
+				<div class="grid grid-cols-2 gap-4">
+					<div>
+						<label for="cutoff-movies" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+							Cutoff Movies
+						</label>
+						<input
+							type="number"
+							id="cutoff-movies"
+							name="limits.cutoff.movies"
+							value={ fmt.Sprintf("%d", config.SearchLimits.CutoffMoviesLimit) }
+							min="0"
+							max="1000"
+							required
+							class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
+					</div>
+					<div>
+						<label for="cutoff-episodes" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+							Cutoff Episodes
+						</label>
+						<input
+							type="number"
+							id="cutoff-episodes"
+							name="limits.cutoff.episodes"
+							value={ fmt.Sprintf("%d", config.SearchLimits.CutoffEpisodesLimit) }
+							min="0"
+							max="1000"
+							required
+							class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
+					</div>
+				</div>
+				<p class="text-sm text-gray-500 dark:text-gray-400">
+					Maximum number of searches to trigger per category per cycle
+				</p>
+			</div>
+		</div>
+		<!-- Save Button -->
+		<div class="flex items-center gap-3">
+			<button
+				type="submit"
+				x-bind:disabled="loading"
+				class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-500 dark:hover:bg-blue-600">
+				<span x-show="!loading">Save Settings</span>
+				<span x-show="loading" class="flex items-center gap-2">
+					<svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+						<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+						<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+					</svg>
+					Saving...
+				</span>
+			</button>
+			<div x-show="success" x-transition class="text-sm text-green-600 dark:text-green-400">
+				Settings saved successfully!
+			</div>
+		</div>
+	</form>
+}

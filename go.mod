@@ -11,6 +11,7 @@ require (
 )
 
 require (
+	github.com/a-h/templ v0.3.977 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
