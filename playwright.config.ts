@@ -1,4 +1,4 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices } from "@playwright/test";
 
 /**
  * Playwright configuration for Janitarr UI testing
@@ -6,7 +6,7 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   // Test directory - only E2E tests
-  testDir: './tests/e2e/',
+  testDir: "./tests/e2e/",
 
   // Maximum time one test can run
   timeout: 30 * 1000,
@@ -24,26 +24,26 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
 
   // Reporter to use
-  reporter: 'html',
+  reporter: "html",
 
   // Shared settings for all the projects below
   use: {
     // Base URL for page.goto('/')
-    baseURL: 'http://localhost:5173', // Point to UI dev server
+    baseURL: "http://localhost:3434", // Point to Go server
 
     // Collect trace when retrying the failed test
-    trace: 'on-first-retry',
+    trace: "on-first-retry",
 
     // Screenshot on failure
-    screenshot: 'only-on-failure',
+    screenshot: "only-on-failure",
   },
 
   // Configure projects for Chromium
   projects: [
     {
-      name: 'chromium',
+      name: "chromium",
       use: {
-        ...devices['Desktop Chrome'],
+        ...devices["Desktop Chrome"],
         // Use devenv's Chromium if CHROMIUM_PATH is set
         // Otherwise Playwright will download its own
         ...(process.env.CHROMIUM_PATH && {
@@ -57,22 +57,12 @@ export default defineConfig({
   ],
 
   // Run your local dev server before starting the tests
-  webServer: [
-    {
-      command: 'bun src/index.ts serve', // Backend server
-      url: 'http://localhost:3000', // Correct URL to match default server port
-      reuseExistingServer: !process.env.CI,
-      timeout: 120 * 1000,
-      stderr: 'pipe',
-      stdout: 'pipe'
-    },
-    {
-      command: 'cd ui && node_modules/.bin/vite', // UI dev server (use direct path to vite)
-      url: 'http://localhost:5173', // Vite's default port
-      reuseExistingServer: !process.env.CI,
-      timeout: 120 * 1000,
-      stderr: 'pipe',
-      stdout: 'pipe'
-    }
-  ],
+  webServer: {
+    command: "./janitarr start --port 3434 --host localhost",
+    url: "http://localhost:3434",
+    reuseExistingServer: !process.env.CI,
+    timeout: 120 * 1000,
+    stderr: "pipe",
+    stdout: "pipe",
+  },
 });
