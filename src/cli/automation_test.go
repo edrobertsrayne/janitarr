@@ -41,6 +41,50 @@ func (m *MockDetector) DetectAll(ctx context.Context) (*services.DetectionResult
 	return args.Get(0).(*services.DetectionResults), args.Error(1)
 }
 
+// MockServerManager for testing CLI commands related to servers
+type MockServerManager struct {
+	mock.Mock
+}
+
+func (m *MockServerManager) AddServer(ctx context.Context, name, url, apiKey, serverType string) (*services.ServerInfo, error) {
+	args := m.Called(ctx, name, url, apiKey, serverType)
+	return args.Get(0).(*services.ServerInfo), args.Error(1)
+}
+
+func (m *MockServerManager) UpdateServer(ctx context.Context, id string, updates services.ServerUpdate) error {
+	args := m.Called(ctx, id, updates)
+	return args.Error(0)
+}
+
+func (m *MockServerManager) RemoveServer(id string) error {
+	args := m.Called(id)
+	return args.Error(0)
+}
+
+func (m *MockServerManager) TestConnection(ctx context.Context, id string) (*services.ConnectionResult, error) {
+	args := m.Called(ctx, id)
+	return args.Get(0).(*services.ConnectionResult), args.Error(1)
+}
+
+func (m *MockServerManager) ListServers() ([]services.ServerInfo, error) {
+	args := m.Called()
+	return args.Get(0).([]services.ServerInfo), args.Error(1)
+}
+
+func (m *MockServerManager) GetServer(ctx context.Context, idOrName string) (*services.ServerInfo, error) {
+	args := m.Called(ctx, idOrName)
+	return args.Get(0).(*services.ServerInfo), args.Error(1)
+}
+
+// MockScheduler for testing CLI commands related to scheduler status
+type MockScheduler struct {
+	mock.Mock
+}
+
+func (m *MockScheduler) GetStatus() services.SchedulerStatus {
+	args := m.Called()
+	return args.Get(0).(services.SchedulerStatus)
+}
 
 // MockLogger for testing Automation related CLI commands
 type MockLoggerCLI struct {
@@ -363,5 +407,159 @@ func TestScanCommand(t *testing.T) {
 		assert.Equal(detectionResults.TotalCutoff, actualResults.TotalCutoff)
 		assert.Equal(len(detectionResults.Results), len(actualResults.Results))
 		mockDetector.AssertExpectations(t)
+	})
+}
+
+func TestStatusCommand(t *testing.T) {
+	assert := assert.New(t)
+
+	// Override services.NewServerManager and services.GetSchedulerStatusFunc
+	originalNewServerManager := services.NewServerManager
+	defer func() { services.NewServerManager = originalNewServerManager }()
+	originalGetSchedulerStatusFunc := services.GetSchedulerStatusFunc
+	defer func() { services.GetSchedulerStatusFunc = originalGetSchedulerStatusFunc }()
+
+	mockServerManager := new(MockServerManager)
+	services.NewServerManager = func(db *database.DB) services.ServerManagerInterface {
+		return mockServerManager
+	}
+
+	mockScheduler := new(MockScheduler)
+	services.GetSchedulerStatusFunc = func(db *database.DB) services.SchedulerStatus {
+		return mockScheduler.GetStatus()
+	}
+
+	rootCmd := NewRootCmd()
+	rootCmd.AddCommand(statusCmd)
+
+	// Temporarily override database.New to return a mock DB
+	originalNewDB := database.New
+	defer func() { database.New = originalNewDB }()
+	database.New = func(dbPath, keyPath string) (*database.DB, error) {
+		return createTestDBAutomation(t), nil
+	}
+
+	t.Run("status command - scheduler running, servers configured", func(t *testing.T) {
+		now := time.Now()
+		nextRun := now.Add(2 * time.Hour)
+		lastRun := now.Add(-4 * time.Hour)
+
+		schedulerStatus := services.SchedulerStatus{
+			IsRunning:     true,
+			IsCycleActive: false,
+			NextRun:       &nextRun,
+			LastRun:       &lastRun,
+			IntervalHours: 6,
+		}
+		mockScheduler.On("GetStatus").Return(schedulerStatus).Once()
+
+		servers := []services.ServerInfo{
+			{ID: uuid.NewString(), Name: "MyRadarr", Type: "radarr"},
+			{ID: uuid.NewString(), Name: "MySonarr", Type: "sonarr"},
+			{ID: uuid.NewString(), Name: "AnotherRadarr", Type: "radarr"},
+		}
+		mockServerManager.On("ListServers").Return(servers, nil).Once()
+
+		output, err := executeCommand(rootCmd, "status")
+		assert.NoError(err)
+		assert.Contains(output, "Janitarr Status:")
+		assert.Contains(output, "Scheduler Status:")
+		assert.Contains(output, "Running: "+success("Yes"))
+		assert.Contains(output, "Cycle Active: "+warning("No"))
+		assert.Contains(output, "Interval: 6 hours")
+		assert.Contains(output, "Server Overview:")
+		assert.Contains(output, "Total Configured: 3")
+		assert.Contains(output, "Radarr Servers: 2")
+		assert.Contains(output, "Sonarr Servers: 1")
+		mockScheduler.AssertExpectations(t)
+		mockServerManager.AssertExpectations(t)
+	})
+
+	t.Run("status command - scheduler stopped, no servers", func(t *testing.T) {
+		schedulerStatus := services.SchedulerStatus{
+			IsRunning:     false,
+			IsCycleActive: false,
+			NextRun:       nil,
+			LastRun:       nil,
+			IntervalHours: 6,
+		}
+		mockScheduler.On("GetStatus").Return(schedulerStatus).Once()
+		mockServerManager.On("ListServers").Return([]services.ServerInfo{}, nil).Once()
+
+		output, err := executeCommand(rootCmd, "status")
+		assert.NoError(err)
+		assert.Contains(output, "Running: "+warning("No"))
+		assert.Contains(output, "Next Run: N/A")
+		assert.Contains(output, "Last Run: N/A")
+		assert.Contains(output, "Total Configured: 0")
+		assert.Contains(output, "Radarr Servers: 0")
+		assert.Contains(output, "Sonarr Servers: 0")
+		mockScheduler.AssertExpectations(t)
+		mockServerManager.AssertExpectations(t)
+	})
+
+	t.Run("status command - json output", func(t *testing.T) {
+		now := time.Now()
+		nextRun := now.Add(2 * time.Hour)
+		lastRun := now.Add(-4 * time.Hour)
+
+		schedulerStatus := services.SchedulerStatus{
+			IsRunning:     true,
+			IsCycleActive: true,
+			NextRun:       &nextRun,
+			LastRun:       &lastRun,
+			IntervalHours: 12,
+		}
+		mockScheduler.On("GetStatus").Return(schedulerStatus).Once()
+
+		servers := []services.ServerInfo{
+			{ID: uuid.NewString(), Name: "OnlyRadarr", Type: "radarr"},
+		}
+		mockServerManager.On("ListServers").Return(servers, nil).Once()
+
+		output, err := executeCommand(rootCmd, "status", "--json")
+		assert.NoError(err)
+
+		var statusInfo struct {
+			Scheduler services.SchedulerStatus `json:"scheduler"`
+			ServerCounts struct {
+				Total  int `json:"total"`
+				Radarr int `json:"radarr"`
+				Sonarr int `json:"sonarr"`
+			} `json:"serverCounts"`
+			LastCycle struct {
+				Active  bool      `json:"active"`
+				LastRun *time.Time `json:"lastRun,omitempty"`
+				NextRun *time.Time `json:"nextRun,omitempty"`
+			} `json:"lastCycle"`
+		}
+		err = json.Unmarshal([]byte(output), &statusInfo)
+		assert.NoError(err)
+		assert.True(statusInfo.Scheduler.IsRunning)
+		assert.True(statusInfo.Scheduler.IsCycleActive)
+		assert.Equal(12, statusInfo.Scheduler.IntervalHours)
+		assert.Equal(1, statusInfo.ServerCounts.Total)
+		assert.Equal(1, statusInfo.ServerCounts.Radarr)
+		assert.Equal(0, statusInfo.ServerCounts.Sonarr)
+		mockScheduler.AssertExpectations(t)
+		mockServerManager.AssertExpectations(t)
+	})
+
+	t.Run("status command - error listing servers", func(t *testing.T) {
+		schedulerStatus := services.SchedulerStatus{
+			IsRunning:     true,
+			IsCycleActive: false,
+			NextRun:       nil,
+			LastRun:       nil,
+			IntervalHours: 6,
+		}
+		mockScheduler.On("GetStatus").Return(schedulerStatus).Once()
+		mockServerManager.On("ListServers").Return(([]services.ServerInfo)(nil), errors.New("db error")).Once()
+
+		output, err := executeCommand(rootCmd, "status")
+		assert.Error(err)
+		assert.Contains(output, errorMsg("failed to list servers: db error"))
+		mockScheduler.AssertExpectations(t)
+		mockServerManager.AssertExpectations(t)
 	})
 }

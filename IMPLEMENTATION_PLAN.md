@@ -788,16 +788,16 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
       RunE:  runStatus,
   }
   ```
-- [ ] Implement `status`:
-  - [ ] Show scheduler status (running/stopped, next run)
-  - [ ] Show server count by type
-  - [ ] Show last cycle summary
-  - [ ] `--json` flag for JSON output
+- [x] Implement `status`:
+  - [x] Show scheduler status (running/stopped, next run)
+  - [x] Show server count by type
+  - [x] Show last cycle summary
+  - [x] `--json` flag for JSON output
 - [x] Create `src/cli/automation_test.go`:
   - [x] `TestRun_DryRun` - no API calls made
   - [x] `TestRun_JSON` - verifies JSON format
   - [x] `TestScan_JSON` - verifies JSON format
-  - [ ] `TestStatus_JSON` - verifies JSON format
+  - [x] `TestStatus_JSON` - verifies JSON format
 - [ ] Verify: `go build ./src && ./janitarr run --help`
 
 ### Log Commands
