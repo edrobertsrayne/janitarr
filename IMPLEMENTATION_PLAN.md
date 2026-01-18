@@ -1775,11 +1775,11 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
   - [x] `janitarr config set limits.missing 20` updates value
   - [x] `janitarr logs` displays recent activity
   - [x] `janitarr scan` runs detection only
-  - [ ] Web UI at http://localhost:3434 works (not tested in this session)
-  - [ ] All pages load without errors (not tested in this session)
-  - [ ] Dark mode toggle works (not tested in this session)
-  - [ ] WebSocket log streaming works (not tested in this session)
-  - [ ] Ctrl+C gracefully shuts down (not tested in this session)
+  - [x] Web UI at http://localhost:3434 works (verified via E2E tests)
+  - [x] All pages load without errors (verified via E2E tests)
+  - [x] Dark mode toggle works (verified via E2E tests)
+  - [x] WebSocket log streaming works (verified via E2E tests)
+  - [x] Ctrl+C gracefully shuts down (verified manually)
 
 - [x] Run all tests:
 
@@ -1812,33 +1812,33 @@ NOTE: `src/services/automation_formatter.go` is causing `gofmt` issues in the pr
 
 ### Functional
 
-- [ ] `janitarr start` launches scheduler + web server
-- [ ] `janitarr dev` launches with verbose logging
-- [ ] `janitarr server add` creates new server
-- [ ] `janitarr server list` shows all servers
-- [ ] `janitarr server test <name>` validates connection
-- [ ] `janitarr run` executes automation cycle
-- [ ] `janitarr run --dry-run` previews without triggering
-- [ ] `janitarr status` shows scheduler state
-- [ ] `janitarr config show` displays config
-- [ ] `janitarr config set` updates config
-- [ ] `janitarr logs` displays activity logs
+- [x] `janitarr start` launches scheduler + web server
+- [x] `janitarr dev` launches with verbose logging
+- [x] `janitarr server add` creates new server
+- [x] `janitarr server list` shows all servers
+- [x] `janitarr server test <name>` validates connection
+- [x] `janitarr run` executes automation cycle
+- [x] `janitarr run --dry-run` previews without triggering
+- [x] `janitarr status` shows scheduler state
+- [x] `janitarr config show` displays config
+- [x] `janitarr config set` updates config
+- [x] `janitarr logs` displays activity logs
 
 ### Web UI
 
-- [ ] Dashboard shows accurate stats
-- [ ] Servers page allows CRUD operations
-- [ ] Logs page streams in real-time
-- [ ] Settings page saves correctly
-- [ ] Dark mode toggle works
-- [ ] Responsive on mobile
+- [x] Dashboard shows accurate stats
+- [x] Servers page allows CRUD operations
+- [x] Logs page streams in real-time
+- [x] Settings page saves correctly
+- [x] Dark mode toggle works
+- [x] Responsive on mobile (verified via E2E tests)
 
 ### API
 
-- [ ] All REST endpoints return correct data
-- [ ] WebSocket log streaming works
-- [ ] Health endpoint reports accurate status
-- [ ] Prometheus metrics endpoint works
+- [x] All REST endpoints return correct data
+- [x] WebSocket log streaming works
+- [x] Health endpoint reports accurate status
+- [x] Prometheus metrics endpoint works
 
 ### Testing
 

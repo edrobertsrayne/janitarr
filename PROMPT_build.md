@@ -17,8 +17,8 @@ Step 1: Choose the most important incomplete task.
 Step 2: Search the codebase to confirm it's not already implemented.
 Step 3: Implement the feature. If tests exist, run them often.
 Step 4: When tests pass, update IMPLEMENTATION_PLAN.md (mark task done or note blockers).
-Step 5: Commit and push, following the convential commits specification
+Step 5: Commit changes atomically and push, following the convential commits specification
 
 Important: Implement ONE task only. Don't try to do everything at once.
 Important: Run tests frequently to catch issues early.
-Important: If you find bugs unrelated to your task, fix them too—single source of truth.
+Important: If you find bugs unrelated to your task, fix them too—single source of truth and commit separately.
