@@ -389,7 +389,7 @@ janitarr/
 
 **Reference:** `src-ts/services/detector.ts`
 
-- [ ] Create detection result types in `src/services/types.go`:
+- [x] Create detection result types in `src/services/types.go`:
 
   ```go
   type DetectionResult struct {
@@ -410,23 +410,23 @@ janitarr/
   }
   ```
 
-- [ ] Create `src/services/detector_test.go`:
-  - [ ] `TestDetectAll_MultipleServers` - aggregates from 2+ servers
-  - [ ] `TestDetectAll_PartialFailure` - continues on server error
-  - [ ] `TestDetectAll_SkipsDisabled` - ignores disabled servers
-  - [ ] `TestDetectMissing_Radarr` - fetches missing movies
-  - [ ] `TestDetectMissing_Sonarr` - fetches missing episodes
-  - [ ] `TestDetectCutoff_Radarr` - fetches cutoff unmet movies
-  - [ ] `TestDetectCutoff_Sonarr` - fetches cutoff unmet episodes
-  - [ ] `TestDetectAll_EmptyServers` - returns empty results
-- [ ] Create `src/services/detector.go`:
-  - [ ] `type Detector struct { db *database.DB, apiFactory APIFactory }`
-  - [ ] `NewDetector(db *database.DB) *Detector`
-  - [ ] `DetectAll(ctx context.Context) (*DetectionResults, error)` - parallel detection
-  - [ ] `detectServer(ctx, server *Server) (*DetectionResult, error)` - single server
-  - [ ] Use `sync.WaitGroup` for concurrent server detection
-  - [ ] Collect errors but don't abort on single server failure
-- [ ] Verify: `go test ./src/services/... -run Detect`
+- [x] Create `src/services/detector_test.go`:
+  - [x] `TestDetectAll_MultipleServers` - aggregates from 2+ servers
+  - [x] `TestDetectAll_PartialFailure` - continues on server error
+  - [x] `TestDetectAll_SkipsDisabled` - ignores disabled servers
+  - [x] `TestDetectMissing_Radarr` - fetches missing movies
+  - [x] `TestDetectMissing_Sonarr` - fetches missing episodes
+  - [x] `TestDetectCutoff_Radarr` - fetches cutoff unmet movies
+  - [x] `TestDetectCutoff_Sonarr` - fetches cutoff unmet episodes
+  - [x] `TestDetectAll_EmptyServers` - returns empty results
+- [x] Create `src/services/detector.go`:
+  - [x] `type Detector struct { db *database.DB, apiFactory APIFactory }`
+  - [x] `NewDetector(db *database.DB) *Detector`
+  - [x] `DetectAll(ctx context.Context) (*DetectionResults, error)` - parallel detection
+  - [x] `detectServer(ctx, server *Server) (*DetectionResult, error)` - single server
+  - [x] Use `sync.WaitGroup` for concurrent server detection
+  - [x] Collect errors but don't abort on single server failure
+- [x] Verify: `go test ./src/services/... -run Detect`
 
 ### Search Trigger Service
 
