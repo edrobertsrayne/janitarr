@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/user/janitarr/src/database"
@@ -103,4 +104,67 @@ func (h *ConfigHandlers) ResetConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	jsonMessage(w, "Configuration reset to defaults successfully", http.StatusOK)
+}
+
+// PostConfig handles form submission from the settings page.
+func (h *ConfigHandlers) PostConfig(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		jsonError(w, "Failed to parse form data", http.StatusBadRequest)
+		return
+	}
+
+	currentConfig := h.DB.GetAppConfig()
+	newConfig := currentConfig // Start with current config
+
+	// Parse schedule settings
+	if val := r.FormValue("schedule.interval"); val != "" {
+		if i, err := strconv.Atoi(val); err == nil && i >= 1 && i <= 168 {
+			newConfig.Schedule.IntervalHours = i
+		}
+	}
+
+	if r.FormValue("schedule.enabled") == "true" {
+		newConfig.Schedule.Enabled = true
+	} else {
+		newConfig.Schedule.Enabled = false
+	}
+
+	// Parse search limits
+	if val := r.FormValue("limits.missing.movies"); val != "" {
+		if i, err := strconv.Atoi(val); err == nil && i >= 0 {
+			newConfig.SearchLimits.MissingMoviesLimit = i
+		}
+	}
+
+	if val := r.FormValue("limits.missing.episodes"); val != "" {
+		if i, err := strconv.Atoi(val); err == nil && i >= 0 {
+			newConfig.SearchLimits.MissingEpisodesLimit = i
+		}
+	}
+
+	if val := r.FormValue("limits.cutoff.movies"); val != "" {
+		if i, err := strconv.Atoi(val); err == nil && i >= 0 {
+			newConfig.SearchLimits.CutoffMoviesLimit = i
+		}
+	}
+
+	if val := r.FormValue("limits.cutoff.episodes"); val != "" {
+		if i, err := strconv.Atoi(val); err == nil && i >= 0 {
+			newConfig.SearchLimits.CutoffEpisodesLimit = i
+		}
+	}
+
+	// Parse logs settings
+	if val := r.FormValue("logs.retention_days"); val != "" {
+		if i, err := strconv.Atoi(val); err == nil && i >= 7 && i <= 90 {
+			newConfig.Logs.RetentionDays = i
+		}
+	}
+
+	if err := h.DB.SetAppConfig(newConfig); err != nil {
+		jsonError(w, fmt.Sprintf("Failed to update configuration: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	jsonMessage(w, "Configuration updated successfully", http.StatusOK)
 }

@@ -237,3 +237,13 @@ func (l *Logger) broadcast(entry *LogEntry) {
 func (l *Logger) Debug(msg string, keyvals ...interface{}) {
 	l.console.Debug(msg, keyvals...)
 }
+
+// Info logs an info message to console only (not stored in database).
+func (l *Logger) Info(msg string, keyvals ...interface{}) {
+	l.console.Info(msg, keyvals...)
+}
+
+// Error logs an error message to console only (not stored in database).
+func (l *Logger) Error(msg string, keyvals ...interface{}) {
+	l.console.Error(msg, keyvals...)
+}

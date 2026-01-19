@@ -6,7 +6,7 @@ import (
 	"github.com/user/janitarr/src/database"
 )
 
-templ Settings(config database.AppConfig) {
+templ Settings(config database.AppConfig, logCount int) {
 	@layouts.Base("Settings") {
 		<div class="max-w-4xl mx-auto">
 			<div class="mb-6">
@@ -15,7 +15,7 @@ templ Settings(config database.AppConfig) {
 					Configure automation schedule and search limits
 				</p>
 			</div>
-			@forms.ConfigForm(config)
+			@forms.ConfigForm(config, logCount)
 		</div>
 	}
 }

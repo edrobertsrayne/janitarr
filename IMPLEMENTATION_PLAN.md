@@ -296,28 +296,58 @@ Current state: Dashboard at `src/templates/pages/dashboard.templ:116-159` shows 
 
 **Reference:** `specs/logging.md` (Log Retention and Cleanup section)
 
-Current state: `LogRetentionDays = 30` constant exists at `src/database/database.go:19` but is unused.
+- [x] Update `src/database/logs.go`:
+  - [x] Add `PurgeOldLogs(ctx, retentionDays int) (int, error)` method (lines 269-290)
+  - [x] Add `GetLogCount(ctx) (int, error)` method (lines 258-267)
 
-- [ ] Update `src/database/logs.go`:
-  - [ ] Add `PurgeOldLogs(retentionDays int) (int, error)` method
-  - [ ] Add `GetLogCount() (int, error)` method
+- [x] Update `src/database/types.go`:
+  - [x] Add `LogsConfig` struct with `RetentionDays` field (lines 70-73)
+  - [x] Add `Logs` field to `AppConfig` struct (line 79)
+  - [x] Add default retention to `DefaultAppConfig()` (lines 95-97)
 
-- [ ] Update `src/database/config.go`:
-  - [ ] Add `logs.retention_days` config key (default: 30, range: 7-90)
+- [x] Update `src/database/config.go`:
+  - [x] Add `logs.retention_days` config key with 7-90 day range validation (lines 49-57)
+  - [x] Add logs config handling in SetAppConfigFunc (lines 85-87)
 
-- [ ] Create `src/services/maintenance.go`:
-  - [ ] `RunLogCleanup(db *database.DB)` function
-  - [ ] Delete logs older than configured retention
+- [x] Create `src/services/maintenance.go`:
+  - [x] `RunLogCleanup(ctx, db, logger)` function (lines 17-44)
+  - [x] Delete logs older than configured retention with safety minimum of 7 days
 
-- [ ] Update `src/services/scheduler.go`:
-  - [ ] Run log cleanup daily (at midnight or on first cycle of day)
+- [x] Update `src/services/scheduler.go`:
+  - [x] Add `lastCleanupDate` field to track daily cleanup (line 30)
+  - [x] Add `runDailyCleanup()` method (lines 196-213)
+  - [x] Integrate cleanup into run loop (line 182)
+  - [x] Updated DebugLogger interface to include Info and Error methods (lines 13-17)
 
-- [ ] Update `src/templates/pages/settings.templ`:
-  - [ ] Add log retention setting dropdown (7, 14, 30, 60, 90 days)
-  - [ ] Display current log count
+- [x] Update `src/templates/pages/settings.templ`:
+  - [x] Updated signature to accept logCount parameter (line 9)
 
-- [ ] Update `src/web/handlers/api/config.go`:
-  - [ ] Handle `logs.retention_days` in PATCH endpoint
+- [x] Update `src/templates/components/forms/config_form.templ`:
+  - [x] Updated signature to accept logCount parameter (line 6)
+  - [x] Add log retention setting dropdown with 7, 14, 30, 60, 90 days options (lines 118-144)
+  - [x] Display current log count (lines 140-142)
+
+- [x] Update `src/web/handlers/pages/settings.go`:
+  - [x] Get log count and pass to template (lines 13-20)
+
+- [x] Update `src/web/handlers/api/config.go`:
+  - [x] Add PostConfig handler for form submission (lines 109-170)
+  - [x] Handle `logs.retention_days` in POST endpoint (lines 157-162)
+
+- [x] Update `src/web/server.go`:
+  - [x] Add POST route for /api/config (line 116)
+
+- [x] Update `src/logger/logger.go`:
+  - [x] Add Info() method for console logging (lines 241-244)
+  - [x] Add Error() method for console logging (lines 246-249)
+
+**Implementation Notes:**
+
+- Log cleanup runs once per day after each automation cycle
+- Cleanup runs in background goroutine to avoid blocking automation
+- Retention period validated to 7-90 day range for safety
+- Current log count displayed in settings UI
+- All tests pass, build successful
 
 ### 10.13 Write Tests
 

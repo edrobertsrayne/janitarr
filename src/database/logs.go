@@ -255,6 +255,40 @@ func (db *DB) GetErrorCount(ctx context.Context, since time.Time) (int, error) {
 	return count, nil
 }
 
+// GetLogCount returns the total count of log entries.
+func (db *DB) GetLogCount(ctx context.Context) (int, error) {
+	query := "SELECT COUNT(*) FROM logs"
+	var count int
+	err := db.conn.QueryRowContext(ctx, query).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("counting logs: %w", err)
+	}
+	return count, nil
+}
+
+// PurgeOldLogs deletes log entries older than the specified number of days.
+// Returns the number of rows deleted.
+func (db *DB) PurgeOldLogs(ctx context.Context, retentionDays int) (int, error) {
+	if retentionDays < 1 {
+		return 0, fmt.Errorf("retention days must be at least 1")
+	}
+
+	cutoffDate := time.Now().AddDate(0, 0, -retentionDays).Format(time.RFC3339)
+	query := "DELETE FROM logs WHERE timestamp < ?"
+
+	result, err := db.conn.ExecContext(ctx, query, cutoffDate)
+	if err != nil {
+		return 0, fmt.Errorf("purging old logs: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, fmt.Errorf("getting rows affected: %w", err)
+	}
+
+	return int(rowsAffected), nil
+}
+
 // nullString converts an empty string to a nil interface
 func nullString(s string) any {
 	if s == "" {

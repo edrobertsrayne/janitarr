@@ -46,6 +46,16 @@ var GetAppConfigFunc = func(db *DB) AppConfig {
 		}
 	}
 
+	// Logs settings
+	if val := db.GetConfig("logs.retention_days"); val != nil {
+		if i, err := strconv.Atoi(*val); err == nil {
+			// Enforce valid range: 7-90 days
+			if i >= 7 && i <= 90 {
+				config.Logs.RetentionDays = i
+			}
+		}
+	}
+
 	return config
 }
 
@@ -70,6 +80,9 @@ var SetAppConfigFunc = func(db *DB, update AppConfig) error {
 		return err
 	}
 	if err := db.SetConfig("limits.cutoff.episodes", strconv.Itoa(update.SearchLimits.CutoffEpisodesLimit)); err != nil {
+		return err
+	}
+	if err := db.SetConfig("logs.retention_days", strconv.Itoa(update.Logs.RetentionDays)); err != nil {
 		return err
 	}
 	return nil

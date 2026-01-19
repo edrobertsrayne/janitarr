@@ -67,10 +67,16 @@ type SearchLimits struct {
 	CutoffEpisodesLimit  int `json:"cutoffEpisodesLimit"`
 }
 
+// LogsConfig represents logging configuration
+type LogsConfig struct {
+	RetentionDays int `json:"retentionDays"`
+}
+
 // AppConfig represents the full application configuration
 type AppConfig struct {
 	Schedule     ScheduleConfig `json:"schedule"`
 	SearchLimits SearchLimits   `json:"searchLimits"`
+	Logs         LogsConfig     `json:"logs"`
 }
 
 // DefaultAppConfig returns the default application configuration
@@ -85,6 +91,9 @@ func DefaultAppConfig() AppConfig {
 			MissingEpisodesLimit: 10,
 			CutoffMoviesLimit:    5,
 			CutoffEpisodesLimit:  5,
+		},
+		Logs: LogsConfig{
+			RetentionDays: 30,
 		},
 	}
 }

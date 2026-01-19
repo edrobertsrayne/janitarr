@@ -12,21 +12,24 @@ import (
 // DebugLogger is an interface for debug logging to avoid circular dependencies.
 type DebugLogger interface {
 	Debug(msg string, keyvals ...interface{})
+	Info(msg string, keyvals ...interface{})
+	Error(msg string, keyvals ...interface{})
 }
 
 // Scheduler runs a callback function at a given interval.
 type Scheduler struct {
-	mu          sync.Mutex
-	running     bool
-	cycleActive bool
-	timer       *time.Timer
-	stopCh      chan struct{}
-	callback    func(ctx context.Context, isManual bool) error
-	intervalHrs int
-	nextRun     time.Time
-	lastRun     time.Time
-	db          *database.DB // Add DB for GetSchedulerStatusFunc
-	logger      DebugLogger
+	mu              sync.Mutex
+	running         bool
+	cycleActive     bool
+	timer           *time.Timer
+	stopCh          chan struct{}
+	callback        func(ctx context.Context, isManual bool) error
+	intervalHrs     int
+	nextRun         time.Time
+	lastRun         time.Time
+	db              *database.DB // Add DB for GetSchedulerStatusFunc
+	logger          DebugLogger
+	lastCleanupDate string // Track last cleanup date (YYYY-MM-DD format)
 }
 
 // NewScheduler creates a new Scheduler.
@@ -174,7 +177,11 @@ func (s *Scheduler) run(ctx context.Context) {
 			s.cycleActive = true
 			s.mu.Unlock()
 
+			// Run the main callback (automation cycle)
 			_ = s.callback(ctx, false)
+
+			// Check if log cleanup should run (once per day)
+			s.runDailyCleanup(ctx)
 
 			s.mu.Lock()
 			s.cycleActive = false
@@ -186,6 +193,25 @@ func (s *Scheduler) run(ctx context.Context) {
 			return
 		}
 	}
+}
+
+// runDailyCleanup runs log cleanup once per day if needed.
+func (s *Scheduler) runDailyCleanup(ctx context.Context) {
+	s.mu.Lock()
+	today := time.Now().Format("2006-01-02")
+	if s.lastCleanupDate == today {
+		s.mu.Unlock()
+		return
+	}
+	s.lastCleanupDate = today
+	s.mu.Unlock()
+
+	// Run cleanup in the background to avoid blocking the main cycle
+	go func() {
+		if s.logger != nil {
+			_, _ = RunLogCleanup(ctx, s.db, s.logger)
+		}
+	}()
 }
 
 func (s *Scheduler) scheduleNextRun() {
