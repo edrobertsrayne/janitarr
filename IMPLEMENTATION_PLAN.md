@@ -94,13 +94,13 @@ The following core functionality is complete:
 
 **Reference:** `specs/logging.md` (Console Logging with charmbracelet/log section)
 
-- [ ] Create `src/logger/console.go`:
-  - [ ] `type ConsoleLogger struct` wrapping `*log.Logger` from charmbracelet/log
-  - [ ] `NewConsoleLogger(level Level, isDev bool) *ConsoleLogger`
-  - [ ] Configure output: stdout for dev, stderr for production
-  - [ ] Configure timestamp format: `15:04:05`
-  - [ ] Configure colors: debug=gray, info=blue, warn=yellow, error=red
-  - [ ] Methods: `Debug()`, `Info()`, `Warn()`, `Error()` with structured key-value args
+- [x] Create `src/logger/console.go`:
+  - [x] `type ConsoleLogger struct` wrapping `*log.Logger` from charmbracelet/log
+  - [x] `NewConsoleLogger(level Level, isDev bool) *ConsoleLogger`
+  - [x] Configure output: stdout for dev, stderr for production
+  - [x] Configure timestamp format: `15:04:05`
+  - [x] Configure colors: debug=gray, info=blue, warn=yellow, error=red
+  - [x] Methods: `Debug()`, `Info()`, `Warn()`, `Error()` with structured key-value args
 
 ### 10.4 Update Logger to Use Console Logger
 
