@@ -91,10 +91,8 @@ func (s *Server) setupRoutes() {
 	r.Use(func(next http.Handler) http.Handler {
 		return webMiddleware.Recoverer(next, s.config.IsDev)
 	})
-	if s.config.IsDev {
-		r.Use(webMiddleware.RequestLogger) // Use custom request logger
-	}
-	r.Use(s.metricsMiddleware) // Use Prometheus metrics middleware
+	r.Use(webMiddleware.RequestLogger(s.config.Logger)) // Use custom request logger with logger
+	r.Use(s.metricsMiddleware)                          // Use Prometheus metrics middleware
 
 	// Handlers
 	configHandlers := api.NewConfigHandlers(s.config.DB)

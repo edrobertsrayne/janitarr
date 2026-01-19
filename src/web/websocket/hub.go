@@ -56,7 +56,13 @@ func (h *LogHub) Run() {
 		case client := <-h.register:
 			h.mu.Lock()
 			h.clients[client] = true
+			clientCount := len(h.clients)
 			h.mu.Unlock()
+
+			// Log connection at debug level
+			if h.logger != nil {
+				h.logger.Debug("WebSocket connection", "event", "connect", "total_clients", clientCount)
+			}
 
 			// Send connected message
 			msg := ServerMessage{
@@ -78,7 +84,13 @@ func (h *LogHub) Run() {
 				delete(h.clients, client)
 				close(client.send)
 			}
+			clientCount := len(h.clients)
 			h.mu.Unlock()
+
+			// Log disconnection at debug level
+			if h.logger != nil {
+				h.logger.Debug("WebSocket connection", "event", "disconnect", "total_clients", clientCount)
+			}
 
 		case entry := <-h.broadcast:
 			h.Broadcast(entry)

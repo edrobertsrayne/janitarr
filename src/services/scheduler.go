@@ -9,6 +9,11 @@ import (
 	"github.com/user/janitarr/src/database"
 )
 
+// DebugLogger is an interface for debug logging to avoid circular dependencies.
+type DebugLogger interface {
+	Debug(msg string, keyvals ...interface{})
+}
+
 // Scheduler runs a callback function at a given interval.
 type Scheduler struct {
 	mu          sync.Mutex
@@ -21,6 +26,7 @@ type Scheduler struct {
 	nextRun     time.Time
 	lastRun     time.Time
 	db          *database.DB // Add DB for GetSchedulerStatusFunc
+	logger      DebugLogger
 }
 
 // NewScheduler creates a new Scheduler.
@@ -31,6 +37,12 @@ func NewScheduler(db *database.DB, intervalHours int, callback func(ctx context.
 		intervalHrs: intervalHours,
 		stopCh:      make(chan struct{}),
 	}
+}
+
+// WithLogger attaches a logger to the scheduler for debug logging.
+func (s *Scheduler) WithLogger(logger DebugLogger) *Scheduler {
+	s.logger = logger
+	return s
 }
 
 // Start starts the scheduler.
@@ -154,6 +166,10 @@ func (s *Scheduler) run(ctx context.Context) {
 	for {
 		select {
 		case <-s.timer.C:
+			if s.logger != nil {
+				s.logger.Debug("Scheduler woke up", "reason", "timer")
+			}
+
 			s.mu.Lock()
 			s.cycleActive = true
 			s.mu.Unlock()
@@ -175,4 +191,8 @@ func (s *Scheduler) run(ctx context.Context) {
 func (s *Scheduler) scheduleNextRun() {
 	s.nextRun = time.Now().Add(time.Duration(s.intervalHrs) * time.Hour)
 	s.timer = time.NewTimer(time.Until(s.nextRun))
+
+	if s.logger != nil {
+		s.logger.Debug("Scheduler sleeping", "until", s.nextRun.Format(time.RFC3339))
+	}
 }

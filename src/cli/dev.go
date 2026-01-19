@@ -85,7 +85,7 @@ func runDev(cmd *cobra.Command, args []string) error {
 		_, err := automation.RunCycle(ctx, isManual, false) // dryRun = false
 		return err
 	}
-	scheduler := services.NewScheduler(db, config.Schedule.IntervalHours, schedulerCallback)
+	scheduler := services.NewScheduler(db, config.Schedule.IntervalHours, schedulerCallback).WithLogger(appLogger)
 
 	// Start scheduler if enabled
 	ctx := context.Background()

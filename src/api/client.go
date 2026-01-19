@@ -20,11 +20,18 @@ const (
 	APIPrefix = "/api/v3"
 )
 
+// DebugLogger is an interface for debug logging to avoid circular dependencies.
+type DebugLogger interface {
+	Debug(msg string, keyvals ...interface{})
+}
+
 // Client is a base HTTP client for Radarr/Sonarr APIs.
 type Client struct {
 	baseURL    string
 	apiKey     string
 	httpClient *http.Client
+	logger     DebugLogger
+	serverName string // For logging context
 }
 
 // NormalizeURL ensures a URL has a protocol and removes trailing slashes.
@@ -73,9 +80,17 @@ func (c *Client) BaseURL() string {
 	return c.baseURL
 }
 
+// WithLogger attaches a logger to the client for debug logging.
+func (c *Client) WithLogger(logger DebugLogger, serverName string) *Client {
+	c.logger = logger
+	c.serverName = serverName
+	return c
+}
+
 // request performs an HTTP request to the API.
 func (c *Client) request(ctx context.Context, method, endpoint string, body, result any) error {
 	url := c.baseURL + APIPrefix + endpoint
+	start := time.Now()
 
 	var bodyReader io.Reader
 	if body != nil {
@@ -105,6 +120,21 @@ func (c *Client) request(ctx context.Context, method, endpoint string, body, res
 		return fmt.Errorf("request failed: %w", err)
 	}
 	defer resp.Body.Close()
+
+	duration := time.Since(start)
+
+	// Log API request at debug level (without API key)
+	if c.logger != nil {
+		logFields := []interface{}{
+			"endpoint", endpoint,
+			"status", resp.StatusCode,
+			"duration", duration.String(),
+		}
+		if c.serverName != "" {
+			logFields = append([]interface{}{"server", c.serverName}, logFields...)
+		}
+		c.logger.Debug("API request", logFields...)
+	}
 
 	if err := c.checkStatusCode(resp.StatusCode); err != nil {
 		return err

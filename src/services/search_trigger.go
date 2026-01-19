@@ -21,6 +21,8 @@ type SearchTriggerAPIClient interface {
 type SearchTriggerAPIClientFactory func(url, apiKey, serverType string) SearchTriggerAPIClient
 
 // defaultSearchTriggerAPIClientFactory creates real API clients.
+// Note: This factory doesn't have access to logger, so API request logging
+// is attached separately in triggerForServer if needed.
 func defaultSearchTriggerAPIClientFactory(url, apiKey, serverType string) SearchTriggerAPIClient {
 	if serverType == "sonarr" {
 		return api.NewSonarrClient(url, apiKey)

@@ -231,3 +231,9 @@ func (l *Logger) broadcast(entry *LogEntry) {
 		}
 	}
 }
+
+// Debug logs a debug message to console only (not stored in database).
+// Used for development mode verbose logging.
+func (l *Logger) Debug(msg string, keyvals ...interface{}) {
+	l.console.Debug(msg, keyvals...)
+}

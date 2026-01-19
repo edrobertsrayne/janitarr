@@ -186,23 +186,29 @@ Current state: Logger at `src/logger/logger.go:11-15` only has `storer`, `mu`, `
 
 **Reference:** `specs/logging.md` (Development Mode Verbose Logging section)
 
-Current state: `src/web/middleware/logging.go:17` has placeholder comment "will integrate with actual logger later".
+- [x] Update `src/web/middleware/logging.go`:
+  - [x] Accept logger in constructor
+  - [x] Log HTTP requests at debug level: `DEBUG HTTP request method=GET path=/api/servers status=200 duration=12ms`
 
-- [ ] Update `src/web/middleware/logging.go`:
-  - [ ] Accept logger in constructor
-  - [ ] Log HTTP requests at debug level: `DEBUG HTTP request method=GET path=/api/servers status=200 duration=12ms`
+- [x] Update `src/api/client.go`:
+  - [x] Add optional `logger` field via `DebugLogger` interface
+  - [x] Add `WithLogger(l DebugLogger, serverName string) *Client` method
+  - [x] Log API requests in debug mode (without API keys)
 
-- [ ] Update `src/api/client.go`:
-  - [ ] Add optional `logger` field
-  - [ ] Add `WithLogger(l *Logger) *Client` method
-  - [ ] Log API requests in debug mode (without API keys)
+- [x] Update `src/services/scheduler.go`:
+  - [x] Add logger field via `DebugLogger` interface
+  - [x] Add `WithLogger(l DebugLogger) *Scheduler` method
+  - [x] Log scheduler events: `DEBUG Scheduler sleeping until=X`, `DEBUG Scheduler woke up reason=timer`
 
-- [ ] Update `src/services/scheduler.go`:
-  - [ ] Add logger field
-  - [ ] Log scheduler events: `DEBUG Scheduler sleeping until=X`
+- [x] Update `src/web/websocket/hub.go`:
+  - [x] Log WebSocket connections at debug level (connect/disconnect with client counts)
 
-- [ ] Update `src/web/websocket/hub.go`:
-  - [ ] Log WebSocket connections at debug level
+- [x] Update initialization code:
+  - [x] `src/web/server.go` - Pass logger to RequestLogger middleware
+  - [x] `src/cli/start.go` - Attach logger to scheduler
+  - [x] `src/cli/dev.go` - Attach logger to scheduler
+
+- [x] Add `Debug()` method to `src/logger/logger.go` for console-only debug logging
 
 ### 10.9 Update Database Schema for Enhanced Logs
 
