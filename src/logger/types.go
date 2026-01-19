@@ -23,15 +23,17 @@ const (
 
 // LogEntry represents a single log entry.
 type LogEntry struct {
-	ID         string       `json:"id"`
-	Timestamp  time.Time    `json:"timestamp"`
-	Type       LogEntryType `json:"type"`
-	ServerName string       `json:"serverName,omitempty"`
-	ServerType string       `json:"serverType,omitempty"`
-	Category   string       `json:"category,omitempty"`
-	Count      int          `json:"count,omitempty"`
-	Message    string       `json:"message"`
-	IsManual   bool         `json:"isManual"`
+	ID         string                 `json:"id"`
+	Timestamp  time.Time              `json:"timestamp"`
+	Type       LogEntryType           `json:"type"`
+	ServerName string                 `json:"serverName,omitempty"`
+	ServerType string                 `json:"serverType,omitempty"`
+	Category   string                 `json:"category,omitempty"`
+	Count      int                    `json:"count,omitempty"`
+	Message    string                 `json:"message"`
+	IsManual   bool                   `json:"isManual"`
+	Operation  string                 `json:"operation,omitempty"`
+	Metadata   map[string]interface{} `json:"metadata,omitempty"`
 }
 
 // LogStorer defines the interface for storing and retrieving log entries.

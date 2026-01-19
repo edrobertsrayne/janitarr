@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -12,7 +13,7 @@ import (
 // GetLogsFunc is a variable that holds the function to retrieve log entries.
 // It can be overridden in tests to inject mock implementations.
 var GetLogsFunc = func(db *DB, ctx context.Context, limit, offset int, logTypeFilter, serverNameFilter *string) ([]logger.LogEntry, error) {
-	query := "SELECT id, timestamp, type, server_name, server_type, category, count, message, is_manual FROM logs WHERE 1=1"
+	query := "SELECT id, timestamp, type, server_name, server_type, category, count, message, is_manual, operation, metadata FROM logs WHERE 1=1"
 	var args []any
 	var logs []logger.LogEntry
 
@@ -29,7 +30,6 @@ var GetLogsFunc = func(db *DB, ctx context.Context, limit, offset int, logTypeFi
 	query += " ORDER BY timestamp DESC LIMIT ? OFFSET ?"
 	args = append(args, limit, offset)
 
-
 	rows, err := db.conn.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("querying logs: %w", err)
@@ -39,7 +39,7 @@ var GetLogsFunc = func(db *DB, ctx context.Context, limit, offset int, logTypeFi
 	for rows.Next() {
 		var logEntry logger.LogEntry
 		var timestampStr string
-		var serverName, serverType, category sql.NullString
+		var serverName, serverType, category, operation, metadataJSON sql.NullString
 		var count sql.NullInt64
 		var isManual bool
 
@@ -53,6 +53,8 @@ var GetLogsFunc = func(db *DB, ctx context.Context, limit, offset int, logTypeFi
 			&count,
 			&logEntry.Message,
 			&isManual,
+			&operation,
+			&metadataJSON,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("scanning log entry: %w", err)
@@ -77,6 +79,16 @@ var GetLogsFunc = func(db *DB, ctx context.Context, limit, offset int, logTypeFi
 		}
 		logEntry.IsManual = isManual
 
+		if operation.Valid {
+			logEntry.Operation = operation.String
+		}
+
+		if metadataJSON.Valid && metadataJSON.String != "" {
+			if err := json.Unmarshal([]byte(metadataJSON.String), &logEntry.Metadata); err != nil {
+				return nil, fmt.Errorf("unmarshaling metadata: %w", err)
+			}
+		}
+
 		logs = append(logs, logEntry)
 	}
 
@@ -97,8 +109,18 @@ var ClearLogsFunc = func(db *DB) error {
 // It can be overridden in tests to inject mock implementations.
 var AddLogFunc = func(db *DB, entry logger.LogEntry) error {
 	query := `
-		INSERT INTO logs (id, timestamp, type, server_name, server_type, category, count, message, is_manual)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+		INSERT INTO logs (id, timestamp, type, server_name, server_type, category, count, message, is_manual, operation, metadata)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+
+	// Serialize metadata to JSON if present
+	var metadataJSON any
+	if entry.Metadata != nil && len(entry.Metadata) > 0 {
+		jsonBytes, err := json.Marshal(entry.Metadata)
+		if err != nil {
+			return fmt.Errorf("marshaling metadata: %w", err)
+		}
+		metadataJSON = string(jsonBytes)
+	}
 
 	_, err := db.conn.Exec(query,
 		entry.ID,
@@ -110,13 +132,14 @@ var AddLogFunc = func(db *DB, entry logger.LogEntry) error {
 		nullInt(entry.Count),
 		entry.Message,
 		entry.IsManual,
+		nullString(entry.Operation),
+		metadataJSON,
 	)
 	if err != nil {
 		return fmt.Errorf("inserting log entry: %w", err)
 	}
 	return nil
 }
-
 
 // GetLogs retrieves log entries.
 // This calls the globally exposed GetLogsFunc.
@@ -134,6 +157,76 @@ func (db *DB) ClearLogs() error {
 // This calls the globally exposed AddLogFunc.
 func (db *DB) AddLog(entry logger.LogEntry) error {
 	return AddLogFunc(db, entry)
+}
+
+// GetLogsByOperation retrieves log entries filtered by operation type.
+func (db *DB) GetLogsByOperation(ctx context.Context, operation string, limit, offset int) ([]logger.LogEntry, error) {
+	query := "SELECT id, timestamp, type, server_name, server_type, category, count, message, is_manual, operation, metadata FROM logs WHERE operation = ? ORDER BY timestamp DESC LIMIT ? OFFSET ?"
+	var logs []logger.LogEntry
+
+	rows, err := db.conn.QueryContext(ctx, query, operation, limit, offset)
+	if err != nil {
+		return nil, fmt.Errorf("querying logs by operation: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var logEntry logger.LogEntry
+		var timestampStr string
+		var serverName, serverType, category, op, metadataJSON sql.NullString
+		var count sql.NullInt64
+		var isManual bool
+
+		err := rows.Scan(
+			&logEntry.ID,
+			&timestampStr,
+			&logEntry.Type,
+			&serverName,
+			&serverType,
+			&category,
+			&count,
+			&logEntry.Message,
+			&isManual,
+			&op,
+			&metadataJSON,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("scanning log entry: %w", err)
+		}
+
+		logEntry.Timestamp, err = time.Parse(time.RFC3339, timestampStr)
+		if err != nil {
+			return nil, fmt.Errorf("parsing timestamp: %w", err)
+		}
+
+		if serverName.Valid {
+			logEntry.ServerName = serverName.String
+		}
+		if serverType.Valid {
+			logEntry.ServerType = serverType.String
+		}
+		if category.Valid {
+			logEntry.Category = category.String
+		}
+		if count.Valid {
+			logEntry.Count = int(count.Int64)
+		}
+		logEntry.IsManual = isManual
+
+		if op.Valid {
+			logEntry.Operation = op.String
+		}
+
+		if metadataJSON.Valid && metadataJSON.String != "" {
+			if err := json.Unmarshal([]byte(metadataJSON.String), &logEntry.Metadata); err != nil {
+				return nil, fmt.Errorf("unmarshaling metadata: %w", err)
+			}
+		}
+
+		logs = append(logs, logEntry)
+	}
+
+	return logs, nil
 }
 
 // nullString converts an empty string to a nil interface

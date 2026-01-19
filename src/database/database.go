@@ -6,13 +6,17 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/user/janitarr/src/crypto"
 	_ "modernc.org/sqlite"
 )
 
 //go:embed migrations/001_initial_schema.sql
-var migrationSQL string
+var migration001 string
+
+//go:embed migrations/002_enhanced_logs.sql
+var migration002 string
 
 const (
 	// LogRetentionDays is the number of days to keep log entries
@@ -83,10 +87,56 @@ func New(dbPath, keyPath string) (*DB, error) {
 	return db, nil
 }
 
-// migrate runs database migrations
+// migrate runs database migrations with proper version tracking
 func (db *DB) migrate() error {
-	_, err := db.conn.Exec(migrationSQL)
-	return err
+	// Create migration tracking table if it doesn't exist
+	_, err := db.conn.Exec(`
+		CREATE TABLE IF NOT EXISTS schema_migrations (
+			version INTEGER PRIMARY KEY,
+			applied_at TEXT NOT NULL
+		)
+	`)
+	if err != nil {
+		return fmt.Errorf("creating migration tracking table: %w", err)
+	}
+
+	migrations := []string{
+		migration001,
+		migration002,
+	}
+
+	for i, migration := range migrations {
+		version := i + 1
+
+		// Check if migration has already been applied
+		var count int
+		err := db.conn.QueryRow("SELECT COUNT(*) FROM schema_migrations WHERE version = ?", version).Scan(&count)
+		if err != nil {
+			return fmt.Errorf("checking migration status for version %d: %w", version, err)
+		}
+
+		if count > 0 {
+			// Migration already applied, skip it
+			continue
+		}
+
+		// Apply the migration
+		if _, err := db.conn.Exec(migration); err != nil {
+			return fmt.Errorf("migration %03d failed: %w", version, err)
+		}
+
+		// Record that migration was applied
+		_, err = db.conn.Exec(
+			"INSERT INTO schema_migrations (version, applied_at) VALUES (?, ?)",
+			version,
+			time.Now().Format(time.RFC3339),
+		)
+		if err != nil {
+			return fmt.Errorf("recording migration %03d: %w", version, err)
+		}
+	}
+
+	return nil
 }
 
 // initializeDefaults sets default configuration values if not present

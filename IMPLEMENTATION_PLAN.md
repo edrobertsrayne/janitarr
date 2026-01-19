@@ -216,7 +216,7 @@ Current state: Logger at `src/logger/logger.go:11-15` only has `storer`, `mu`, `
 
 Current schema at `src/database/migrations/001_initial_schema.sql:17-27` lacks `operation` and `metadata` columns.
 
-- [ ] Create `src/database/migrations/002_enhanced_logs.sql`:
+- [x] Create `src/database/migrations/002_enhanced_logs.sql`:
 
   ```sql
   ALTER TABLE logs ADD COLUMN operation TEXT;
@@ -224,16 +224,18 @@ Current schema at `src/database/migrations/001_initial_schema.sql:17-27` lacks `
   CREATE INDEX IF NOT EXISTS idx_logs_operation ON logs(operation);
   ```
 
-- [ ] Update `src/database/database.go`:
-  - [ ] Add migration 002 to embedded migrations
+- [x] Update `src/database/database.go`:
+  - [x] Add migration 002 to embedded migrations
+  - [x] Implement proper migration tracking with `schema_migrations` table
 
-- [ ] Update `src/database/logs.go`:
-  - [ ] Add `operation` and `metadata` to insert/select queries
-  - [ ] Add filter method: `GetLogsByOperation(operation string)`
+- [x] Update `src/database/logs.go`:
+  - [x] Add `operation` and `metadata` to insert/select queries
+  - [x] Add filter method: `GetLogsByOperation(operation string)`
+  - [x] Add JSON serialization/deserialization for metadata
 
-- [ ] Update `src/logger/types.go`:
-  - [ ] Add `Operation string` field to LogEntry
-  - [ ] Add `Metadata map[string]interface{}` field to LogEntry
+- [x] Update `src/logger/types.go`:
+  - [x] Add `Operation string` field to LogEntry
+  - [x] Add `Metadata map[string]interface{}` field to LogEntry
 
 ### 10.10 Web Log Viewer Filter Enhancements
 
