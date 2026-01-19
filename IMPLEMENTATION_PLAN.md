@@ -400,19 +400,19 @@ Current state: Dashboard at `src/templates/pages/dashboard.templ:116-159` shows 
 
 ### 11.1 Add charmbracelet/huh Dependency
 
-- [ ] Add dependency: `go get github.com/charmbracelet/huh`
-- [ ] Verify import works
+- [x] Add dependency: `go get github.com/charmbracelet/huh`
+- [x] Verify import works
 
 ### 11.2 Create Forms Package Structure
 
-- [ ] Create `src/cli/forms/` directory
-- [ ] Create `src/cli/forms/helpers.go`:
-  - [ ] `IsInteractive() bool` - check if stdin is a TTY using `golang.org/x/term`
-  - [ ] Common validation functions:
-    - [ ] `ValidateServerName(s string) error`
-    - [ ] `ValidateURL(s string) error`
-    - [ ] `ValidateAPIKey(s string) error`
-    - [ ] `ValidateServerType(s string) error`
+- [x] Create `src/cli/forms/` directory
+- [x] Create `src/cli/forms/helpers.go`:
+  - [x] `IsInteractive() bool` - check if stdin is a TTY using `golang.org/x/term`
+  - [x] Common validation functions:
+    - [x] `ValidateServerName(s string) error`
+    - [x] `ValidateURL(s string) error`
+    - [x] `ValidateAPIKey(s string) error`
+    - [x] `ValidateServerType(s string) error`
 
 ### 11.3 Server Add Form
 
@@ -420,19 +420,20 @@ Current state: Dashboard at `src/templates/pages/dashboard.templ:116-159` shows 
 
 Current state: `src/cli/server.go:57-124` uses `bufio.NewReader` with manual prompts.
 
-- [ ] Create `src/cli/forms/server.go`:
-  - [ ] `ServerAddForm() (*ServerFormResult, error)`:
-    - [ ] Select field for server type (Radarr/Sonarr)
-    - [ ] Input field for name with validation
-    - [ ] Input field for URL with validation
-    - [ ] Input field for API key with `EchoMode(huh.EchoModePassword)`
-  - [ ] Return nil on Escape/cancel
+- [x] Create `src/cli/forms/server.go`:
+  - [x] `ServerAddForm() (*ServerFormResult, error)`:
+    - [x] Select field for server type (Radarr/Sonarr)
+    - [x] Input field for name with validation
+    - [x] Input field for URL with validation
+    - [x] Input field for API key with `EchoMode(huh.EchoModePassword)`
+  - [x] Return nil on Escape/cancel
 
-- [ ] Update `src/cli/server.go` (`runServerAdd`):
-  - [ ] Check `forms.IsInteractive()`
-  - [ ] If interactive and no flags provided, call `forms.ServerAddForm()`
-  - [ ] If non-interactive or all flags provided, use existing flag-based logic
-  - [ ] Show spinner during connection test
+- [x] Update `src/cli/server.go` (`runServerAdd`):
+  - [x] Check `forms.IsInteractive()`
+  - [x] If interactive and no flags provided, call `forms.ServerAddForm()`
+  - [x] If non-interactive or all flags provided, use existing flag-based logic
+  - [x] Show spinner during connection test
+  - [x] Add flags: --name, --type, --url, --api-key
 
 ### 11.4 Server Edit Form
 
@@ -488,15 +489,18 @@ Current state: `src/cli/config.go` only has flag-based `config show` and `config
 
 Current state: `src/cli/server.go:252-257` uses basic Y/N prompt.
 
-- [ ] Create `src/cli/forms/confirm.go`:
-  - [ ] `ConfirmDelete(itemType, itemName string) (bool, error)`:
-    - [ ] Show item details
-    - [ ] Require typing item name to confirm
-  - [ ] `ConfirmAction(message string) (bool, error)`:
-    - [ ] Simple yes/no confirmation
+- [x] Create `src/cli/forms/confirm.go`:
+  - [x] `ConfirmDelete(itemType, itemName string) (bool, error)`:
+    - [x] Show item details
+    - [x] Require typing item name to confirm
+  - [x] `ConfirmAction(message string) (bool, error)`:
+    - [x] Simple yes/no confirmation
+  - [x] `ConfirmActionWithDetails(title, details string) (bool, error)`:
+    - [x] Confirmation with additional context
 
-- [ ] Update `src/cli/server.go` (`runServerRemove`):
-  - [ ] If interactive and no `--force`, show `ConfirmDelete`
+- [x] Update `src/cli/server.go` (`runServerRemove`):
+  - [x] If interactive and no `--force`, show `ConfirmDelete`
+  - [x] Fallback to basic Y/N prompt if not interactive
 
 - [ ] Update `src/cli/logs.go`:
   - [ ] If interactive and clearing logs, show `ConfirmAction` with log count
