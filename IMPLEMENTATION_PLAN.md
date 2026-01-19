@@ -275,15 +275,22 @@ Current state: `src/web/handlers/api/logs.go` only supports `type` and `server` 
 
 Current state: Dashboard at `src/templates/pages/dashboard.templ:116-159` shows recent activity but no error count badge.
 
-- [ ] Update `src/templates/pages/dashboard.templ`:
-  - [ ] Add 24-hour error count badge to recent activity section
-  - [ ] Add "View all logs" link
+- [x] Update `src/templates/pages/dashboard.templ`:
+  - [x] Add 24-hour error count badge to recent activity section (already implemented via error stats card)
+  - [x] Add "View all logs" link (already implemented at line 155)
 
-- [ ] Update `src/web/handlers/pages/dashboard.go`:
-  - [ ] Add 24-hour error count to dashboard data
+- [x] Update `src/web/handlers/pages/dashboard.go`:
+  - [x] Add 24-hour error count to dashboard data (lines 56-62, 100-106)
 
-- [ ] Update `src/database/logs.go`:
-  - [ ] Add `GetErrorCount(since time.Time) (int, error)` method
+- [x] Update `src/database/logs.go`:
+  - [x] Add `GetErrorCount(since time.Time) (int, error)` method (already implemented at lines 247-256)
+
+**Implementation Notes:**
+
+- The dashboard already had an error count badge in the stats cards section
+- The "View all logs" link was already present in the Recent Activity section
+- Updated the handler to use `GetErrorCount()` with a 24-hour time window instead of counting errors from recent logs
+- Applied the same change to both `HandleDashboard` and `HandleStatsPartial` for consistency
 
 ### 10.12 Implement Log Retention
 

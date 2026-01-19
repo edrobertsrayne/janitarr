@@ -244,6 +244,17 @@ func (db *DB) GetLogsByOperation(ctx context.Context, operation string, limit, o
 	return logs, nil
 }
 
+// GetErrorCount returns the count of error logs since the given time.
+func (db *DB) GetErrorCount(ctx context.Context, since time.Time) (int, error) {
+	query := "SELECT COUNT(*) FROM logs WHERE type = 'error' AND timestamp >= ?"
+	var count int
+	err := db.conn.QueryRowContext(ctx, query, since.Format(time.RFC3339)).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("counting error logs: %w", err)
+	}
+	return count, nil
+}
+
 // nullString converts an empty string to a nil interface
 func nullString(s string) any {
 	if s == "" {

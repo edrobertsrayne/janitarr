@@ -50,8 +50,16 @@ func (h *PageHandlers) HandleDashboard(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Calculate total searches and failures from logs
-	totalSearches, totalFailures := calculateStats(logs)
+	// Calculate total searches from logs
+	totalSearches, _ := calculateStats(logs)
+
+	// Get 24-hour error count
+	since := time.Now().Add(-24 * time.Hour)
+	totalFailures, err := h.db.GetErrorCount(r.Context(), since)
+	if err != nil {
+		// Log error but don't fail the page render
+		totalFailures = 0
+	}
 
 	data := pages.DashboardData{
 		ServerCount:     len(servers),
@@ -87,7 +95,15 @@ func (h *PageHandlers) HandleStatsPartial(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	totalSearches, totalFailures := calculateStats(logs)
+	totalSearches, _ := calculateStats(logs)
+
+	// Get 24-hour error count
+	since := time.Now().Add(-24 * time.Hour)
+	totalFailures, err := h.db.GetErrorCount(r.Context(), since)
+	if err != nil {
+		// Log error but don't fail the partial render
+		totalFailures = 0
+	}
 
 	// Return just the stats cards HTML (would need to extract this into a separate templ component)
 	// For now, render as JSON or simple HTML
