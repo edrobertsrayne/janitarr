@@ -36,19 +36,21 @@ templ Logs(logs []logger.LogEntry) {
 			</div>
 			<!-- Filter toolbar -->
 			<div class="bg-white dark:bg-gray-800 rounded-lg shadow mb-6 p-4">
-				<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
 					<div>
 						<label for="type-filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>
 						<select
 							id="type-filter"
+							name="type"
 							hx-get="/partials/log-entries"
 							hx-target="#log-entries"
 							hx-swap="innerHTML"
-							hx-include="[name='server-filter']"
-							class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+							hx-include=".log-filter"
+							class="log-filter block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
 							<option value="">All Types</option>
 							<option value="cycle_start">Cycle Start</option>
 							<option value="cycle_end">Cycle End</option>
+							<option value="detection">Detection</option>
 							<option value="search">Search</option>
 							<option value="error">Error</option>
 						</select>
@@ -57,24 +59,73 @@ templ Logs(logs []logger.LogEntry) {
 						<label for="server-filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Server</label>
 						<select
 							id="server-filter"
-							name="server-filter"
+							name="server"
 							hx-get="/partials/log-entries"
 							hx-target="#log-entries"
 							hx-swap="innerHTML"
-							hx-include="[id='type-filter']"
-							class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+							hx-include=".log-filter"
+							class="log-filter block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
 							<option value="">All Servers</option>
 						</select>
 					</div>
-					<div class="flex items-end">
-						<button
+					<div>
+						<label for="operation-filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Operation</label>
+						<select
+							id="operation-filter"
+							name="operation"
 							hx-get="/partials/log-entries"
 							hx-target="#log-entries"
 							hx-swap="innerHTML"
-							class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600">
-							Refresh
-						</button>
+							hx-include=".log-filter"
+							class="log-filter block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+							<option value="">All Operations</option>
+							<option value="search">Search</option>
+							<option value="automation_cycle">Automation Cycle</option>
+							<option value="connection">Connection</option>
+							<option value="system">System</option>
+						</select>
 					</div>
+					<div>
+						<label for="from-date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">From Date</label>
+						<input
+							type="datetime-local"
+							id="from-date"
+							name="from"
+							hx-get="/partials/log-entries"
+							hx-target="#log-entries"
+							hx-swap="innerHTML"
+							hx-include=".log-filter"
+							hx-trigger="change"
+							class="log-filter block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
+					</div>
+					<div>
+						<label for="to-date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">To Date</label>
+						<input
+							type="datetime-local"
+							id="to-date"
+							name="to"
+							hx-get="/partials/log-entries"
+							hx-target="#log-entries"
+							hx-swap="innerHTML"
+							hx-include=".log-filter"
+							hx-trigger="change"
+							class="log-filter block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
+					</div>
+				</div>
+				<div class="flex gap-2">
+					<button
+						hx-get="/partials/log-entries"
+						hx-target="#log-entries"
+						hx-swap="innerHTML"
+						hx-include=".log-filter"
+						class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600">
+						Apply Filters
+					</button>
+					<button
+						onclick="document.querySelectorAll('.log-filter').forEach(el => el.value = ''); htmx.trigger('#type-filter', 'change');"
+						class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 dark:bg-gray-500 dark:hover:bg-gray-600">
+						Clear Filters
+					</button>
 				</div>
 			</div>
 			<!-- Logs container with WebSocket integration -->

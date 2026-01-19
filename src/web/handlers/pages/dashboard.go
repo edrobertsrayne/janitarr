@@ -33,7 +33,7 @@ func (h *PageHandlers) HandleDashboard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get recent logs (last 10)
-	logs, err := h.db.GetLogs(r.Context(), 10, 0, nil, nil)
+	logs, err := h.db.GetLogs(r.Context(), 10, 0, logger.LogFilters{})
 	if err != nil {
 		http.Error(w, "Failed to load logs", http.StatusInternalServerError)
 		return
@@ -81,7 +81,7 @@ func (h *PageHandlers) HandleStatsPartial(w http.ResponseWriter, r *http.Request
 	_ = servers // Use servers variable to avoid "declared and not used" error
 
 	// Get recent logs to calculate stats
-	logs, err := h.db.GetLogs(r.Context(), 100, 0, nil, nil)
+	logs, err := h.db.GetLogs(r.Context(), 100, 0, logger.LogFilters{})
 	if err != nil {
 		http.Error(w, "Failed to load logs", http.StatusInternalServerError)
 		return
@@ -102,7 +102,7 @@ func (h *PageHandlers) HandleStatsPartial(w http.ResponseWriter, r *http.Request
 // HandleRecentActivityPartial handles the htmx recent activity refresh
 func (h *PageHandlers) HandleRecentActivityPartial(w http.ResponseWriter, r *http.Request) {
 	// Get recent logs (last 10)
-	logs, err := h.db.GetLogs(r.Context(), 10, 0, nil, nil)
+	logs, err := h.db.GetLogs(r.Context(), 10, 0, logger.LogFilters{})
 	if err != nil {
 		http.Error(w, "Failed to load logs", http.StatusInternalServerError)
 		return

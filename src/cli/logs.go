@@ -61,9 +61,9 @@ func runLogs(cmd *cobra.Command, args []string) error {
 	var logEntries []logger.LogEntry
 	if showAll {
 		// Implement pagination if needed for very large datasets, for now fetch all
-		logEntries, err = db.GetLogs(context.Background(), 0, 0, nil, nil) // Limit 0 means all
+		logEntries, err = db.GetLogs(context.Background(), 0, 0, logger.LogFilters{}) // Limit 0 means all
 	} else {
-		logEntries, err = db.GetLogs(context.Background(), limit, 0, nil, nil)
+		logEntries, err = db.GetLogs(context.Background(), limit, 0, logger.LogFilters{})
 	}
 
 	if err != nil {

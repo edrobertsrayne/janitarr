@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/user/janitarr/src/database"
+	"github.com/user/janitarr/src/logger"
 )
 
 // LogHandlers provides handlers for log-related API endpoints.
@@ -28,6 +29,9 @@ func (h *LogHandlers) ListLogs(w http.ResponseWriter, r *http.Request) {
 	offsetStr := r.URL.Query().Get("offset")
 	typeFilter := r.URL.Query().Get("type")
 	serverFilter := r.URL.Query().Get("server")
+	operationFilter := r.URL.Query().Get("operation")
+	fromDate := r.URL.Query().Get("from")
+	toDate := r.URL.Query().Get("to")
 
 	limit := 20 // Default limit
 	if limitStr != "" {
@@ -43,17 +47,25 @@ func (h *LogHandlers) ListLogs(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	var logTypeFilterPtr *string
+	// Prepare filters
+	filters := logger.LogFilters{}
 	if typeFilter != "" {
-		logTypeFilterPtr = &typeFilter
+		filters.Type = &typeFilter
 	}
-
-	var serverFilterPtr *string
 	if serverFilter != "" {
-		serverFilterPtr = &serverFilter
+		filters.Server = &serverFilter
+	}
+	if operationFilter != "" {
+		filters.Operation = &operationFilter
+	}
+	if fromDate != "" {
+		filters.FromDate = &fromDate
+	}
+	if toDate != "" {
+		filters.ToDate = &toDate
 	}
 
-	logs, err := h.DB.GetLogs(ctx, limit, offset, logTypeFilterPtr, serverFilterPtr)
+	logs, err := h.DB.GetLogs(ctx, limit, offset, filters)
 	if err != nil {
 		jsonError(w, fmt.Sprintf("Failed to retrieve logs: %v", err), http.StatusInternalServerError)
 		return
@@ -80,7 +92,7 @@ func (h *LogHandlers) ExportLogs(w http.ResponseWriter, r *http.Request) {
 		format = "json" // Default to JSON
 	}
 
-	logs, err := h.DB.GetLogs(ctx, 0, 0, nil, nil) // Fetch all logs for export
+	logs, err := h.DB.GetLogs(ctx, 0, 0, logger.LogFilters{}) // Fetch all logs for export
 	if err != nil {
 		jsonError(w, fmt.Sprintf("Failed to retrieve logs for export: %v", err), http.StatusInternalServerError)
 		return

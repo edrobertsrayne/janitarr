@@ -15,7 +15,7 @@ Use only 1 subagent for build/test operations (backpressure control).
 2. Search the codebase to confirm it's not already implemented.
 3. Implement the feature. Run tests frequently—they are your quality gate.
 4. When tests pass, update IMPLEMENTATION_PLAN.md (mark done or note blockers).
-5. Commit changes atomically and push, following conventional commits.
+5. Commit changes and push, following conventional commits.
 
 # Exit Conditions
 

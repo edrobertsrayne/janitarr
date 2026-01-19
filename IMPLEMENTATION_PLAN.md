@@ -243,22 +243,31 @@ Current schema at `src/database/migrations/001_initial_schema.sql:17-27` lacks `
 
 Current state: `src/web/handlers/api/logs.go` only supports `type` and `server` filters.
 
-- [ ] Update `src/web/handlers/api/logs.go`:
-  - [ ] Add `level` query param filter
-  - [ ] Add `operation` query param filter
-  - [ ] Add `from` datetime query param filter
-  - [ ] Add `to` datetime query param filter
-  - [ ] Return total count in response for pagination
+- [x] Update `src/web/handlers/api/logs.go`:
+  - [x] Add `level` query param filter (filters by type)
+  - [x] Add `operation` query param filter
+  - [x] Add `from` datetime query param filter
+  - [x] Add `to` datetime query param filter
+  - [ ] Return total count in response for pagination (deferred)
 
-- [ ] Update `src/database/logs.go`:
-  - [ ] Add date range filtering to GetLogs
-  - [ ] Add operation filtering
+- [x] Update `src/database/logs.go`:
+  - [x] Add date range filtering to GetLogs
+  - [x] Add operation filtering
+  - [x] Updated LogFilters struct in logger/types.go with Type, Server, Operation, FromDate, ToDate
 
-- [ ] Update `src/templates/pages/logs.templ`:
-  - [ ] Add date range pickers (from/to)
-  - [ ] Add operation type dropdown
-  - [ ] Add "Clear filters" button
-  - [ ] Sync filter state to URL query params
+- [x] Update `src/templates/pages/logs.templ`:
+  - [x] Add date range pickers (from/to)
+  - [x] Add operation type dropdown
+  - [x] Add "Clear filters" button
+  - [ ] Sync filter state to URL query params (not implemented - filters work via HTMX)
+
+**Implementation Notes:**
+
+- Created `logger.LogFilters` struct to consolidate filter parameters
+- Updated all GetLogs call sites to use new LogFilters struct
+- Updated mockDB in logger tests to match new interface
+- Filters are applied via HTMX and work correctly with partial updates
+- Date inputs use HTML5 datetime-local type for easy date/time selection
 
 ### 10.11 Dashboard Log Summary Widget
 

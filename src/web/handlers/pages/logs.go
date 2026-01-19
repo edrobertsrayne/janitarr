@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/user/janitarr/src/logger"
 	"github.com/user/janitarr/src/templates/components"
 	"github.com/user/janitarr/src/templates/pages"
 )
@@ -11,7 +12,7 @@ import (
 // HandleLogs renders the logs page
 func (h *PageHandlers) HandleLogs(w http.ResponseWriter, r *http.Request) {
 	// Get recent logs (default 50)
-	logs, err := h.db.GetLogs(r.Context(), 50, 0, nil, nil)
+	logs, err := h.db.GetLogs(r.Context(), 50, 0, logger.LogFilters{})
 	if err != nil {
 		http.Error(w, "Failed to load logs", http.StatusInternalServerError)
 		return
@@ -31,19 +32,30 @@ func (h *PageHandlers) HandleLogEntriesPartial(w http.ResponseWriter, r *http.Re
 
 	typeFilter := r.URL.Query().Get("type")
 	serverFilter := r.URL.Query().Get("server")
+	operationFilter := r.URL.Query().Get("operation")
+	fromDate := r.URL.Query().Get("from")
+	toDate := r.URL.Query().Get("to")
 
 	// Prepare filters
-	var typeFilterPtr *string
-	var serverFilterPtr *string
+	filters := logger.LogFilters{}
 	if typeFilter != "" {
-		typeFilterPtr = &typeFilter
+		filters.Type = &typeFilter
 	}
 	if serverFilter != "" {
-		serverFilterPtr = &serverFilter
+		filters.Server = &serverFilter
+	}
+	if operationFilter != "" {
+		filters.Operation = &operationFilter
+	}
+	if fromDate != "" {
+		filters.FromDate = &fromDate
+	}
+	if toDate != "" {
+		filters.ToDate = &toDate
 	}
 
 	// Get logs with filters
-	logs, err := h.db.GetLogs(r.Context(), 20, offset, typeFilterPtr, serverFilterPtr)
+	logs, err := h.db.GetLogs(r.Context(), 20, offset, filters)
 	if err != nil {
 		http.Error(w, "Failed to load logs", http.StatusInternalServerError)
 		return

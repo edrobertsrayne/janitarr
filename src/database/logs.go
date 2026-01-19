@@ -12,19 +12,34 @@ import (
 
 // GetLogsFunc is a variable that holds the function to retrieve log entries.
 // It can be overridden in tests to inject mock implementations.
-var GetLogsFunc = func(db *DB, ctx context.Context, limit, offset int, logTypeFilter, serverNameFilter *string) ([]logger.LogEntry, error) {
+var GetLogsFunc = func(db *DB, ctx context.Context, limit, offset int, filters logger.LogFilters) ([]logger.LogEntry, error) {
 	query := "SELECT id, timestamp, type, server_name, server_type, category, count, message, is_manual, operation, metadata FROM logs WHERE 1=1"
 	var args []any
 	var logs []logger.LogEntry
 
-	if logTypeFilter != nil && *logTypeFilter != "" {
+	if filters.Type != nil && *filters.Type != "" {
 		query += " AND type = ?"
-		args = append(args, *logTypeFilter)
+		args = append(args, *filters.Type)
 	}
 
-	if serverNameFilter != nil && *serverNameFilter != "" {
+	if filters.Server != nil && *filters.Server != "" {
 		query += " AND server_name = ?"
-		args = append(args, *serverNameFilter)
+		args = append(args, *filters.Server)
+	}
+
+	if filters.Operation != nil && *filters.Operation != "" {
+		query += " AND operation = ?"
+		args = append(args, *filters.Operation)
+	}
+
+	if filters.FromDate != nil && *filters.FromDate != "" {
+		query += " AND timestamp >= ?"
+		args = append(args, *filters.FromDate)
+	}
+
+	if filters.ToDate != nil && *filters.ToDate != "" {
+		query += " AND timestamp <= ?"
+		args = append(args, *filters.ToDate)
 	}
 
 	query += " ORDER BY timestamp DESC LIMIT ? OFFSET ?"
@@ -141,10 +156,10 @@ var AddLogFunc = func(db *DB, entry logger.LogEntry) error {
 	return nil
 }
 
-// GetLogs retrieves log entries.
+// GetLogs retrieves log entries with optional filters.
 // This calls the globally exposed GetLogsFunc.
-func (db *DB) GetLogs(ctx context.Context, limit, offset int, logTypeFilter, serverNameFilter *string) ([]logger.LogEntry, error) {
-	return GetLogsFunc(db, ctx, limit, offset, logTypeFilter, serverNameFilter)
+func (db *DB) GetLogs(ctx context.Context, limit, offset int, filters logger.LogFilters) ([]logger.LogEntry, error) {
+	return GetLogsFunc(db, ctx, limit, offset, filters)
 }
 
 // ClearLogs removes all log entries.

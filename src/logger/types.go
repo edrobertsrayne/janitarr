@@ -36,10 +36,19 @@ type LogEntry struct {
 	Metadata   map[string]interface{} `json:"metadata,omitempty"`
 }
 
+// LogFilters contains optional filters for querying logs.
+type LogFilters struct {
+	Type      *string
+	Server    *string
+	Operation *string
+	FromDate  *string // RFC3339 format
+	ToDate    *string // RFC3339 format
+}
+
 // LogStorer defines the interface for storing and retrieving log entries.
 // This interface is used by the logger service to decouple it from the concrete database implementation.
 type LogStorer interface {
 	AddLog(entry LogEntry) error
-	GetLogs(ctx context.Context, limit, offset int, logTypeFilter, serverNameFilter *string) ([]LogEntry, error)
+	GetLogs(ctx context.Context, limit, offset int, filters LogFilters) ([]LogEntry, error)
 	ClearLogs() error
 }

@@ -379,7 +379,7 @@ func TestLogsInsertRetrieve(t *testing.T) {
 	}
 
 	// Get logs
-	logs, err := db.GetLogs(ctx, 100, 0, nil, nil)
+	logs, err := db.GetLogs(ctx, 100, 0, logger.LogFilters{})
 	if err != nil {
 		t.Fatalf("GetLogs failed: %v", err)
 	}
@@ -424,7 +424,7 @@ func TestLogsPagination(t *testing.T) {
 	}
 
 	// Get first page
-	page1, err := db.GetLogs(ctx, 5, 0, nil, nil)
+	page1, err := db.GetLogs(ctx, 5, 0, logger.LogFilters{})
 	if err != nil {
 		t.Fatalf("GetLogs failed: %v", err)
 	}
@@ -433,7 +433,7 @@ func TestLogsPagination(t *testing.T) {
 	}
 
 	// Get second page
-	page2, err := db.GetLogs(ctx, 5, 5, nil, nil)
+	page2, err := db.GetLogs(ctx, 5, 5, logger.LogFilters{})
 	if err != nil {
 		t.Fatalf("GetLogs failed: %v", err)
 	}
@@ -470,7 +470,7 @@ func TestLogsPurge(t *testing.T) {
 	db.AddLog(entry)
 
 	// Verify we have 3 logs
-	logs, _ := db.GetLogs(ctx, 100, 0, nil, nil)
+	logs, _ := db.GetLogs(ctx, 100, 0, logger.LogFilters{})
 	if len(logs) != 3 {
 		t.Errorf("expected 3 logs before purge, got %d", len(logs))
 	}
@@ -491,14 +491,14 @@ func TestLogsFilter(t *testing.T) {
 
 	// Filter by type
 	searchType := "search"
-	searchLogs, _ := db.GetLogs(ctx, 100, 0, &searchType, nil)
+	searchLogs, _ := db.GetLogs(ctx, 100, 0, logger.LogFilters{Type: &searchType})
 	if len(searchLogs) != 2 {
 		t.Errorf("expected 2 search logs, got %d", len(searchLogs))
 	}
 
 	// Filter by server
 	radarrServer := "radarr1"
-	radarrLogs, _ := db.GetLogs(ctx, 100, 0, nil, &radarrServer)
+	radarrLogs, _ := db.GetLogs(ctx, 100, 0, logger.LogFilters{Server: &radarrServer})
 	if len(radarrLogs) != 2 {
 		t.Errorf("expected 2 radarr logs, got %d", len(radarrLogs))
 	}
@@ -516,7 +516,7 @@ func TestClearLogs(t *testing.T) {
 		t.Fatalf("ClearLogs failed: %v", err)
 	}
 
-	logs, _ := db.GetLogs(ctx, 100, 0, nil, nil)
+	logs, _ := db.GetLogs(ctx, 100, 0, logger.LogFilters{})
 	if len(logs) != 0 {
 		t.Errorf("expected 0 logs after clear, got %d", len(logs))
 	}

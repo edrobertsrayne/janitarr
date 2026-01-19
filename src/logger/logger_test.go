@@ -16,7 +16,7 @@ func (m *mockDB) AddLog(entry LogEntry) error {
 	return nil
 }
 
-func (m *mockDB) GetLogs(ctx context.Context, limit, offset int, logTypeFilter, serverNameFilter *string) ([]LogEntry, error) {
+func (m *mockDB) GetLogs(ctx context.Context, limit, offset int, filters LogFilters) ([]LogEntry, error) {
 	return m.logs, nil
 }
 
