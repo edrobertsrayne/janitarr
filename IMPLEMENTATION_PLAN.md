@@ -145,12 +145,12 @@ Current state: Logger at `src/logger/logger.go:11-15` only has `storer`, `mu`, `
 
 **Reference:** `specs/logging.md` (Log Automation Cycle Summary section)
 
-- [ ] Add to `src/logger/logger.go`:
-  - [ ] `LogDetectionComplete(serverName, serverType string, missing, cutoffUnmet int)`
-  - [ ] Console format: `INFO Detection complete server=X missing=Y cutoff_unmet=Z`
+- [x] Add to `src/logger/logger.go`:
+  - [x] `LogDetectionComplete(serverName, serverType string, missing, cutoffUnmet int)`
+  - [x] Console format: `INFO Detection complete server=X missing=Y cutoff_unmet=Z`
 
-- [ ] Update `src/services/automation.go`:
-  - [ ] After detection, call `logger.LogDetectionComplete()` for each server result
+- [x] Update `src/services/automation.go`:
+  - [x] After detection, call `logger.LogDetectionComplete()` for each server result
 
 ### 10.7 Add Detailed Search Logging with Metadata
 

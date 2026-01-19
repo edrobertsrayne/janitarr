@@ -71,6 +71,25 @@ func (l *Logger) LogCycleEnd(totalSearches, failures int, isManual bool) *LogEnt
 	return l.AddLog(entry)
 }
 
+// LogDetectionComplete logs the completion of detection for a server.
+func (l *Logger) LogDetectionComplete(serverName, serverType string, missing, cutoffUnmet int) *LogEntry {
+	entry := LogEntry{
+		Type:       LogTypeDetection,
+		ServerName: serverName,
+		ServerType: serverType,
+		Message:    "Detection complete.",
+		Count:      missing + cutoffUnmet, // Store total in count for simple querying
+	}
+
+	// Console log at info level
+	l.console.Info("Detection complete",
+		"server", serverName,
+		"missing", missing,
+		"cutoff_unmet", cutoffUnmet)
+
+	return l.AddLog(entry)
+}
+
 // LogSearches logs triggered searches.
 func (l *Logger) LogSearches(serverName, serverType, category string, count int, isManual bool) *LogEntry {
 	entry := LogEntry{

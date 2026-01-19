@@ -20,6 +20,8 @@ Janitarr is implemented in Go with the following technologies:
 - **Web Framework**: Chi (go-chi/chi/v5)
 - **Database**: modernc.org/sqlite (pure Go, no CGO)
 - **CLI**: Cobra (spf13/cobra)
+- **CLI Forms**: charmbracelet/huh (interactive terminal forms)
+- **Console Logging**: charmbracelet/log (colorized structured logging)
 - **Templates**: templ (a-h/templ)
 - **Frontend**: htmx + Alpine.js + Tailwind CSS
 
@@ -55,15 +57,17 @@ See [go-architecture.md](./go-architecture.md) for Go-specific patterns and conv
 
 ### Monitoring
 
-| Spec                                         | Code                                             | Purpose                                                                                         |
-| -------------------------------------------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
-| [activity-logging.md](./activity-logging.md) | `src/logger/logger.go`<br>`src/database/logs.go` | Recording all triggered searches, automation cycles, and failures for audit and troubleshooting |
+| Spec                                         | Code                                                                            | Purpose                                                                                                 |
+| -------------------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| [logging.md](./logging.md)                   | `src/logger/logger.go`<br>`src/database/logs.go`<br>`src/web/websocket/logs.go` | Unified logging system with console output (charmbracelet/log), web streaming, and database persistence |
+| [activity-logging.md](./activity-logging.md) | `src/logger/logger.go`<br>`src/database/logs.go`                                | Recording all triggered searches, automation cycles, and failures for audit and troubleshooting         |
 
 ### User Interface
 
-| Spec                                 | Code                                          | Purpose                                                                                                                                                              |
-| ------------------------------------ | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [web-frontend.md](./web-frontend.md) | `src/templates/`<br>`src/web/handlers/pages/` | Modern web interface using templ templates, htmx for dynamic updates, and Alpine.js for interactivity<br>**Includes:** Tailwind CSS styling, WebSocket log streaming |
+| Spec                                   | Code                                          | Purpose                                                                                                                                                              |
+| -------------------------------------- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [web-frontend.md](./web-frontend.md)   | `src/templates/`<br>`src/web/handlers/pages/` | Modern web interface using templ templates, htmx for dynamic updates, and Alpine.js for interactivity<br>**Includes:** Tailwind CSS styling, WebSocket log streaming |
+| [cli-interface.md](./cli-interface.md) | `src/cli/`<br>`src/cli/forms/`                | Interactive terminal forms using charmbracelet/huh for server management and configuration<br>**Includes:** Server add/edit forms, configuration dialogs             |
 
 ### Architecture
 
@@ -90,8 +94,10 @@ If you're new to the project, read the specifications in this recommended order:
 3. Understand actions via [search-triggering.md](./search-triggering.md)
 4. Learn about automation in [automatic-scheduling.md](./automatic-scheduling.md)
 5. See [unified-service-startup.md](./unified-service-startup.md) for running the complete application
-6. Review [activity-logging.md](./activity-logging.md) for visibility requirements
-7. (Optional) See [web-frontend.md](./web-frontend.md) for web UI specifications
+6. Review [logging.md](./logging.md) for the unified logging system
+7. Review [activity-logging.md](./activity-logging.md) for what events are logged
+8. (Optional) See [web-frontend.md](./web-frontend.md) for web UI specifications
+9. (Optional) See [cli-interface.md](./cli-interface.md) for interactive CLI forms
 
 ## Contributing
 

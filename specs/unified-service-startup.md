@@ -192,20 +192,32 @@ The system provides two startup modes:
 
 ### Logging Behavior
 
+See [logging.md](./logging.md) for complete logging system specification.
+
 **Production Mode (`start`):**
 
-- Log level: INFO
-- Output: Startup messages, scheduler events, automation cycle summaries, errors
+- Log level: INFO (configurable via `--log-level` or `JANITARR_LOG_LEVEL`)
+- Output destination: stderr
+- Console output: charmbracelet/log with colors and structured key-value format
+- Logs: Startup messages, automation cycles, search triggers with metadata, errors
 - HTTP request logging: Disabled (only errors logged)
 - API errors: Generic messages without stack traces
 
 **Development Mode (`dev`):**
 
-- Log level: DEBUG
-- Output: All production logs plus HTTP requests, WebSocket messages, detailed timing
-- HTTP request logging: Enabled (method, path, status code, response time)
+- Log level: DEBUG (configurable via `--log-level` or `JANITARR_LOG_LEVEL`)
+- Output destination: stdout
+- Console output: charmbracelet/log with colors and structured key-value format
+- Logs: All production logs plus:
+  - HTTP requests to web server (method, path, status code, response time)
+  - HTTP requests to Radarr/Sonarr APIs (endpoint, status, duration)
+  - Scheduler events (tick, sleep, wake, cycle start/end)
+  - WebSocket connections (connect, disconnect)
+  - Database operations (query type, table, duration)
 - API errors: Full stack traces and request details
-- Scheduler events: Verbose output showing detection counts, search decisions
+- Scheduler events: Verbose output showing detection counts per server, search decisions
+
+Both modes stream logs to web interface via WebSocket and persist to database for history.
 
 ### Resource Management
 

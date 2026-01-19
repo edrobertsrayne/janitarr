@@ -47,6 +47,11 @@ func (m *MockLogger) LogCycleEnd(totalSearches, failures int, isManual bool) *lo
 	return args.Get(0).(*logger.LogEntry)
 }
 
+func (m *MockLogger) LogDetectionComplete(serverName, serverType string, missing, cutoffUnmet int) *logger.LogEntry {
+	args := m.Called(serverName, serverType, missing, cutoffUnmet)
+	return args.Get(0).(*logger.LogEntry)
+}
+
 func (m *MockLogger) LogSearches(serverName, serverType, category string, count int, isManual bool) *logger.LogEntry {
 	args := m.Called(serverName, serverType, category, count, isManual)
 	return args.Get(0).(*logger.LogEntry)
@@ -156,6 +161,7 @@ func TestRunCycle_Success(t *testing.T) {
 
 	// Mock Logger calls (Note: AddLogEntry is mocked directly as a function of the DB mock for the logger)
 	mockLogger.On("LogCycleStart", true).Return(&logger.LogEntry{Type: logger.LogTypeCycleStart}).Once()
+	mockLogger.On("LogDetectionComplete", "Server1", "radarr", 2, 1).Return(&logger.LogEntry{Type: logger.LogTypeDetection}).Once()
 	mockLogger.On("LogSearches", "Server1", "radarr", "missing", 2, true).Return(&logger.LogEntry{Type: logger.LogTypeSearch}).Once()
 	mockLogger.On("LogSearches", "Server1", "radarr", "cutoff", 1, true).Return(&logger.LogEntry{Type: logger.LogTypeSearch}).Once()
 	mockLogger.On("LogCycleEnd", 3, 0, true).Return(&logger.LogEntry{Type: logger.LogTypeCycleEnd}).Once()
@@ -303,6 +309,7 @@ func TestRunCycle_TriggerFailure(t *testing.T) {
 
 	// Mock Logger calls
 	mockLogger.On("LogCycleStart", true).Return(&logger.LogEntry{Type: logger.LogTypeCycleStart}).Once()
+	mockLogger.On("LogDetectionComplete", "Server1", "radarr", 2, 0).Return(&logger.LogEntry{Type: logger.LogTypeDetection}).Once()
 	mockLogger.On("LogSearchError", "Server1", "radarr", "missing", "failed to trigger").Return(&logger.LogEntry{}).Once()
 	mockLogger.On("LogCycleEnd", 0, 1, true).Return(&logger.LogEntry{Type: logger.LogTypeCycleEnd}).Once() // 1 failure from trigger
 	mockLogger.On("LogServerError", mock.Anything, mock.Anything, mock.Anything).Return(&logger.LogEntry{}).Maybe()
@@ -378,8 +385,9 @@ func TestRunCycle_DryRun(t *testing.T) {
 	appConfig := defaultAppConfig()
 	mockDB.On("GetAppConfig").Return(*appConfig).Once()
 
-	// Mock Logger calls - only LogCycleStart and LogCycleEnd should be called, but with dryRun=true
+	// Mock Logger calls - only LogCycleStart, LogDetectionComplete, and LogCycleEnd should be called in dry-run mode
 	mockLogger.On("LogCycleStart", true).Return(&logger.LogEntry{Type: logger.LogTypeCycleStart}).Once()
+	mockLogger.On("LogDetectionComplete", "Server1", "radarr", 2, 1).Return(&logger.LogEntry{Type: logger.LogTypeDetection}).Once()
 	mockLogger.On("LogCycleEnd", 3, 0, true).Return(&logger.LogEntry{Type: logger.LogTypeCycleEnd}).Once()
 
 	// Mock Detector calls (successful detection)
@@ -467,6 +475,7 @@ func TestRunCycle_ManualScheduledLogging(t *testing.T) {
 
 			// Mock Logger calls, checking isManual flag
 			mockLogger.On("LogCycleStart", tt.isManual).Return(&logger.LogEntry{Type: logger.LogTypeCycleStart}).Once()
+			mockLogger.On("LogDetectionComplete", "Server1", "radarr", 2, 0).Return(&logger.LogEntry{Type: logger.LogTypeDetection}).Once()
 			mockLogger.On("LogSearches", "Server1", "radarr", "missing", 2, tt.isManual).Return(&logger.LogEntry{Type: logger.LogTypeSearch}).Once()
 			mockLogger.On("LogCycleEnd", 2, 0, tt.isManual).Return(&logger.LogEntry{Type: logger.LogTypeCycleEnd}).Once()
 			mockLogger.On("LogServerError", mock.Anything, mock.Anything, mock.Anything).Return(&logger.LogEntry{}).Maybe()

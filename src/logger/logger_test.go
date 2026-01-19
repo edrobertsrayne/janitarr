@@ -53,6 +53,29 @@ func TestLogCycleEnd_Persists(t *testing.T) {
 	}
 }
 
+func TestLogDetectionComplete_Persists(t *testing.T) {
+	db := &mockDB{}
+	logger := NewLogger(db, LevelInfo, false)
+
+	logger.LogDetectionComplete("radarr-main", "radarr", 5, 12)
+
+	if len(db.logs) != 1 {
+		t.Fatalf("expected 1 log entry, got %d", len(db.logs))
+	}
+	if db.logs[0].Type != LogTypeDetection {
+		t.Errorf("expected log type %s, got %s", LogTypeDetection, db.logs[0].Type)
+	}
+	if db.logs[0].ServerName != "radarr-main" {
+		t.Errorf("expected server name %s, got %s", "radarr-main", db.logs[0].ServerName)
+	}
+	if db.logs[0].ServerType != "radarr" {
+		t.Errorf("expected server type %s, got %s", "radarr", db.logs[0].ServerType)
+	}
+	if db.logs[0].Count != 17 {
+		t.Errorf("expected count %d (5+12), got %d", 17, db.logs[0].Count)
+	}
+}
+
 func TestLogSearches_Persists(t *testing.T) {
 	db := &mockDB{}
 	logger := NewLogger(db, LevelInfo, false)

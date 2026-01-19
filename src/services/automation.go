@@ -23,6 +23,7 @@ type AutomationSearchTrigger interface {
 type AutomationLogger interface {
 	LogCycleStart(isManual bool) *logger.LogEntry
 	LogCycleEnd(totalSearches, failures int, isManual bool) *logger.LogEntry
+	LogDetectionComplete(serverName, serverType string, missing, cutoffUnmet int) *logger.LogEntry
 	LogSearches(serverName, serverType, category string, count int, isManual bool) *logger.LogEntry
 	LogServerError(serverName, serverType, reason string) *logger.LogEntry
 	LogSearchError(serverName, serverType, category, reason string) *logger.LogEntry
@@ -76,7 +77,7 @@ func (a *Automation) RunCycle(ctx context.Context, isManual, dryRun bool) (*Cycl
 	}
 	cycleResult.DetectionResults = *detectionResults
 
-	// Log detection errors if any
+	// Log detection completion and errors for each server
 	for _, res := range detectionResults.Results {
 		if res.Error != "" {
 			if !dryRun { // Added condition for dryRun
@@ -85,6 +86,9 @@ func (a *Automation) RunCycle(ctx context.Context, isManual, dryRun bool) (*Cycl
 			cycleResult.Success = false
 			cycleResult.TotalFailures++
 			cycleResult.Errors = append(cycleResult.Errors, fmt.Sprintf("server %s detection failed: %s", res.ServerName, res.Error))
+		} else {
+			// Log successful detection completion
+			a.logger.LogDetectionComplete(res.ServerName, res.ServerType, len(res.Missing), len(res.Cutoff))
 		}
 	}
 	// 3. Trigger searches

@@ -13,6 +13,8 @@ const (
 	LogTypeCycleStart LogEntryType = "cycle_start"
 	// LogTypeCycleEnd indicates the end of an automation cycle.
 	LogTypeCycleEnd LogEntryType = "cycle_end"
+	// LogTypeDetection indicates completion of detection for a server.
+	LogTypeDetection LogEntryType = "detection"
 	// LogTypeSearch indicates a search was triggered.
 	LogTypeSearch LogEntryType = "search"
 	// LogTypeError indicates an error occurred.
