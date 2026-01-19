@@ -156,27 +156,29 @@ Current state: Logger at `src/logger/logger.go:11-15` only has `storer`, `mu`, `
 
 **Reference:** `specs/logging.md` (Log Individual Search Triggers), `specs/activity-logging.md`
 
-Current state: `TriggerResult` at `src/services/types.go:63-72` only has ServerID, ServerName, ServerType, Category, ItemIDs, Success, Error.
+- [x] Update `src/services/types.go`:
+  - [x] Add `Title string` field to TriggerResult
+  - [x] Add `Year int` field to TriggerResult (for movies)
+  - [x] Add `SeriesTitle string` field (for episodes)
+  - [x] Add `SeasonNumber int` field
+  - [x] Add `EpisodeNumber int` field
+  - [x] Add `QualityProfile string` field
+  - [x] Add `MissingItems` and `CutoffItems` maps to DetectionResult for metadata
 
-- [ ] Update `src/services/types.go`:
-  - [ ] Add `Title string` field to TriggerResult
-  - [ ] Add `Year int` field to TriggerResult (for movies)
-  - [ ] Add `SeriesTitle string` field (for episodes)
-  - [ ] Add `SeasonNumber int` field
-  - [ ] Add `EpisodeNumber int` field
-  - [ ] Add `QualityProfile string` field
+- [x] Update `src/api/types.go`:
+  - [x] Added `Year` and `QualityProfile` fields to `Movie`
+  - [x] Added `QualityProfile` to `Series` (used by episodes)
+  - [x] Added `EpisodeTitle` field to `MediaItem` for raw episode title
 
-- [ ] Update `src/api/types.go` (if needed):
-  - [ ] Ensure `Movie` has `Year`, `QualityProfileId` fields
-  - [ ] Ensure `Episode` has quality profile access
+- [x] Update `src/services/search_trigger.go`:
+  - [x] Added logger interface and field to SearchTrigger
+  - [x] Updated to log each item individually with metadata before triggering
+  - [x] Populated metadata from DetectionResult's MediaItem maps
 
-- [ ] Update `src/services/search_trigger.go`:
-  - [ ] When building TriggerResult, populate metadata fields from MediaItem
-
-- [ ] Update `src/logger/logger.go`:
-  - [ ] Add `LogMovieSearch(server, title string, year int, quality, category string)`
-  - [ ] Add `LogEpisodeSearch(server, series, episodeTitle string, season, episode int, quality, category string)`
-  - [ ] Console format per spec:
+- [x] Update `src/logger/logger.go`:
+  - [x] Added `LogMovieSearch(server, title string, year int, quality, category string)`
+  - [x] Added `LogEpisodeSearch(server, series, episodeTitle string, season, episode int, quality, category string)`
+  - [x] Console format per spec:
     - Movies: `INFO Search triggered title="X" year=Y quality="Z" server=S category=C`
     - Episodes: `INFO Search triggered series="X" episode="S01E02" title="Y" quality="Z" server=S category=C`
 
