@@ -9,9 +9,10 @@ import (
 )
 
 var (
-	dbPath   string
-	logLevel string
-	version  = "0.1.0"
+	dbPath         string
+	logLevel       string
+	nonInteractive bool
+	version        = "0.1.0"
 )
 
 func NewRootCmd() *cobra.Command {
@@ -39,6 +40,7 @@ func NewRootCmd() *cobra.Command {
 		defaultLogLevel = envLogLevel
 	}
 	cmd.PersistentFlags().StringVar(&logLevel, "log-level", defaultLogLevel, "Log level (debug, info, warn, error)")
+	cmd.PersistentFlags().BoolVar(&nonInteractive, "non-interactive", false, "Force non-interactive mode (require all flags)")
 
 	// Register commands
 	cmd.AddCommand(startCmd)

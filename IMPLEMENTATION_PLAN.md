@@ -544,13 +544,25 @@ Current state: `src/cli/server.go:252-257` uses basic Y/N prompt.
 
 **Reference:** `specs/cli-interface.md` (Flag Override section)
 
-- [ ] Update `src/cli/root.go`:
-  - [ ] Add `--non-interactive` global flag
-  - [ ] When set, skip all interactive forms and require flags
+- [x] Update `src/cli/root.go`:
+  - [x] Add `--non-interactive` global flag
+  - [x] When set, skip all interactive forms and require flags
 
-- [ ] Update all form-using commands:
-  - [ ] Check `--non-interactive` flag
-  - [ ] Error with usage if required flags missing
+- [x] Update all form-using commands:
+  - [x] Check `--non-interactive` flag
+  - [x] Error with usage if required flags missing
+
+**Implementation Notes:**
+
+- Added `nonInteractive` bool variable to `src/cli/root.go` (line 14)
+- Added `--non-interactive` persistent flag to root command (line 43)
+- Created `ShouldUseInteractiveMode(nonInteractiveFlag bool)` helper in `src/cli/forms/helpers.go` (lines 18-27)
+- Updated `runServerAdd` to use `ShouldUseInteractiveMode(nonInteractive)` instead of `IsInteractive()` (line 89)
+- Updated `runServerEdit` to check flag in two places: selector logic (line 183) and form logic (line 249)
+- Updated `runServerRemove` to check flag in two places: selector logic (line 323) and confirmation logic (line 380)
+- Updated `runConfigInteractive` to check flag before showing form (line 125)
+- All tests pass: `go test ./...`
+- Binary builds successfully: `make build`
 
 ### 11.9 Write Tests
 

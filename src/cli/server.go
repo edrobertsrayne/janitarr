@@ -86,7 +86,7 @@ func runServerAdd(cmd *cobra.Command, args []string) error {
 	hasAllFlags := flagName != "" && flagType != "" && flagURL != "" && flagAPIKey != ""
 
 	// Use interactive form if no flags and terminal is interactive
-	if !hasAllFlags && forms.IsInteractive() {
+	if !hasAllFlags && forms.ShouldUseInteractiveMode(nonInteractive) {
 		fmt.Println(header("Add New Server"))
 		fmt.Println()
 
@@ -180,7 +180,7 @@ func runServerEdit(cmd *cobra.Command, args []string) error {
 
 	// If no argument provided, show server selector in interactive mode
 	if len(args) == 0 {
-		if !forms.IsInteractive() {
+		if !forms.ShouldUseInteractiveMode(nonInteractive) {
 			return fmt.Errorf("server name or ID required in non-interactive mode")
 		}
 
@@ -246,7 +246,7 @@ func runServerEdit(cmd *cobra.Command, args []string) error {
 	var result *forms.ServerFormResult
 
 	// If interactive and no flags provided, use the form
-	if forms.IsInteractive() && !hasFlags {
+	if forms.ShouldUseInteractiveMode(nonInteractive) && !hasFlags {
 		result, err = forms.ServerEditForm(ctx, db, existingServer)
 		if err != nil {
 			return fmt.Errorf("form cancelled or failed: %w", err)
@@ -320,7 +320,7 @@ func runServerRemove(cmd *cobra.Command, args []string) error {
 
 	// If no argument provided, show server selector in interactive mode
 	if len(args) == 0 {
-		if !forms.IsInteractive() {
+		if !forms.ShouldUseInteractiveMode(nonInteractive) {
 			return fmt.Errorf("server name or ID required in non-interactive mode")
 		}
 
@@ -377,7 +377,7 @@ func runServerRemove(cmd *cobra.Command, args []string) error {
 	force, _ := cmd.Flags().GetBool("force")
 	if !force {
 		// Use interactive confirmation if available
-		if forms.IsInteractive() {
+		if forms.ShouldUseInteractiveMode(nonInteractive) {
 			confirmed, err := forms.ConfirmDelete("Server", serverToRemove.Name)
 			if err != nil {
 				return fmt.Errorf("confirmation failed: %w", err)

@@ -122,7 +122,7 @@ func runConfigSet(cmd *cobra.Command, args []string) error {
 
 func runConfigInteractive(cmd *cobra.Command, args []string) error {
 	// If not interactive, show help and available subcommands
-	if !forms.IsInteractive() {
+	if !forms.ShouldUseInteractiveMode(nonInteractive) {
 		fmt.Println(info("Not in interactive mode. Use 'config show' or 'config set' subcommands."))
 		return cmd.Help()
 	}

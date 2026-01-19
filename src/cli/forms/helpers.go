@@ -15,6 +15,17 @@ func IsInteractive() bool {
 	return term.IsTerminal(int(os.Stdin.Fd()))
 }
 
+// ShouldUseInteractiveMode returns true if interactive forms should be used.
+// It returns false if:
+// - The --non-interactive flag is set, or
+// - stdin is not a TTY (e.g., piped input)
+func ShouldUseInteractiveMode(nonInteractiveFlag bool) bool {
+	if nonInteractiveFlag {
+		return false
+	}
+	return IsInteractive()
+}
+
 // ValidateServerName validates that a server name meets requirements:
 // - Required (non-empty)
 // - Alphanumeric with dashes and underscores
