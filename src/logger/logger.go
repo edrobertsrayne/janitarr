@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -109,6 +110,52 @@ func (l *Logger) LogSearches(serverName, serverType, category string, count int,
 		"category", category,
 		"count", count,
 		"manual", isManual)
+
+	return l.AddLog(entry)
+}
+
+// LogMovieSearch logs a movie search with detailed metadata.
+func (l *Logger) LogMovieSearch(serverName, serverType, title string, year int, qualityProfile, category string) *LogEntry {
+	entry := LogEntry{
+		Type:       LogTypeSearch,
+		ServerName: serverName,
+		ServerType: serverType,
+		Category:   category,
+		Message:    "Search triggered.",
+		Count:      1,
+	}
+
+	// Console log at info level with detailed metadata
+	l.console.Info("Search triggered",
+		"title", title,
+		"year", year,
+		"quality", qualityProfile,
+		"server", serverName,
+		"category", category)
+
+	return l.AddLog(entry)
+}
+
+// LogEpisodeSearch logs an episode search with detailed metadata.
+func (l *Logger) LogEpisodeSearch(serverName, serverType, seriesTitle, episodeTitle string, season, episode int, qualityProfile, category string) *LogEntry {
+	entry := LogEntry{
+		Type:       LogTypeSearch,
+		ServerName: serverName,
+		ServerType: serverType,
+		Category:   category,
+		Message:    "Search triggered.",
+		Count:      1,
+	}
+
+	// Console log at info level with detailed metadata
+	episodeStr := fmt.Sprintf("S%02dE%02d", season, episode)
+	l.console.Info("Search triggered",
+		"series", seriesTitle,
+		"episode", episodeStr,
+		"title", episodeTitle,
+		"quality", qualityProfile,
+		"server", serverName,
+		"category", category)
 
 	return l.AddLog(entry)
 }

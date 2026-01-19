@@ -117,11 +117,13 @@ func (d *Detector) DetectAll(ctx context.Context) (*DetectionResults, error) {
 // detectServer runs detection on a single server.
 func (d *Detector) detectServer(ctx context.Context, server *database.Server) DetectionResult {
 	result := DetectionResult{
-		ServerID:   server.ID,
-		ServerName: server.Name,
-		ServerType: string(server.Type),
-		Missing:    []int{},
-		Cutoff:     []int{},
+		ServerID:     server.ID,
+		ServerName:   server.Name,
+		ServerType:   string(server.Type),
+		Missing:      []int{},
+		Cutoff:       []int{},
+		MissingItems: make(map[int]api.MediaItem),
+		CutoffItems:  make(map[int]api.MediaItem),
 	}
 
 	client := d.apiFactory(server.URL, server.APIKey, string(server.Type))
@@ -135,6 +137,7 @@ func (d *Detector) detectServer(ctx context.Context, server *database.Server) De
 
 	for _, item := range missingItems {
 		result.Missing = append(result.Missing, item.ID)
+		result.MissingItems[item.ID] = item
 	}
 
 	// Get cutoff unmet items
@@ -146,6 +149,7 @@ func (d *Detector) detectServer(ctx context.Context, server *database.Server) De
 
 	for _, item := range cutoffItems {
 		result.Cutoff = append(result.Cutoff, item.ID)
+		result.CutoffItems[item.ID] = item
 	}
 
 	return result

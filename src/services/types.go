@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"time"
+
+	"github.com/user/janitarr/src/api"
 )
 
 // Error constants for server operations
@@ -43,12 +45,14 @@ type ConnectionResult struct {
 
 // DetectionResult represents detection results for a single server.
 type DetectionResult struct {
-	ServerID   string `json:"serverId"`
-	ServerName string `json:"serverName"`
-	ServerType string `json:"serverType"`
-	Missing    []int  `json:"missing"`
-	Cutoff     []int  `json:"cutoff"`
-	Error      string `json:"error,omitempty"`
+	ServerID     string                `json:"serverId"`
+	ServerName   string                `json:"serverName"`
+	ServerType   string                `json:"serverType"`
+	Missing      []int                 `json:"missing"`
+	Cutoff       []int                 `json:"cutoff"`
+	MissingItems map[int]api.MediaItem `json:"missingItems,omitempty"` // Item metadata indexed by ID
+	CutoffItems  map[int]api.MediaItem `json:"cutoffItems,omitempty"`  // Item metadata indexed by ID
+	Error        string                `json:"error,omitempty"`
 }
 
 // DetectionResults represents aggregated detection results.
@@ -62,13 +66,19 @@ type DetectionResults struct {
 
 // TriggerResult represents the result of triggering searches for one category on one server.
 type TriggerResult struct {
-	ServerID   string `json:"serverId"`
-	ServerName string `json:"serverName"`
-	ServerType string `json:"serverType"`
-	Category   string `json:"category"` // "missing" or "cutoff"
-	ItemIDs    []int  `json:"itemIDs"`
-	Success    bool   `json:"success"`
-	Error      string `json:"error,omitempty"`
+	ServerID       string `json:"serverId"`
+	ServerName     string `json:"serverName"`
+	ServerType     string `json:"serverType"`
+	Category       string `json:"category"` // "missing" or "cutoff"
+	ItemIDs        []int  `json:"itemIDs"`
+	Success        bool   `json:"success"`
+	Error          string `json:"error,omitempty"`
+	Title          string `json:"title,omitempty"`          // Movie title or episode title
+	Year           int    `json:"year,omitempty"`           // For movies
+	SeriesTitle    string `json:"seriesTitle,omitempty"`    // For episodes
+	SeasonNumber   int    `json:"seasonNumber,omitempty"`   // For episodes
+	EpisodeNumber  int    `json:"episodeNumber,omitempty"`  // For episodes
+	QualityProfile string `json:"qualityProfile,omitempty"` // Quality profile name
 }
 
 // TriggerResults represents aggregated trigger results.

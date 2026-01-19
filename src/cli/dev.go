@@ -77,7 +77,7 @@ func runDev(cmd *cobra.Command, args []string) error {
 
 	// Initialize services
 	detector := services.NewDetector(db)
-	searchTrigger := services.NewSearchTrigger(db)
+	searchTrigger := services.NewSearchTrigger(db, appLogger)
 	automation := services.NewAutomation(db, detector, searchTrigger, appLogger)
 
 	// Create scheduler with automation callback wrapper

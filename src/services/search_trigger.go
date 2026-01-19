@@ -6,6 +6,7 @@ import (
 
 	"github.com/user/janitarr/src/api"
 	"github.com/user/janitarr/src/database"
+	"github.com/user/janitarr/src/logger"
 )
 
 // SearchTriggerAPIClient is the interface for API clients used by the SearchTrigger.
@@ -27,38 +28,49 @@ func defaultSearchTriggerAPIClientFactory(url, apiKey, serverType string) Search
 	return api.NewRadarrClient(url, apiKey)
 }
 
+// SearchTriggerLogger is the interface for logging search operations.
+type SearchTriggerLogger interface {
+	LogMovieSearch(serverName, serverType, title string, year int, qualityProfile, category string) *logger.LogEntry
+	LogEpisodeSearch(serverName, serverType, seriesTitle, episodeTitle string, season, episode int, qualityProfile, category string) *logger.LogEntry
+}
+
 // SearchTrigger triggers searches for missing and cutoff content.
 type SearchTrigger struct {
 	db         *database.DB
 	apiFactory SearchTriggerAPIClientFactory
+	logger     SearchTriggerLogger
 }
 
 // NewSearchTrigger creates a new SearchTrigger with the given database.
-func NewSearchTrigger(db *database.DB) *SearchTrigger {
+func NewSearchTrigger(db *database.DB, logger SearchTriggerLogger) *SearchTrigger {
 	return &SearchTrigger{
 		db:         db,
 		apiFactory: defaultSearchTriggerAPIClientFactory,
+		logger:     logger,
 	}
 }
 
 // NewSearchTriggerWithFactory creates a new SearchTrigger with a custom API factory.
 // Useful for testing.
-func NewSearchTriggerWithFactory(db *database.DB, factory SearchTriggerAPIClientFactory) *SearchTrigger {
+func NewSearchTriggerWithFactory(db *database.DB, factory SearchTriggerAPIClientFactory, logger SearchTriggerLogger) *SearchTrigger {
 	return &SearchTrigger{
 		db:         db,
 		apiFactory: factory,
+		logger:     logger,
 	}
 }
 
 // serverItemAllocation tracks items to be triggered for a server.
 type serverItemAllocation struct {
-	serverID   string
-	serverName string
-	serverType string
-	serverURL  string
-	apiKey     string
-	missing    []int
-	cutoff     []int
+	serverID     string
+	serverName   string
+	serverType   string
+	serverURL    string
+	apiKey       string
+	missing      []int
+	cutoff       []int
+	missingItems map[int]api.MediaItem // Metadata for missing items
+	cutoffItems  map[int]api.MediaItem // Metadata for cutoff items
 }
 
 // TriggerSearches triggers searches based on detection results and limits.
@@ -100,13 +112,15 @@ func (s *SearchTrigger) allocateItems(detectionResults *DetectionResults, server
 		}
 
 		allocations[result.ServerID] = &serverItemAllocation{
-			serverID:   result.ServerID,
-			serverName: result.ServerName,
-			serverType: result.ServerType,
-			serverURL:  server.URL,
-			apiKey:     server.APIKey,
-			missing:    []int{},
-			cutoff:     []int{},
+			serverID:     result.ServerID,
+			serverName:   result.ServerName,
+			serverType:   result.ServerType,
+			serverURL:    server.URL,
+			apiKey:       server.APIKey,
+			missing:      []int{},
+			cutoff:       []int{},
+			missingItems: result.MissingItems,
+			cutoffItems:  result.CutoffItems,
 		}
 	}
 
@@ -266,6 +280,30 @@ func (s *SearchTrigger) triggerForServer(ctx context.Context, alloc serverItemAl
 		Category:   category,
 		ItemIDs:    itemIDs,
 		Success:    true,
+	}
+
+	// Get the item metadata map based on category
+	var itemMetadata map[int]api.MediaItem
+	if category == "missing" {
+		itemMetadata = alloc.missingItems
+	} else {
+		itemMetadata = alloc.cutoffItems
+	}
+
+	// Log each item individually before triggering the search
+	if s.logger != nil && !dryRun {
+		for _, itemID := range itemIDs {
+			item, ok := itemMetadata[itemID]
+			if !ok {
+				continue // Skip if metadata not available
+			}
+
+			if item.Type == "movie" {
+				s.logger.LogMovieSearch(alloc.serverName, alloc.serverType, item.Title, item.Year, item.QualityProfile, category)
+			} else if item.Type == "episode" {
+				s.logger.LogEpisodeSearch(alloc.serverName, alloc.serverType, item.SeriesTitle, item.EpisodeTitle, item.SeasonNumber, item.EpisodeNumber, item.QualityProfile, category)
+			}
+		}
 	}
 
 	// In dry-run mode, don't make actual API calls

@@ -8,17 +8,26 @@ type SystemStatus struct {
 	InstanceName string `json:"instanceName,omitempty"`
 }
 
+// QualityProfile represents a quality profile in Radarr/Sonarr.
+type QualityProfile struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
+
 // Movie represents a movie item from Radarr's wanted/missing or cutoff unmet endpoints.
 type Movie struct {
-	ID        int    `json:"id"`
-	Title     string `json:"title"`
-	HasFile   bool   `json:"hasFile"`
-	Monitored bool   `json:"monitored"`
+	ID             int            `json:"id"`
+	Title          string         `json:"title"`
+	Year           int            `json:"year"`
+	HasFile        bool           `json:"hasFile"`
+	Monitored      bool           `json:"monitored"`
+	QualityProfile QualityProfile `json:"qualityProfileId"`
 }
 
 // Series represents series info nested in Sonarr episode responses.
 type Series struct {
-	Title string `json:"title"`
+	Title          string         `json:"title"`
+	QualityProfile QualityProfile `json:"qualityProfileId"`
 }
 
 // Episode represents an episode item from Sonarr's wanted/missing or cutoff unmet endpoints.
@@ -50,7 +59,13 @@ type CommandResponse struct {
 
 // MediaItem is a simplified representation of a media item for search operations.
 type MediaItem struct {
-	ID    int    `json:"id"`
-	Title string `json:"title"`
-	Type  string `json:"type"` // "movie" or "episode"
+	ID             int    `json:"id"`
+	Title          string `json:"title"`                  // Formatted display title (for backwards compatibility)
+	EpisodeTitle   string `json:"episodeTitle,omitempty"` // Raw episode title (for logging)
+	Type           string `json:"type"`                   // "movie" or "episode"
+	Year           int    `json:"year,omitempty"`
+	SeriesTitle    string `json:"seriesTitle,omitempty"`
+	SeasonNumber   int    `json:"seasonNumber,omitempty"`
+	EpisodeNumber  int    `json:"episodeNumber,omitempty"`
+	QualityProfile string `json:"qualityProfile,omitempty"`
 }

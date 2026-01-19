@@ -36,8 +36,8 @@ func runAutomation(cmd *cobra.Command, args []string) error {
 
 	// Initialize services
 	detector := services.NewDetector(db)
-	trigger := services.NewSearchTrigger(db)
 	appLogger := logger.NewLogger(db, logger.LevelInfo, false)
+	trigger := services.NewSearchTrigger(db, appLogger)
 
 	automation := services.NewAutomation(db, detector, trigger, appLogger)
 

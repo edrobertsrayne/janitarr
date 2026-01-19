@@ -84,9 +84,11 @@ func (c *RadarrClient) getAllItems(ctx context.Context, fetcher func(context.Con
 
 		for _, movie := range result.Records {
 			items = append(items, MediaItem{
-				ID:    movie.ID,
-				Title: movie.Title,
-				Type:  "movie",
+				ID:             movie.ID,
+				Title:          movie.Title,
+				Type:           "movie",
+				Year:           movie.Year,
+				QualityProfile: movie.QualityProfile.Name,
 			})
 		}
 

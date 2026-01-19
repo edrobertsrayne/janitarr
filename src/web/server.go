@@ -103,7 +103,7 @@ func (s *Server) setupRoutes() {
 	logHandlers := api.NewLogHandlers(s.config.DB)
 	healthHandlers := api.NewHealthHandlers(s.config.DB, s.config.Scheduler)
 
-	automationService := services.NewAutomation(s.config.DB, services.NewDetector(s.config.DB), services.NewSearchTrigger(s.config.DB), s.config.Logger)
+	automationService := services.NewAutomation(s.config.DB, services.NewDetector(s.config.DB), services.NewSearchTrigger(s.config.DB, s.config.Logger), s.config.Logger)
 	automationHandlers := api.NewAutomationHandlers(s.config.DB, automationService, s.config.Scheduler, s.config.Logger)
 	statsHandlers := api.NewStatsHandlers(s.config.DB)             // Instantiate StatsHandlers
 	metricsHandlers := api.NewMetricsHandlers(s.prometheusMetrics) // Instantiate MetricsHandlers

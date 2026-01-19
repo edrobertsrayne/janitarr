@@ -7,7 +7,19 @@ import (
 
 	"github.com/user/janitarr/src/api"
 	"github.com/user/janitarr/src/database"
+	"github.com/user/janitarr/src/logger"
 )
+
+// mockSearchTriggerLogger is a mock implementation of SearchTriggerLogger for testing.
+type mockSearchTriggerLogger struct{}
+
+func (m *mockSearchTriggerLogger) LogMovieSearch(serverName, serverType, title string, year int, qualityProfile, category string) *logger.LogEntry {
+	return nil
+}
+
+func (m *mockSearchTriggerLogger) LogEpisodeSearch(serverName, serverType, seriesTitle, episodeTitle string, season, episode int, qualityProfile, category string) *logger.LogEntry {
+	return nil
+}
 
 // mockTriggerAPIClient is a mock implementation of SearchTriggerAPIClient for testing.
 type mockTriggerAPIClient struct {
@@ -63,7 +75,7 @@ func TestTriggerSearches_RespectsLimits(t *testing.T) {
 	// Create SearchTrigger with mock factory
 	trigger := NewSearchTriggerWithFactory(db, func(url, apiKey, serverType string) SearchTriggerAPIClient {
 		return mockClient
-	})
+	}, &mockSearchTriggerLogger{})
 
 	// Create detection results with more items than the limit
 	// We need 15 missing items, but the default limit is 10
@@ -130,7 +142,7 @@ func TestTriggerSearches_RoundRobin(t *testing.T) {
 	// Create SearchTrigger with mock factory
 	trigger := NewSearchTriggerWithFactory(db, func(url, apiKey, serverType string) SearchTriggerAPIClient {
 		return mockClients[url]
-	})
+	}, &mockSearchTriggerLogger{})
 
 	// Create detection results with items from both servers
 	detectionResults := &DetectionResults{
@@ -210,7 +222,7 @@ func TestTriggerSearches_DryRun(t *testing.T) {
 	// Create SearchTrigger with mock factory
 	trigger := NewSearchTriggerWithFactory(db, func(url, apiKey, serverType string) SearchTriggerAPIClient {
 		return mockClient
-	})
+	}, &mockSearchTriggerLogger{})
 
 	// Create detection results
 	detectionResults := &DetectionResults{
@@ -279,7 +291,7 @@ func TestTriggerSearches_PartialFailure(t *testing.T) {
 	// Create SearchTrigger with mock factory
 	trigger := NewSearchTriggerWithFactory(db, func(url, apiKey, serverType string) SearchTriggerAPIClient {
 		return mockClients[url]
-	})
+	}, &mockSearchTriggerLogger{})
 
 	// Create detection results with items from both servers
 	detectionResults := &DetectionResults{
@@ -345,7 +357,7 @@ func TestTriggerSearches_NoResults(t *testing.T) {
 	// Create SearchTrigger with mock factory
 	trigger := NewSearchTriggerWithFactory(db, func(url, apiKey, serverType string) SearchTriggerAPIClient {
 		return mockClient
-	})
+	}, &mockSearchTriggerLogger{})
 
 	// Create empty detection results
 	detectionResults := &DetectionResults{
@@ -396,7 +408,7 @@ func TestTriggerSearches_ZeroLimit(t *testing.T) {
 	// Create SearchTrigger with mock factory
 	trigger := NewSearchTriggerWithFactory(db, func(url, apiKey, serverType string) SearchTriggerAPIClient {
 		return mockClient
-	})
+	}, &mockSearchTriggerLogger{})
 
 	// Create detection results
 	detectionResults := &DetectionResults{
@@ -465,7 +477,7 @@ func TestTriggerSearches_MixedServerTypes(t *testing.T) {
 	// Create SearchTrigger with mock factory
 	trigger := NewSearchTriggerWithFactory(db, func(url, apiKey, serverType string) SearchTriggerAPIClient {
 		return mockClients[url]
-	})
+	}, &mockSearchTriggerLogger{})
 
 	// Create detection results with items from both servers
 	detectionResults := &DetectionResults{
@@ -536,7 +548,7 @@ func TestTriggerSearches_SkipsFailedDetectionServers(t *testing.T) {
 	// Create SearchTrigger with mock factory
 	trigger := NewSearchTriggerWithFactory(db, func(url, apiKey, serverType string) SearchTriggerAPIClient {
 		return mockClient
-	})
+	}, &mockSearchTriggerLogger{})
 
 	// Create detection results with a failed server (has Error)
 	detectionResults := &DetectionResults{

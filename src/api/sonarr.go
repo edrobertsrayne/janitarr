@@ -83,10 +83,24 @@ func (c *SonarrClient) getAllItems(ctx context.Context, fetcher func(context.Con
 		}
 
 		for _, episode := range result.Records {
+			seriesTitle := episode.SeriesTitle
+			if episode.Series != nil && episode.Series.Title != "" {
+				seriesTitle = episode.Series.Title
+			}
+			qualityProfile := ""
+			if episode.Series != nil {
+				qualityProfile = episode.Series.QualityProfile.Name
+			}
+
 			items = append(items, MediaItem{
-				ID:    episode.ID,
-				Title: formatEpisodeTitle(episode),
-				Type:  "episode",
+				ID:             episode.ID,
+				Title:          formatEpisodeTitle(episode),
+				EpisodeTitle:   episode.Title, // Raw episode title for logging
+				Type:           "episode",
+				SeriesTitle:    seriesTitle,
+				SeasonNumber:   episode.SeasonNumber,
+				EpisodeNumber:  episode.EpisodeNumber,
+				QualityProfile: qualityProfile,
 			})
 		}
 
