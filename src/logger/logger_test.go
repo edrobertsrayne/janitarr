@@ -27,7 +27,7 @@ func (m *mockDB) ClearLogs() error {
 
 func TestLogCycleStart_Persists(t *testing.T) {
 	db := &mockDB{}
-	logger := NewLogger(db)
+	logger := NewLogger(db, LevelInfo, false)
 
 	logger.LogCycleStart(true)
 
@@ -41,7 +41,7 @@ func TestLogCycleStart_Persists(t *testing.T) {
 
 func TestLogCycleEnd_Persists(t *testing.T) {
 	db := &mockDB{}
-	logger := NewLogger(db)
+	logger := NewLogger(db, LevelInfo, false)
 
 	logger.LogCycleEnd(10, 2, false)
 
@@ -55,7 +55,7 @@ func TestLogCycleEnd_Persists(t *testing.T) {
 
 func TestLogSearches_Persists(t *testing.T) {
 	db := &mockDB{}
-	logger := NewLogger(db)
+	logger := NewLogger(db, LevelInfo, false)
 
 	logger.LogSearches("radarr", "radarr", "missing", 5, true)
 
@@ -69,7 +69,7 @@ func TestLogSearches_Persists(t *testing.T) {
 
 func TestLogError_Persists(t *testing.T) {
 	db := &mockDB{}
-	logger := NewLogger(db)
+	logger := NewLogger(db, LevelInfo, false)
 
 	logger.LogServerError("radarr", "radarr", "connection failed")
 
@@ -83,7 +83,7 @@ func TestLogError_Persists(t *testing.T) {
 
 func TestBroadcast_SendsToSubscribers(t *testing.T) {
 	db := &mockDB{}
-	logger := NewLogger(db)
+	logger := NewLogger(db, LevelInfo, false)
 
 	sub := logger.Subscribe()
 
@@ -101,7 +101,7 @@ func TestBroadcast_SendsToSubscribers(t *testing.T) {
 
 func TestUnsubscribe_StopsReceiving(t *testing.T) {
 	db := &mockDB{}
-	logger := NewLogger(db)
+	logger := NewLogger(db, LevelInfo, false)
 
 	sub := make(chan LogEntry, 1)
 	logger.subscribers[sub] = true

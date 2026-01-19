@@ -54,8 +54,8 @@ func runStart(cmd *cobra.Command, args []string) error {
 	// Get configuration
 	config := db.GetAppConfig()
 
-	// Initialize logger
-	appLogger := logger.NewLogger(db)
+	// Initialize logger with info level in production mode
+	appLogger := logger.NewLogger(db, logger.LevelInfo, false)
 
 	// Initialize services
 	detector := services.NewDetector(db)

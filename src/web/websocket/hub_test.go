@@ -21,7 +21,7 @@ func TestHub_ClientConnect(t *testing.T) {
 	}
 	defer db.Close()
 
-	log := logger.NewLogger(db)
+	log := logger.NewLogger(db, logger.LevelInfo, false)
 	hub := NewLogHub(log)
 	go hub.Run()
 
@@ -58,7 +58,7 @@ func TestHub_ClientDisconnect(t *testing.T) {
 	}
 	defer db.Close()
 
-	log := logger.NewLogger(db)
+	log := logger.NewLogger(db, logger.LevelInfo, false)
 	hub := NewLogHub(log)
 	go hub.Run()
 
@@ -100,7 +100,7 @@ func TestHub_Broadcast(t *testing.T) {
 	}
 	defer db.Close()
 
-	log := logger.NewLogger(db)
+	log := logger.NewLogger(db, logger.LevelInfo, false)
 	hub := NewLogHub(log)
 	go hub.Run()
 
@@ -169,7 +169,7 @@ func TestHub_FilteredBroadcast(t *testing.T) {
 	}
 	defer db.Close()
 
-	log := logger.NewLogger(db)
+	log := logger.NewLogger(db, logger.LevelInfo, false)
 	hub := NewLogHub(log)
 	go hub.Run()
 

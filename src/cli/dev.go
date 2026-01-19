@@ -62,8 +62,8 @@ func runDev(cmd *cobra.Command, args []string) error {
 	// Get configuration
 	config := db.GetAppConfig()
 
-	// Initialize logger
-	appLogger := logger.NewLogger(db)
+	// Initialize logger with debug level in development mode
+	appLogger := logger.NewLogger(db, logger.LevelDebug, true)
 
 	// Initialize services
 	detector := services.NewDetector(db)

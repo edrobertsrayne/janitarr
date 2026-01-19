@@ -10,14 +10,18 @@ import (
 // Logger handles application logging to the database and broadcasting to subscribers.
 type Logger struct {
 	storer      LogStorer // Use the interface here
+	console     *ConsoleLogger
+	level       Level
 	mu          sync.RWMutex
 	subscribers map[chan LogEntry]bool
 }
 
 // NewLogger creates a new Logger.
-func NewLogger(storer LogStorer) *Logger { // Accept LogStorer interface
+func NewLogger(storer LogStorer, level Level, isDev bool) *Logger { // Accept LogStorer interface
 	return &Logger{
 		storer:      storer,
+		console:     NewConsoleLogger(level, isDev),
+		level:       level,
 		subscribers: make(map[chan LogEntry]bool),
 	}
 }
@@ -42,6 +46,10 @@ func (l *Logger) LogCycleStart(isManual bool) *LogEntry {
 		Message:  "Automation cycle started.",
 		IsManual: isManual,
 	}
+
+	// Console log at info level
+	l.console.Info("Automation cycle started", "manual", isManual)
+
 	return l.AddLog(entry)
 }
 
@@ -53,7 +61,13 @@ func (l *Logger) LogCycleEnd(totalSearches, failures int, isManual bool) *LogEnt
 		IsManual: isManual,
 		Count:    totalSearches, // Store total searches in count
 	}
-	// Optionally add failures count to message or another field if available
+
+	// Console log at info level
+	l.console.Info("Automation cycle finished",
+		"searches", totalSearches,
+		"failures", failures,
+		"manual", isManual)
+
 	return l.AddLog(entry)
 }
 
@@ -68,6 +82,15 @@ func (l *Logger) LogSearches(serverName, serverType, category string, count int,
 		Message:    "Triggered searches.",
 		IsManual:   isManual,
 	}
+
+	// Console log at info level
+	l.console.Info("Triggered searches",
+		"server", serverName,
+		"type", serverType,
+		"category", category,
+		"count", count,
+		"manual", isManual)
+
 	return l.AddLog(entry)
 }
 
@@ -79,6 +102,13 @@ func (l *Logger) LogServerError(serverName, serverType, reason string) *LogEntry
 		ServerType: serverType,
 		Message:    reason,
 	}
+
+	// Console log at error level
+	l.console.Error("Server error",
+		"server", serverName,
+		"type", serverType,
+		"reason", reason)
+
 	return l.AddLog(entry)
 }
 
@@ -91,6 +121,14 @@ func (l *Logger) LogSearchError(serverName, serverType, category, reason string)
 		Category:   category,
 		Message:    reason,
 	}
+
+	// Console log at error level
+	l.console.Error("Search error",
+		"server", serverName,
+		"type", serverType,
+		"category", category,
+		"reason", reason)
+
 	return l.AddLog(entry)
 }
 

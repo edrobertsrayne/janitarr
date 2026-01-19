@@ -108,20 +108,20 @@ The following core functionality is complete:
 
 Current state: Logger at `src/logger/logger.go:11-15` only has `storer`, `mu`, `subscribers`.
 
-- [ ] Update `src/logger/logger.go`:
-  - [ ] Add `console *ConsoleLogger` field to Logger struct
-  - [ ] Add `level Level` field to Logger struct
-  - [ ] Update constructor: `NewLogger(storer LogStorer, level Level, isDev bool) *Logger`
-  - [ ] Update all log methods to:
-    1. Check level before logging
+- [x] Update `src/logger/logger.go`:
+  - [x] Add `console *ConsoleLogger` field to Logger struct
+  - [x] Add `level Level` field to Logger struct
+  - [x] Update constructor: `NewLogger(storer LogStorer, level Level, isDev bool) *Logger`
+  - [x] Update all log methods to:
+    1. Check level before logging (delegated to console logger)
     2. Write to console via charmbracelet/log
     3. Write to database (existing behavior)
     4. Broadcast to WebSocket subscribers (existing behavior)
 
-- [ ] Update all call sites of `NewLogger()`:
-  - [ ] `src/cli/start.go:58` - pass level and isDev
-  - [ ] `src/cli/dev.go` - pass debug level
-  - [ ] Test files using mock logger
+- [x] Update all call sites of `NewLogger()`:
+  - [x] `src/cli/start.go:58` - pass level and isDev
+  - [x] `src/cli/dev.go` - pass debug level
+  - [x] Test files using mock logger
 
 ### 10.5 Add Log Level CLI Flags
 
