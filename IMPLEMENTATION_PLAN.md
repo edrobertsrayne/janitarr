@@ -465,16 +465,27 @@ Current state: `src/cli/server.go:151-227` uses basic prompts.
 
 **Reference:** `specs/cli-interface.md` (Server List with Interactive Selection section)
 
-- [ ] Add to `src/cli/forms/server.go`:
-  - [ ] `ServerSelector(servers []ServerInfo) (*ServerInfo, error)`:
-    - [ ] Use `huh.NewSelect()` with server list
-    - [ ] Display: name, type, enabled status
-    - [ ] Return selected server or nil on cancel
+- [x] Add to `src/cli/forms/server.go`:
+  - [x] `ServerSelector(servers []ServerInfo) (*ServerInfo, error)`:
+    - [x] Use `huh.NewSelect()` with server list
+    - [x] Display: name, type, enabled status
+    - [x] Return selected server or nil on cancel
 
-- [ ] Update `src/cli/server.go`:
-  - [ ] `server edit` (no name arg): show selector, then edit form
-  - [ ] `server remove` (no name arg): show selector, then confirmation
-  - [ ] `server test` (no name arg): show selector, then test
+- [x] Update `src/cli/server.go`:
+  - [x] `server edit` (no name arg): show selector, then edit form
+  - [x] `server remove` (no name arg): show selector, then confirmation
+  - [x] `server test` command does not exist (skipped)
+
+**Implementation Notes:**
+
+- `ServerSelector` already existed in `src/cli/forms/server.go` (lines 192-239)
+- Updated `serverEditCmd` to use `cobra.MaximumNArgs(1)` instead of `cobra.ExactArgs(1)`
+- Updated `runServerEdit` to detect when no argument is provided and show selector in interactive mode
+- Updated `serverRemoveCmd` to use `cobra.MaximumNArgs(1)` instead of `cobra.ExactArgs(1)`
+- Updated `runServerRemove` to detect when no argument is provided and show selector in interactive mode
+- When no argument provided in non-interactive mode, commands error appropriately
+- Used `db.GetServer()` and `db.GetServerByName()` to retrieve full server objects with API keys
+- All tests pass, build successful
 
 ### 11.6 Configuration Form
 

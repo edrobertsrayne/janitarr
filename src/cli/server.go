@@ -32,16 +32,16 @@ var serverListCmd = &cobra.Command{
 }
 
 var serverEditCmd = &cobra.Command{
-	Use:   "edit <id-or-name>",
+	Use:   "edit [id-or-name]",
 	Short: "Edit an existing media server",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.MaximumNArgs(1),
 	RunE:  runServerEdit,
 }
 
 var serverRemoveCmd = &cobra.Command{
-	Use:   "remove <id-or-name>",
+	Use:   "remove [id-or-name]",
 	Short: "Remove a media server",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.MaximumNArgs(1),
 	RunE:  runServerRemove,
 }
 
@@ -169,7 +169,6 @@ func runServerList(cmd *cobra.Command, args []string) error {
 
 func runServerEdit(cmd *cobra.Command, args []string) error {
 	ctx := context.Background()
-	idOrName := args[0]
 
 	db, err := database.New(dbPath, "./data/.janitarr.key")
 	if err != nil {
@@ -177,15 +176,61 @@ func runServerEdit(cmd *cobra.Command, args []string) error {
 	}
 	defer db.Close()
 
-	// First try by ID, then by name to get full Server object (includes APIKey)
-	existingServer, err := db.GetServer(idOrName)
-	if err != nil || existingServer == nil {
-		existingServer, err = db.GetServerByName(idOrName)
-		if err != nil {
-			return fmt.Errorf("failed to find server '%s': %w", idOrName, err)
+	var existingServer *database.Server
+
+	// If no argument provided, show server selector in interactive mode
+	if len(args) == 0 {
+		if !forms.IsInteractive() {
+			return fmt.Errorf("server name or ID required in non-interactive mode")
 		}
-		if existingServer == nil {
-			return fmt.Errorf("server '%s' not found", idOrName)
+
+		// Get all servers for selector
+		serverManager := services.NewServerManagerFunc(db)
+		servers, err := serverManager.ListServers()
+		if err != nil {
+			return fmt.Errorf("failed to list servers: %w", err)
+		}
+
+		if len(servers) == 0 {
+			return fmt.Errorf("no servers configured")
+		}
+
+		// Convert to ServerInfo format
+		serverInfos := make([]forms.ServerInfo, len(servers))
+		for i, srv := range servers {
+			serverInfos[i] = forms.ServerInfo{
+				ID:      srv.ID,
+				Name:    srv.Name,
+				Type:    string(srv.Type),
+				Enabled: srv.Enabled,
+			}
+		}
+
+		// Show selector
+		selected, err := forms.ServerSelector(serverInfos)
+		if err != nil {
+			return fmt.Errorf("server selection cancelled or failed: %w", err)
+		}
+
+		// Get full server object with API key
+		existingServer, err = db.GetServer(selected.ID)
+		if err != nil || existingServer == nil {
+			return fmt.Errorf("failed to load server: %w", err)
+		}
+	} else {
+		// Argument provided - look up server
+		idOrName := args[0]
+
+		// First try by ID, then by name to get full Server object (includes APIKey)
+		existingServer, err = db.GetServer(idOrName)
+		if err != nil || existingServer == nil {
+			existingServer, err = db.GetServerByName(idOrName)
+			if err != nil {
+				return fmt.Errorf("failed to find server '%s': %w", idOrName, err)
+			}
+			if existingServer == nil {
+				return fmt.Errorf("server '%s' not found", idOrName)
+			}
 		}
 	}
 
@@ -263,9 +308,6 @@ func runServerEdit(cmd *cobra.Command, args []string) error {
 }
 
 func runServerRemove(cmd *cobra.Command, args []string) error {
-	ctx := context.Background()
-	idOrName := args[0]
-
 	db, err := database.New(dbPath, "./data/.janitarr.key")
 	if err != nil {
 		return fmt.Errorf("failed to open database: %w", err)
@@ -274,12 +316,62 @@ func runServerRemove(cmd *cobra.Command, args []string) error {
 
 	serverManager := services.NewServerManagerFunc(db)
 
-	serverToRemove, err := serverManager.GetServer(ctx, idOrName)
-	if err != nil {
-		return fmt.Errorf("failed to find server '%s': %w", idOrName, err)
-	}
-	if serverToRemove == nil {
-		return fmt.Errorf("server '%s' not found", idOrName)
+	var serverToRemove *database.Server
+
+	// If no argument provided, show server selector in interactive mode
+	if len(args) == 0 {
+		if !forms.IsInteractive() {
+			return fmt.Errorf("server name or ID required in non-interactive mode")
+		}
+
+		// Get all servers for selector
+		servers, err := serverManager.ListServers()
+		if err != nil {
+			return fmt.Errorf("failed to list servers: %w", err)
+		}
+
+		if len(servers) == 0 {
+			return fmt.Errorf("no servers configured")
+		}
+
+		// Convert to ServerInfo format
+		serverInfos := make([]forms.ServerInfo, len(servers))
+		for i, srv := range servers {
+			serverInfos[i] = forms.ServerInfo{
+				ID:      srv.ID,
+				Name:    srv.Name,
+				Type:    string(srv.Type),
+				Enabled: srv.Enabled,
+			}
+		}
+
+		// Show selector
+		selected, err := forms.ServerSelector(serverInfos)
+		if err != nil {
+			return fmt.Errorf("server selection cancelled or failed: %w", err)
+		}
+
+		// Get full server object from database
+		serverToRemove, err = db.GetServer(selected.ID)
+		if err != nil || serverToRemove == nil {
+			return fmt.Errorf("failed to load server: %w", err)
+		}
+	} else {
+		// Argument provided - look up server
+		idOrName := args[0]
+
+		// Try by ID first
+		serverToRemove, err = db.GetServer(idOrName)
+		if err != nil || serverToRemove == nil {
+			// Try by name
+			serverToRemove, err = db.GetServerByName(idOrName)
+			if err != nil {
+				return fmt.Errorf("failed to find server '%s': %w", idOrName, err)
+			}
+			if serverToRemove == nil {
+				return fmt.Errorf("server '%s' not found", idOrName)
+			}
+		}
 	}
 
 	force, _ := cmd.Flags().GetBool("force")
