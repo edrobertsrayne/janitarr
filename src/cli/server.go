@@ -169,7 +169,6 @@ func runServerList(cmd *cobra.Command, args []string) error {
 
 func runServerEdit(cmd *cobra.Command, args []string) error {
 	ctx := context.Background()
-	reader := bufio.NewReader(os.Stdin)
 	idOrName := args[0]
 
 	db, err := database.New(dbPath, "./data/.janitarr.key")
@@ -178,50 +177,63 @@ func runServerEdit(cmd *cobra.Command, args []string) error {
 	}
 	defer db.Close()
 
+	// First try by ID, then by name to get full Server object (includes APIKey)
+	existingServer, err := db.GetServer(idOrName)
+	if err != nil || existingServer == nil {
+		existingServer, err = db.GetServerByName(idOrName)
+		if err != nil {
+			return fmt.Errorf("failed to find server '%s': %w", idOrName, err)
+		}
+		if existingServer == nil {
+			return fmt.Errorf("server '%s' not found", idOrName)
+		}
+	}
+
 	serverManager := services.NewServerManagerFunc(db)
 
-	existingServer, err := serverManager.GetServer(ctx, idOrName)
-	if err != nil {
-		return fmt.Errorf("failed to find server '%s': %w", idOrName, err)
+	// Check if flags are provided
+	flagName, _ := cmd.Flags().GetString("name")
+	flagURL, _ := cmd.Flags().GetString("url")
+	flagAPIKey, _ := cmd.Flags().GetString("api-key")
+
+	hasFlags := flagName != "" || flagURL != "" || flagAPIKey != ""
+
+	var result *forms.ServerFormResult
+
+	// If interactive and no flags provided, use the form
+	if forms.IsInteractive() && !hasFlags {
+		result, err = forms.ServerEditForm(ctx, db, existingServer)
+		if err != nil {
+			return fmt.Errorf("form cancelled or failed: %w", err)
+		}
+	} else {
+		// Use flags or fall back to old behavior
+		result = &forms.ServerFormResult{
+			Name:       flagName,
+			URL:        flagURL,
+			APIKey:     flagAPIKey,
+			KeepAPIKey: flagAPIKey == "",
+		}
+
+		// If no flags provided and not interactive, error
+		if !hasFlags {
+			return fmt.Errorf("no flags provided and not in interactive mode")
+		}
 	}
-	if existingServer == nil {
-		return fmt.Errorf("server '%s' not found", idOrName)
-	}
 
-	fmt.Println(header(fmt.Sprintf("Edit Server: %s", existingServer.Name)))
-	fmt.Println("--------------------")
-	fmt.Println(info("Leave blank to keep current value."))
-
-	// Name
-	fmt.Printf(info("Enter new name (current: %s): "), existingServer.Name)
-	newNameInput, _ := reader.ReadString('\n')
-	newName := strings.TrimSpace(newNameInput)
-	if newName == "" {
-		newName = existingServer.Name
-	}
-
-	// URL
-	fmt.Printf(info("Enter new URL (current: %s): "), existingServer.URL)
-	newURLInput, _ := reader.ReadString('\n')
-	newURL := strings.TrimSpace(newURLInput)
-	if newURL == "" {
-		newURL = existingServer.URL
-	}
-
-	// API Key (prompt for new one, leave unchanged if blank)
-	fmt.Print(info("Enter new API Key (leave blank to keep current): "))
-	newAPIKeyInput, _ := reader.ReadString('\n')
-	newAPIKey := strings.TrimSpace(newAPIKeyInput)
-
+	// Build updates from result
 	updates := services.ServerUpdate{}
-	if newName != existingServer.Name {
-		updates.Name = &newName
+
+	if result.Name != "" && result.Name != existingServer.Name {
+		updates.Name = &result.Name
 	}
-	if newURL != existingServer.URL {
-		updates.URL = &newURL
+
+	if result.URL != "" && result.URL != existingServer.URL {
+		updates.URL = &result.URL
 	}
-	if newAPIKey != "" {
-		updates.APIKey = &newAPIKey
+
+	if !result.KeepAPIKey && result.APIKey != "" {
+		updates.APIKey = &result.APIKey
 	}
 
 	if updates.Name == nil && updates.URL == nil && updates.APIKey == nil {
@@ -241,7 +253,12 @@ func runServerEdit(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to update server: %w", err)
 	}
 
-	fmt.Println(success(fmt.Sprintf("Server '%s' updated successfully!", newName)))
+	finalName := existingServer.Name
+	if updates.Name != nil {
+		finalName = *updates.Name
+	}
+
+	fmt.Println(success(fmt.Sprintf("Server '%s' updated successfully!", finalName)))
 	return nil
 }
 

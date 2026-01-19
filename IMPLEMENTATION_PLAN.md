@@ -441,16 +441,25 @@ Current state: `src/cli/server.go:57-124` uses `bufio.NewReader` with manual pro
 
 Current state: `src/cli/server.go:151-227` uses basic prompts.
 
-- [ ] Add to `src/cli/forms/server.go`:
-  - [ ] `ServerEditForm(current *ServerFormResult) (*ServerFormResult, error)`:
-    - [ ] Pre-populate fields with current values
-    - [ ] Server type displayed but disabled
-    - [ ] "Keep existing API key" option
-    - [ ] Return only changed fields
+- [x] Add to `src/cli/forms/server.go`:
+  - [x] `ServerEditForm(current *ServerFormResult) (*ServerFormResult, error)`:
+    - [x] Pre-populate fields with current values
+    - [x] Server type displayed but disabled
+    - [x] "Keep existing API key" option
+    - [x] Return only changed fields
 
-- [ ] Update `src/cli/server.go` (`runServerEdit`):
-  - [ ] If interactive and only server name provided, show edit form
-  - [ ] Pre-populate form with existing server values
+- [x] Update `src/cli/server.go` (`runServerEdit`):
+  - [x] If interactive and only server name provided, show edit form
+  - [x] Pre-populate form with existing server values
+
+**Implementation Notes:**
+
+- `ServerEditForm` already existed in `src/cli/forms/server.go` (lines 94-182)
+- Updated `runServerEdit` to detect interactive mode and use the form when no flags are provided
+- Added fallback to flag-based editing when `--name`, `--url`, or `--api-key` flags are used
+- Form provides "Keep existing key" / "Enter new key" option for API key updates
+- Uses `db.GetServer()` / `db.GetServerByName()` to get full Server object with APIKey
+- All tests pass, build successful
 
 ### 11.5 Server Selector
 
