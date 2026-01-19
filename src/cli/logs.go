@@ -9,11 +9,12 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/user/janitarr/src/cli/forms"
 	"github.com/user/janitarr/src/database"
 	"github.com/user/janitarr/src/logger"
 )
 
-// confirmAction prompts the user for y/N confirmation
+// confirmAction prompts the user for y/N confirmation (non-interactive fallback)
 var confirmAction = func(prompt string) bool {
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Print(warning(prompt + " (y/N): "))
@@ -47,10 +48,30 @@ func runLogs(cmd *cobra.Command, args []string) error {
 	limit, _ := cmd.Flags().GetInt("limit")
 
 	if clearLogs {
-		if !confirmAction("Are you sure you want to clear all logs? This action cannot be undone.") {
+		// Get log count for confirmation message
+		logCount, err := db.GetLogCount(context.Background())
+		if err != nil {
+			return fmt.Errorf("failed to get log count: %w", err)
+		}
+
+		// Use interactive confirmation if in TTY and not forced non-interactive
+		var confirmed bool
+		if forms.ShouldUseInteractiveMode(nonInteractive) {
+			details := fmt.Sprintf("This will permanently delete %d log entries.\nThis action cannot be undone.", logCount)
+			confirmed, err = forms.ConfirmActionWithDetails("Clear All Logs", details)
+			if err != nil {
+				return fmt.Errorf("confirmation failed: %w", err)
+			}
+		} else {
+			// Fall back to basic Y/N prompt for non-interactive mode
+			confirmed = confirmAction(fmt.Sprintf("Are you sure you want to clear all %d logs? This action cannot be undone.", logCount))
+		}
+
+		if !confirmed {
 			fmt.Println(info("Log clearing cancelled."))
 			return nil
 		}
+
 		if err := db.ClearLogs(); err != nil {
 			return fmt.Errorf("failed to clear logs: %w", err)
 		}

@@ -537,8 +537,9 @@ Current state: `src/cli/server.go:252-257` uses basic Y/N prompt.
   - [x] If interactive and no `--force`, show `ConfirmDelete`
   - [x] Fallback to basic Y/N prompt if not interactive
 
-- [ ] Update `src/cli/logs.go`:
-  - [ ] If interactive and clearing logs, show `ConfirmAction` with log count
+- [x] Update `src/cli/logs.go`:
+  - [x] If interactive and clearing logs, show `ConfirmActionWithDetails` with log count
+  - [x] Fallback to basic Y/N prompt for non-interactive mode
 
 ### 11.8 Non-Interactive Mode Flag
 
@@ -566,11 +567,14 @@ Current state: `src/cli/server.go:252-257` uses basic Y/N prompt.
 
 ### 11.9 Write Tests
 
-- [ ] Create `src/cli/forms/helpers_test.go`:
-  - [ ] Test validation functions
+- [x] Create `src/cli/forms/helpers_test.go`:
+  - [x] Test validation functions (ValidateServerName, ValidateURL, ValidateAPIKey, ValidateServerType)
 
-- [ ] Create `src/cli/forms/server_test.go`:
-  - [ ] Test form field configurations (mock form execution)
+- [x] Create `src/cli/forms/server_test.go`:
+  - [x] Test form field configurations (ServerFormResult, ServerInfo structs)
+  - [x] Test ServerSelector with empty and valid lists
+  - [x] Test form validation integration
+  - [x] Test database.Server compatibility
 
 ### 11.10 Verification
 
