@@ -7,12 +7,15 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/user/janitarr/src/cli/forms"
 	"github.com/user/janitarr/src/database"
 )
 
 var configCmd = &cobra.Command{
 	Use:   "config",
 	Short: "View and modify configuration",
+	Long:  "View and modify configuration. Run without subcommands to launch interactive form.",
+	RunE:  runConfigInteractive,
 }
 
 var configShowCmd = &cobra.Command{
@@ -114,5 +117,46 @@ func runConfigSet(cmd *cobra.Command, args []string) error {
 
 	fmt.Println(success(fmt.Sprintf("Configuration key '%s' updated to '%s'.", key, value)))
 	fmt.Println(formatConfigTable(&appConfig))
+	return nil
+}
+
+func runConfigInteractive(cmd *cobra.Command, args []string) error {
+	// If not interactive, show help and available subcommands
+	if !forms.IsInteractive() {
+		fmt.Println(info("Not in interactive mode. Use 'config show' or 'config set' subcommands."))
+		return cmd.Help()
+	}
+
+	// Open database
+	db, err := database.New(dbPath, "./data/.janitarr.key")
+	if err != nil {
+		return fmt.Errorf("failed to open database: %w", err)
+	}
+	defer db.Close()
+
+	// Get current configuration
+	currentConfig := db.GetAppConfig()
+
+	// Show interactive form
+	fmt.Println(header("Interactive Configuration"))
+	fmt.Println()
+
+	updatedConfig, err := forms.ConfigForm(currentConfig)
+	if err != nil {
+		// User cancelled or error occurred
+		return nil
+	}
+
+	// Save updated configuration
+	if err := db.SetAppConfig(*updatedConfig); err != nil {
+		return fmt.Errorf("failed to save configuration: %w", err)
+	}
+
+	// Show success message and updated configuration
+	fmt.Println()
+	fmt.Println(success("Configuration saved successfully!"))
+	fmt.Println()
+	fmt.Println(formatConfigTable(updatedConfig))
+
 	return nil
 }

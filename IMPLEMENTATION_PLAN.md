@@ -493,15 +493,30 @@ Current state: `src/cli/server.go:151-227` uses basic prompts.
 
 Current state: `src/cli/config.go` only has flag-based `config show` and `config set`.
 
-- [ ] Create `src/cli/forms/config.go`:
-  - [ ] `ConfigForm(current *AppConfig) (*AppConfig, error)`:
-    - [ ] Group: Automation (enabled toggle, interval number, dry-run toggle)
-    - [ ] Group: Search Limits (4 number inputs)
-    - [ ] Pre-populate with current values
+- [x] Create `src/cli/forms/config.go`:
+  - [x] `ConfigForm(current AppConfig) (*AppConfig, error)`:
+    - [x] Group: Automation (enabled toggle, interval number)
+    - [x] Group: Search Limits (4 number inputs)
+    - [x] Group: Log Retention (retention days)
+    - [x] Pre-populate with current values
+    - [x] Validation for interval (1-168 hours)
+    - [x] Validation for search limits (0-100)
+    - [x] Validation for retention days (7-90)
 
-- [ ] Update `src/cli/config.go`:
-  - [ ] Add `config` command (no subcommand) that launches form when interactive
-  - [ ] Keep `config show` and `config set` for non-interactive use
+- [x] Update `src/cli/config.go`:
+  - [x] Add `config` command (no subcommand) that launches form when interactive
+  - [x] Keep `config show` and `config set` for non-interactive use
+  - [x] Import forms package and add runConfigInteractive function
+  - [x] Check IsInteractive() before showing form
+
+**Implementation Notes:**
+
+- Created ConfigForm with three groups: Automation, Search Limits, and Log Retention
+- Form validates all inputs with appropriate ranges per spec
+- runConfigInteractive checks if terminal is interactive, shows help if not
+- Pre-populates all fields with current database values
+- Successfully saves updated configuration to database
+- All tests pass, build successful
 
 ### 11.7 Confirmation Dialogs
 
