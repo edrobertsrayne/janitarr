@@ -127,19 +127,19 @@ Current state: Logger at `src/logger/logger.go:11-15` only has `storer`, `mu`, `
 
 **Reference:** `specs/logging.md` (Configure Log Levels section)
 
-- [ ] Update `src/cli/root.go`:
-  - [ ] Add `--log-level` persistent flag (default: "info")
-  - [ ] Parse `JANITARR_LOG_LEVEL` environment variable
-  - [ ] CLI flag takes precedence over env var
-  - [ ] Validate log level, exit with error if invalid
+- [x] Update `src/cli/root.go`:
+  - [x] Add `--log-level` persistent flag (default: "info")
+  - [x] Parse `JANITARR_LOG_LEVEL` environment variable
+  - [x] CLI flag takes precedence over env var
+  - [x] Validate log level, exit with error if invalid
 
-- [ ] Update `src/cli/start.go`:
-  - [ ] Pass log level from flag to logger initialization
-  - [ ] Default to "info" in production mode
+- [x] Update `src/cli/start.go`:
+  - [x] Pass log level from flag to logger initialization
+  - [x] Default to "info" in production mode
 
-- [ ] Update `src/cli/dev.go`:
-  - [ ] Default to "debug" in dev mode
-  - [ ] Allow override via `--log-level` flag
+- [x] Update `src/cli/dev.go`:
+  - [x] Default to "debug" in dev mode
+  - [x] Allow override via `--log-level` flag
 
 ### 10.6 Add Detection Summary Logging
 

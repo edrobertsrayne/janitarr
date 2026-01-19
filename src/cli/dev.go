@@ -62,8 +62,18 @@ func runDev(cmd *cobra.Command, args []string) error {
 	// Get configuration
 	config := db.GetAppConfig()
 
-	// Initialize logger with debug level in development mode
-	appLogger := logger.NewLogger(db, logger.LevelDebug, true)
+	// Parse log level from flag, default to debug in dev mode if not explicitly set
+	level := logger.LevelDebug
+	if cmd.Flags().Changed("log-level") {
+		parsedLevel, err := logger.ParseLevel(logLevel)
+		if err != nil {
+			return fmt.Errorf("invalid log level: %w", err)
+		}
+		level = parsedLevel
+	}
+
+	// Initialize logger with configured level in development mode
+	appLogger := logger.NewLogger(db, level, true)
 
 	// Initialize services
 	detector := services.NewDetector(db)

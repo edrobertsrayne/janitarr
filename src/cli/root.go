@@ -1,10 +1,17 @@
 package cli
 
-import "github.com/spf13/cobra"
+import (
+	"fmt"
+	"os"
+
+	"github.com/spf13/cobra"
+	"github.com/user/janitarr/src/logger"
+)
 
 var (
-	dbPath  string
-	version = "0.1.0"
+	dbPath   string
+	logLevel string
+	version  = "0.1.0"
 )
 
 func NewRootCmd() *cobra.Command {
@@ -13,8 +20,25 @@ func NewRootCmd() *cobra.Command {
 		Short:   "Automation tool for Radarr and Sonarr",
 		Long:    `Janitarr automates content discovery and search triggering for media servers.`,
 		Version: version,
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			// Validate log level if provided
+			if cmd.Flags().Changed("log-level") || logLevel != "" {
+				if _, err := logger.ParseLevel(logLevel); err != nil {
+					return fmt.Errorf("invalid log level: %w", err)
+				}
+			}
+			return nil
+		},
 	}
 	cmd.PersistentFlags().StringVar(&dbPath, "db-path", "./data/janitarr.db", "Database path")
+
+	// Get log level from environment variable first, then allow CLI flag to override
+	envLogLevel := os.Getenv("JANITARR_LOG_LEVEL")
+	defaultLogLevel := "info"
+	if envLogLevel != "" {
+		defaultLogLevel = envLogLevel
+	}
+	cmd.PersistentFlags().StringVar(&logLevel, "log-level", defaultLogLevel, "Log level (debug, info, warn, error)")
 
 	// Register commands
 	cmd.AddCommand(startCmd)
