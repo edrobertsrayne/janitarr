@@ -85,10 +85,10 @@ The following core functionality is complete:
 
 **Reference:** `specs/logging.md` (Configure Log Levels section)
 
-- [ ] Create `src/logger/level.go`:
-  - [ ] Define `Level` type with constants: `LevelDebug`, `LevelInfo`, `LevelWarn`, `LevelError`
-  - [ ] Add `ParseLevel(s string) (Level, error)` function
-  - [ ] Add `String()` method for Level type
+- [x] Create `src/logger/level.go`:
+  - [x] Define `Level` type with constants: `LevelDebug`, `LevelInfo`, `LevelWarn`, `LevelError`
+  - [x] Add `ParseLevel(s string) (Level, error)` function
+  - [x] Add `String()` method for Level type
 
 ### 10.3 Create Console Logger
 
