@@ -30,6 +30,15 @@ func (c *SonarrClient) TestConnection(ctx context.Context) (*SystemStatus, error
 	return &result, nil
 }
 
+// GetQualityProfiles returns all quality profiles from Sonarr.
+func (c *SonarrClient) GetQualityProfiles(ctx context.Context) ([]QualityProfile, error) {
+	var profiles []QualityProfile
+	if err := c.Get(ctx, "/qualityprofile", &profiles); err != nil {
+		return nil, err
+	}
+	return profiles, nil
+}
+
 // GetMissing returns a paginated list of missing episodes.
 func (c *SonarrClient) GetMissing(ctx context.Context, page, pageSize int) (*PagedResponse[Episode], error) {
 	var result PagedResponse[Episode]
@@ -72,6 +81,18 @@ func (c *SonarrClient) GetAllCutoffUnmet(ctx context.Context) ([]MediaItem, erro
 
 // getAllItems is a helper to paginate through all items.
 func (c *SonarrClient) getAllItems(ctx context.Context, fetcher func(context.Context, int, int) (*PagedResponse[Episode], error)) ([]MediaItem, error) {
+	// Fetch quality profiles once
+	profiles, err := c.GetQualityProfiles(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get quality profiles: %w", err)
+	}
+
+	// Build ID-to-name map
+	qualityProfiles := make(map[int]string)
+	for _, profile := range profiles {
+		qualityProfiles[profile.ID] = profile.Name
+	}
+
 	var items []MediaItem
 	page := 1
 	pageSize := 100
@@ -89,7 +110,7 @@ func (c *SonarrClient) getAllItems(ctx context.Context, fetcher func(context.Con
 			}
 			qualityProfile := ""
 			if episode.Series != nil {
-				qualityProfile = episode.Series.QualityProfile.Name
+				qualityProfile = qualityProfiles[episode.Series.QualityProfileId]
 			}
 
 			items = append(items, MediaItem{

@@ -16,18 +16,18 @@ type QualityProfile struct {
 
 // Movie represents a movie item from Radarr's wanted/missing or cutoff unmet endpoints.
 type Movie struct {
-	ID             int            `json:"id"`
-	Title          string         `json:"title"`
-	Year           int            `json:"year"`
-	HasFile        bool           `json:"hasFile"`
-	Monitored      bool           `json:"monitored"`
-	QualityProfile QualityProfile `json:"qualityProfileId"`
+	ID               int    `json:"id"`
+	Title            string `json:"title"`
+	Year             int    `json:"year"`
+	HasFile          bool   `json:"hasFile"`
+	Monitored        bool   `json:"monitored"`
+	QualityProfileId int    `json:"qualityProfileId"`
 }
 
 // Series represents series info nested in Sonarr episode responses.
 type Series struct {
-	Title          string         `json:"title"`
-	QualityProfile QualityProfile `json:"qualityProfileId"`
+	Title            string `json:"title"`
+	QualityProfileId int    `json:"qualityProfileId"`
 }
 
 // Episode represents an episode item from Sonarr's wanted/missing or cutoff unmet endpoints.

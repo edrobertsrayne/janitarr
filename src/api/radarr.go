@@ -30,6 +30,15 @@ func (c *RadarrClient) TestConnection(ctx context.Context) (*SystemStatus, error
 	return &result, nil
 }
 
+// GetQualityProfiles returns all quality profiles from Radarr.
+func (c *RadarrClient) GetQualityProfiles(ctx context.Context) ([]QualityProfile, error) {
+	var profiles []QualityProfile
+	if err := c.Get(ctx, "/qualityprofile", &profiles); err != nil {
+		return nil, err
+	}
+	return profiles, nil
+}
+
 // GetMissing returns a paginated list of missing movies.
 func (c *RadarrClient) GetMissing(ctx context.Context, page, pageSize int) (*PagedResponse[Movie], error) {
 	var result PagedResponse[Movie]
@@ -72,6 +81,18 @@ func (c *RadarrClient) GetAllCutoffUnmet(ctx context.Context) ([]MediaItem, erro
 
 // getAllItems is a helper to paginate through all items.
 func (c *RadarrClient) getAllItems(ctx context.Context, fetcher func(context.Context, int, int) (*PagedResponse[Movie], error)) ([]MediaItem, error) {
+	// Fetch quality profiles once
+	profiles, err := c.GetQualityProfiles(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get quality profiles: %w", err)
+	}
+
+	// Build ID-to-name map
+	qualityProfiles := make(map[int]string)
+	for _, profile := range profiles {
+		qualityProfiles[profile.ID] = profile.Name
+	}
+
 	var items []MediaItem
 	page := 1
 	pageSize := 100
@@ -83,12 +104,13 @@ func (c *RadarrClient) getAllItems(ctx context.Context, fetcher func(context.Con
 		}
 
 		for _, movie := range result.Records {
+			qualityProfile := qualityProfiles[movie.QualityProfileId]
 			items = append(items, MediaItem{
 				ID:             movie.ID,
 				Title:          movie.Title,
 				Type:           "movie",
 				Year:           movie.Year,
-				QualityProfile: movie.QualityProfile.Name,
+				QualityProfile: qualityProfile,
 			})
 		}
 

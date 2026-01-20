@@ -140,15 +140,53 @@ func TestRadarrClient_TriggerSearch(t *testing.T) {
 	}
 }
 
+func TestRadarrClient_GetQualityProfiles(t *testing.T) {
+	expected := []QualityProfile{
+		{ID: 1, Name: "HD-1080p"},
+		{ID: 2, Name: "HD-720p"},
+	}
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/v3/qualityprofile" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(expected)
+	}))
+	defer server.Close()
+
+	client := NewRadarrClient(server.URL, "testapikey")
+	result, err := client.GetQualityProfiles(context.Background())
+
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(result) != 2 {
+		t.Errorf("len(result) = %d, want 2", len(result))
+	}
+	if result[0].Name != "HD-1080p" {
+		t.Errorf("first profile name = %q, want %q", result[0].Name, "HD-1080p")
+	}
+}
+
 func TestRadarrClient_GetAllMissing_SinglePage(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v3/qualityprofile" {
+			profiles := []QualityProfile{
+				{ID: 1, Name: "HD-1080p"},
+			}
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(profiles)
+			return
+		}
+
 		resp := PagedResponse[Movie]{
 			Page:         1,
 			PageSize:     100,
 			TotalRecords: 2,
 			Records: []Movie{
-				{ID: 1, Title: "Movie One", Monitored: true},
-				{ID: 2, Title: "Movie Two", Monitored: true},
+				{ID: 1, Title: "Movie One", Monitored: true, QualityProfileId: 1},
+				{ID: 2, Title: "Movie Two", Monitored: true, QualityProfileId: 1},
 			},
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -168,12 +206,24 @@ func TestRadarrClient_GetAllMissing_SinglePage(t *testing.T) {
 	if items[0].Type != "movie" {
 		t.Errorf("item type = %q, want movie", items[0].Type)
 	}
+	if items[0].QualityProfile != "HD-1080p" {
+		t.Errorf("quality profile = %q, want HD-1080p", items[0].QualityProfile)
+	}
 }
 
 func TestRadarrClient_GetAllMissing_MultiplePages(t *testing.T) {
 	requestCount := 0
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v3/qualityprofile" {
+			profiles := []QualityProfile{
+				{ID: 1, Name: "HD-1080p"},
+			}
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(profiles)
+			return
+		}
+
 		requestCount++
 		page := r.URL.Query().Get("page")
 
@@ -186,7 +236,7 @@ func TestRadarrClient_GetAllMissing_MultiplePages(t *testing.T) {
 				Records:      make([]Movie, 100),
 			}
 			for i := 0; i < 100; i++ {
-				resp.Records[i] = Movie{ID: i + 1, Title: "Movie", Monitored: true}
+				resp.Records[i] = Movie{ID: i + 1, Title: "Movie", Monitored: true, QualityProfileId: 1}
 			}
 		} else {
 			resp = PagedResponse[Movie]{
@@ -196,7 +246,7 @@ func TestRadarrClient_GetAllMissing_MultiplePages(t *testing.T) {
 				Records:      make([]Movie, 50),
 			}
 			for i := 0; i < 50; i++ {
-				resp.Records[i] = Movie{ID: i + 101, Title: "Movie", Monitored: true}
+				resp.Records[i] = Movie{ID: i + 101, Title: "Movie", Monitored: true, QualityProfileId: 1}
 			}
 		}
 
@@ -221,12 +271,21 @@ func TestRadarrClient_GetAllMissing_MultiplePages(t *testing.T) {
 
 func TestRadarrClient_GetAllCutoffUnmet_SinglePage(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v3/qualityprofile" {
+			profiles := []QualityProfile{
+				{ID: 1, Name: "HD-1080p"},
+			}
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(profiles)
+			return
+		}
+
 		resp := PagedResponse[Movie]{
 			Page:         1,
 			PageSize:     100,
 			TotalRecords: 1,
 			Records: []Movie{
-				{ID: 1, Title: "Movie One", Monitored: true, HasFile: true},
+				{ID: 1, Title: "Movie One", Monitored: true, HasFile: true, QualityProfileId: 1},
 			},
 		}
 		w.Header().Set("Content-Type", "application/json")

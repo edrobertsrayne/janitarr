@@ -378,12 +378,12 @@ Current state: Dashboard at `src/templates/pages/dashboard.templ:116-159` shows 
 - [x] Run unit tests: `go test ./src/logger/...`
 - [x] Run integration tests: `go test ./src/services/...`
 - [x] Build binary: `make build`
-- [ ] Manual testing (optional):
-  - [ ] `./janitarr dev` shows debug logs with colors
-  - [ ] `./janitarr start` shows info logs only
-  - [ ] `./janitarr start --log-level debug` shows debug logs
-  - [ ] Web UI logs page shows all filters
-  - [ ] Dashboard shows error count badge
+- [x] Manual testing (optional):
+  - [x] `./janitarr dev` shows debug logs with colors
+  - [x] `./janitarr start` shows info logs only
+  - [x] `./janitarr start --log-level debug` shows debug logs
+  - [x] Web UI logs page shows all filters
+  - [x] Dashboard shows error count badge
 
 **Automated Verification Complete:**
 
@@ -670,3 +670,199 @@ go get golang.org/x/term  # for IsTerminal check
 - Console logging should not block main operations
 - Database log writes could be batched/async for high-volume scenarios
 - WebSocket broadcasts use non-blocking channel sends
+
+---
+
+## Phase 12: Web Interface and API Bug Fixes
+
+**Reference:** User-reported issues with web interface server testing/editing
+**Verification:** `go test ./... && make build`
+**Status:** Not started
+
+### 12.1 Fix QualityProfile JSON Unmarshaling Error ✅
+
+**Issue:** Detection cycle fails with: `json: cannot unmarshal number into Go struct field Movie.records.qualityProfileId of type api.QualityProfile`
+
+**Root Cause:** Radarr/Sonarr API returns `qualityProfileId` as an integer, but `src/api/types.go:24,30` mapped it to a `QualityProfile` struct type.
+
+**Solution:** Changed field types to int and added GetQualityProfiles() methods to fetch profile names via lookup map.
+
+- [x] Update `src/api/types.go`:
+  - [x] Change `Movie.QualityProfile QualityProfile` to `QualityProfileId int`
+  - [x] Change `Series.QualityProfile QualityProfile` to `QualityProfileId int`
+  - [x] Update JSON tag from `json:"qualityProfileId"` (already correct)
+
+- [x] Create quality profile lookup in `src/api/radarr.go`:
+  - [x] Add `GetQualityProfiles(ctx) ([]QualityProfile, error)` method
+  - [x] Call `/api/v3/qualityprofile` endpoint
+  - [x] Parse response as `[]QualityProfile`
+
+- [x] Create quality profile lookup in `src/api/sonarr.go`:
+  - [x] Add `GetQualityProfiles(ctx) ([]QualityProfile, error)` method
+  - [x] Call `/api/v3/qualityprofile` endpoint
+
+- [x] Update `src/api/radarr.go` getAllItems():
+  - [x] Fetch quality profiles once before processing movies
+  - [x] Build ID-to-name map for lookup
+  - [x] Use `qualityProfiles[movie.QualityProfileId]` instead of `movie.QualityProfile.Name`
+
+- [x] Update `src/api/sonarr.go` getAllItems():
+  - [x] Fetch quality profiles once before processing episodes
+  - [x] Build ID-to-name map for lookup
+  - [x] Use `qualityProfiles[episode.Series.QualityProfileId]` instead of `episode.Series.QualityProfile.Name`
+
+- [x] Update tests:
+  - [x] Add `TestRadarrClient_GetQualityProfiles()`
+  - [x] Add `TestSonarrClient_GetQualityProfiles()`
+  - [x] Update all GetAllMissing/GetAllCutoffUnmet tests to mock quality profile endpoint
+  - [x] Verify all tests pass: `go test ./...`
+  - [x] Verify build succeeds: `make build`
+
+### 12.2 Fix Server Card Test Button (No Feedback)
+
+**Issue:** Test button on server card appears to do nothing when clicked.
+
+**Root Cause:** `src/templates/components/server_card.templ:38` uses `hx-swap="none"` which discards the API response.
+
+- [ ] Update `src/templates/components/server_card.templ`:
+  - [ ] Replace HTMX approach with Alpine.js fetch (consistent with form's Test Connection button)
+  - [ ] Add `x-data` attribute with state for `testing` and `testResult`
+  - [ ] Use JavaScript `fetch()` to call `/api/servers/{id}/test`
+  - [ ] Display result text below button (success in green, error in red)
+  - [ ] Add loading state during test
+
+**Example implementation:**
+
+```html
+<div x-data="{ testing: false, testResult: '' }">
+  <button
+    type="button"
+    @click="testing = true; testResult = ''; fetch('/api/servers/{{ server.ID }}/test', { method: 'POST' }).then(r => r.json()).then(data => { testing = false; testResult = data.success ? 'Connected (' + data.version + ')' : (data.error || 'Connection failed') }).catch(err => { testing = false; testResult = 'Error: ' + err.message })"
+    :disabled="testing"
+    class="..."
+  >
+    <span x-show="!testing">Test</span>
+    <span x-show="testing">Testing...</span>
+  </button>
+  <div
+    x-show="testResult"
+    class="mt-1 text-xs"
+    :class="testResult.startsWith('Connected') ? 'text-green-600' : 'text-red-600'"
+    x-text="testResult"
+  ></div>
+</div>
+```
+
+### 12.3 Fix Server Edit Form (JSON Encoding Mismatch)
+
+**Issue:** Server modification always fails with "Connection failed" error even when server connects fine from CLI.
+
+**Root Cause:**
+
+1. `src/templates/components/forms/server_form.templ:15-20` uses HTMX `hx-put` which sends `application/x-www-form-urlencoded` by default
+2. `src/web/handlers/api/servers.go:99-103` expects JSON (`json.NewDecoder`)
+3. JSON decode fails on form data, producing empty struct with empty values
+4. Empty values cause connection test to fail
+
+- [ ] Add HTMX json-enc extension to `src/templates/layouts/base.templ`:
+  - [ ] Add `<script src="https://unpkg.com/htmx.org/dist/ext/json-enc.js"></script>` or include locally
+  - [ ] Alternatively, download to `static/js/htmx-json-enc.min.js` and add local script tag
+
+- [ ] Update `src/templates/components/forms/server_form.templ`:
+  - [ ] Add `hx-ext="json-enc"` attribute to the form element (line 15)
+  - [ ] This converts form data to JSON automatically for HTMX requests
+
+- [ ] Fix error handling in form's `@htmx:after-request`:
+  - [ ] Change line 23 to check response status before closing modal
+  - [ ] Display error message if request failed
+  - [ ] Only reload on success
+
+**Updated form event handler:**
+
+```javascript
+@htmx:after-request="
+  loading = false;
+  if (event.detail.successful) {
+    document.getElementById('server-modal')?.remove();
+    window.location.reload();
+  } else {
+    // Show error from response
+    try {
+      const resp = JSON.parse(event.detail.xhr.responseText);
+      alert(resp.error || 'Failed to save server');
+    } catch(e) {
+      alert('Failed to save server');
+    }
+  }
+"
+```
+
+### 12.4 Add Connection Test Logging
+
+**Issue:** Server connection tests don't appear in log files.
+
+**Root Cause:** `TestConnection()` and `TestNewConnection()` in `src/services/server_manager.go:200-254` don't log results.
+
+- [ ] Add logger to ServerManager in `src/services/server_manager.go`:
+  - [ ] Add `logger *logger.Logger` field to ServerManager struct
+  - [ ] Update `NewServerManager(db, logger)` constructor
+  - [ ] Update all call sites of NewServerManager
+
+- [ ] Add logging to `TestConnection()` method (lines 200-224):
+  - [ ] Log at INFO level: "Testing connection" with server name
+  - [ ] Log success: "Connection successful" with version
+  - [ ] Log failure: "Connection failed" with error
+
+- [ ] Add logging to `TestNewConnection()` method (lines 226-254):
+  - [ ] Log at INFO level: "Testing new server connection" with URL and type
+  - [ ] Log success: "Connection successful" with version
+  - [ ] Log failure: "Connection failed" with error
+
+- [ ] Update call sites of `NewServerManager`:
+  - [ ] `src/web/server.go:99` - pass logger
+  - [ ] `src/cli/server.go` - pass logger (or create minimal logger)
+  - [ ] Any test files using ServerManager
+
+### 12.5 Write Tests
+
+- [ ] Update `src/api/radarr_test.go`:
+  - [ ] Add test for `GetQualityProfiles()`
+  - [ ] Update existing tests for new QualityProfileId field type
+
+- [ ] Update `src/api/sonarr_test.go`:
+  - [ ] Add test for `GetQualityProfiles()`
+  - [ ] Update existing tests for new QualityProfileId field type
+
+- [ ] Update `src/services/server_manager_test.go`:
+  - [ ] Update mock logger in tests
+  - [ ] Add test verifying connection tests are logged
+
+### 12.6 Verification
+
+- [ ] Run unit tests: `go test ./...`
+- [ ] Run race detection: `go test -race ./...`
+- [ ] Build binary: `make build`
+- [ ] Manual testing:
+  - [ ] Run `./janitarr dev` and trigger automation cycle
+  - [ ] Verify no JSON unmarshal errors in detection
+  - [ ] Verify quality profile names appear in search logs
+  - [ ] Click Test button on server card, verify feedback shown
+  - [ ] Edit server via web interface, verify changes save correctly
+  - [ ] Test connection via web form, verify result displayed
+  - [ ] Check logs page for connection test entries
+
+---
+
+## Files to Modify (Phase 12)
+
+| File                                               | Changes                                             |
+| -------------------------------------------------- | --------------------------------------------------- |
+| `src/api/types.go`                                 | Change QualityProfile field type from struct to int |
+| `src/api/radarr.go`                                | Add GetQualityProfiles(), update MediaItem building |
+| `src/api/sonarr.go`                                | Add GetQualityProfiles(), update MediaItem building |
+| `src/templates/components/server_card.templ`       | Fix Test button with Alpine.js feedback             |
+| `src/templates/components/forms/server_form.templ` | Add json-enc extension, fix error handling          |
+| `src/templates/layouts/base.templ`                 | Add HTMX json-enc extension script                  |
+| `src/services/server_manager.go`                   | Add logger field, log connection tests              |
+| `src/web/server.go`                                | Pass logger to ServerManager                        |
+| `static/js/htmx-json-enc.min.js`                   | New file: HTMX json-enc extension                   |

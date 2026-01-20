@@ -131,15 +131,53 @@ func TestSonarrClient_TriggerSearch(t *testing.T) {
 	}
 }
 
+func TestSonarrClient_GetQualityProfiles(t *testing.T) {
+	expected := []QualityProfile{
+		{ID: 1, Name: "HD-1080p"},
+		{ID: 2, Name: "HD-720p"},
+	}
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/v3/qualityprofile" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(expected)
+	}))
+	defer server.Close()
+
+	client := NewSonarrClient(server.URL, "testapikey")
+	result, err := client.GetQualityProfiles(context.Background())
+
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(result) != 2 {
+		t.Errorf("len(result) = %d, want 2", len(result))
+	}
+	if result[0].Name != "HD-1080p" {
+		t.Errorf("first profile name = %q, want %q", result[0].Name, "HD-1080p")
+	}
+}
+
 func TestSonarrClient_GetAllMissing_SinglePage(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v3/qualityprofile" {
+			profiles := []QualityProfile{
+				{ID: 1, Name: "HD-1080p"},
+			}
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(profiles)
+			return
+		}
+
 		resp := PagedResponse[Episode]{
 			Page:         1,
 			PageSize:     100,
 			TotalRecords: 2,
 			Records: []Episode{
-				{ID: 1, Title: "Pilot", SeriesTitle: "Show One", SeasonNumber: 1, EpisodeNumber: 1, Monitored: true},
-				{ID: 2, Title: "Episode 2", SeriesTitle: "Show One", SeasonNumber: 1, EpisodeNumber: 2, Monitored: true},
+				{ID: 1, Title: "Pilot", SeriesTitle: "Show One", Series: &Series{Title: "Show One", QualityProfileId: 1}, SeasonNumber: 1, EpisodeNumber: 1, Monitored: true},
+				{ID: 2, Title: "Episode 2", SeriesTitle: "Show One", Series: &Series{Title: "Show One", QualityProfileId: 1}, SeasonNumber: 1, EpisodeNumber: 2, Monitored: true},
 			},
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -159,10 +197,22 @@ func TestSonarrClient_GetAllMissing_SinglePage(t *testing.T) {
 	if items[0].Type != "episode" {
 		t.Errorf("item type = %q, want episode", items[0].Type)
 	}
+	if items[0].QualityProfile != "HD-1080p" {
+		t.Errorf("quality profile = %q, want HD-1080p", items[0].QualityProfile)
+	}
 }
 
 func TestSonarrClient_GetAllMissing_FormatsTitle(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v3/qualityprofile" {
+			profiles := []QualityProfile{
+				{ID: 1, Name: "HD-1080p"},
+			}
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(profiles)
+			return
+		}
+
 		resp := PagedResponse[Episode]{
 			Page:         1,
 			PageSize:     100,
@@ -190,12 +240,21 @@ func TestSonarrClient_GetAllMissing_FormatsTitle(t *testing.T) {
 
 func TestSonarrClient_GetAllMissing_UsesSeriesObject(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v3/qualityprofile" {
+			profiles := []QualityProfile{
+				{ID: 1, Name: "HD-1080p"},
+			}
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(profiles)
+			return
+		}
+
 		resp := PagedResponse[Episode]{
 			Page:         1,
 			PageSize:     100,
 			TotalRecords: 1,
 			Records: []Episode{
-				{ID: 1, Title: "Pilot", Series: &Series{Title: "The Wire"}, SeasonNumber: 1, EpisodeNumber: 1, Monitored: true},
+				{ID: 1, Title: "Pilot", Series: &Series{Title: "The Wire", QualityProfileId: 1}, SeasonNumber: 1, EpisodeNumber: 1, Monitored: true},
 			},
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -219,6 +278,15 @@ func TestSonarrClient_GetAllMissing_MultiplePages(t *testing.T) {
 	requestCount := 0
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v3/qualityprofile" {
+			profiles := []QualityProfile{
+				{ID: 1, Name: "HD-1080p"},
+			}
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(profiles)
+			return
+		}
+
 		requestCount++
 		page := r.URL.Query().Get("page")
 
@@ -266,12 +334,21 @@ func TestSonarrClient_GetAllMissing_MultiplePages(t *testing.T) {
 
 func TestSonarrClient_GetAllCutoffUnmet_SinglePage(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v3/qualityprofile" {
+			profiles := []QualityProfile{
+				{ID: 1, Name: "HD-1080p"},
+			}
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(profiles)
+			return
+		}
+
 		resp := PagedResponse[Episode]{
 			Page:         1,
 			PageSize:     100,
 			TotalRecords: 1,
 			Records: []Episode{
-				{ID: 1, Title: "Pilot", SeriesTitle: "Show One", SeasonNumber: 1, EpisodeNumber: 1, Monitored: true, HasFile: true},
+				{ID: 1, Title: "Pilot", SeriesTitle: "Show One", Series: &Series{Title: "Show One", QualityProfileId: 1}, SeasonNumber: 1, EpisodeNumber: 1, Monitored: true, HasFile: true},
 			},
 		}
 		w.Header().Set("Content-Type", "application/json")
