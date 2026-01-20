@@ -2,18 +2,19 @@
 
 ## Overview
 
-This specification describes the migration of Janitarr's web frontend from raw Tailwind CSS utility classes to DaisyUI, a Tailwind CSS component library. The migration includes implementing a theme switcher supporting all 32 DaisyUI themes with "night" as the default.
+This specification describes the migration of Janitarr's web frontend from raw Tailwind CSS utility classes to DaisyUI, a Tailwind CSS component library. The migration includes implementing a simple light/dark mode toggle in the navigation sidebar with custom theme definitions for future customization.
 
 ## Goals
 
 1. **Consistency**: Replace ad-hoc Tailwind styling with semantic DaisyUI component classes
-2. **Theming**: Enable users to choose from all DaisyUI themes via a Settings page selector
+2. **Theming**: Enable users to toggle between light and dark mode via a navigation sidebar switch
 3. **Maintainability**: Reduce verbose inline classes with DaisyUI's semantic components
-4. **User Experience**: Provide a polished, cohesive look across all themes
+4. **Customizability**: Define custom "light" and "dark" themes (clones of DaisyUI defaults) for future color adjustments
+5. **User Experience**: Provide a polished, cohesive look with simple light/dark preference
 
 ## Non-Goals
 
-- Custom theme creation (use DaisyUI's built-in themes only)
+- Multiple theme selection (only light/dark toggle)
 - Server-side theme persistence (localStorage is sufficient)
 - Gradual/incremental migration (this is a big-bang replacement)
 
@@ -27,7 +28,7 @@ Add DaisyUI as a Tailwind plugin:
 npm install -D daisyui@latest
 ```
 
-Update `tailwind.config.cjs`:
+Update `tailwind.config.cjs` with custom theme definitions:
 
 ```javascript
 module.exports = {
@@ -35,24 +36,92 @@ module.exports = {
   theme: { extend: {} },
   plugins: [require("daisyui")],
   daisyui: {
-    themes: true, // Enable all 32 themes
-    darkTheme: "night", // Default dark theme for @media(prefers-color-scheme: dark)
+    themes: [
+      {
+        // Custom light theme (clone of DaisyUI light for future customization)
+        light: {
+          "color-scheme": "light",
+          "--color-base-100": "oklch(100% 0 0)",
+          "--color-base-200": "oklch(98% 0 0)",
+          "--color-base-300": "oklch(95% 0 0)",
+          "--color-base-content": "oklch(21% 0.006 285.885)",
+          "--color-primary": "oklch(45% 0.24 277.023)",
+          "--color-primary-content": "oklch(93% 0.034 272.788)",
+          "--color-secondary": "oklch(65% 0.241 354.308)",
+          "--color-secondary-content": "oklch(94% 0.028 342.258)",
+          "--color-accent": "oklch(77% 0.152 181.912)",
+          "--color-accent-content": "oklch(38% 0.063 188.416)",
+          "--color-neutral": "oklch(14% 0.005 285.823)",
+          "--color-neutral-content": "oklch(92% 0.004 286.32)",
+          "--color-info": "oklch(74% 0.16 232.661)",
+          "--color-info-content": "oklch(29% 0.066 243.157)",
+          "--color-success": "oklch(76% 0.177 163.223)",
+          "--color-success-content": "oklch(37% 0.077 168.94)",
+          "--color-warning": "oklch(82% 0.189 84.429)",
+          "--color-warning-content": "oklch(41% 0.112 45.904)",
+          "--color-error": "oklch(71% 0.194 13.428)",
+          "--color-error-content": "oklch(27% 0.105 12.094)",
+          "--radius-selector": "0.5rem",
+          "--radius-field": "0.25rem",
+          "--radius-box": "0.5rem",
+          "--size-selector": "0.25rem",
+          "--size-field": "0.25rem",
+          "--border": "1px",
+          "--depth": "1",
+          "--noise": "0",
+        },
+      },
+      {
+        // Custom dark theme (clone of DaisyUI dark for future customization)
+        dark: {
+          "color-scheme": "dark",
+          "--color-base-100": "oklch(25.33% 0.016 252.42)",
+          "--color-base-200": "oklch(23.26% 0.014 253.1)",
+          "--color-base-300": "oklch(21.15% 0.012 254.09)",
+          "--color-base-content": "oklch(97.807% 0.029 256.847)",
+          "--color-primary": "oklch(58% 0.233 277.117)",
+          "--color-primary-content": "oklch(96% 0.018 272.314)",
+          "--color-secondary": "oklch(65% 0.241 354.308)",
+          "--color-secondary-content": "oklch(94% 0.028 342.258)",
+          "--color-accent": "oklch(77% 0.152 181.912)",
+          "--color-accent-content": "oklch(38% 0.063 188.416)",
+          "--color-neutral": "oklch(14% 0.005 285.823)",
+          "--color-neutral-content": "oklch(92% 0.004 286.32)",
+          "--color-info": "oklch(74% 0.16 232.661)",
+          "--color-info-content": "oklch(29% 0.066 243.157)",
+          "--color-success": "oklch(76% 0.177 163.223)",
+          "--color-success-content": "oklch(37% 0.077 168.94)",
+          "--color-warning": "oklch(82% 0.189 84.429)",
+          "--color-warning-content": "oklch(41% 0.112 45.904)",
+          "--color-error": "oklch(71% 0.194 13.428)",
+          "--color-error-content": "oklch(27% 0.105 12.094)",
+          "--radius-selector": "0.5rem",
+          "--radius-field": "0.25rem",
+          "--radius-box": "0.5rem",
+          "--size-selector": "0.25rem",
+          "--size-field": "0.25rem",
+          "--border": "1px",
+          "--depth": "1",
+          "--noise": "0",
+        },
+      },
+    ],
+    darkTheme: "dark", // Default for @media(prefers-color-scheme: dark)
   },
 };
 ```
 
 ### Theme System
 
-#### Available Themes (All 32)
+#### Available Themes
 
-Light themes: light, cupcake, bumblebee, emerald, corporate, retro, cyberpunk, valentine, garden, lofi, pastel, fantasy, wireframe, cmyk, autumn, acid, lemonade, winter
-
-Dark themes: dark, synthwave, halloween, forest, aqua, black, luxury, dracula, business, night, coffee, dim, nord, sunset
+- **light**: Custom light theme (clone of DaisyUI light)
+- **dark**: Custom dark theme (clone of DaisyUI dark)
 
 #### Default Behavior
 
-1. On first visit (no localStorage value): use "night" theme
-2. Once user selects a theme: persist choice in localStorage
+1. On first visit (no localStorage value): use "dark" theme
+2. When user toggles: persist choice in localStorage as "light" or "dark"
 3. On subsequent visits: load theme from localStorage
 
 #### Theme Persistence
@@ -61,7 +130,7 @@ Dark themes: dark, synthwave, halloween, forest, aqua, black, luxury, dracula, b
 // Theme initialization in base.templ
 document.documentElement.setAttribute(
   "data-theme",
-  localStorage.getItem("janitarr-theme") || "night",
+  localStorage.getItem("janitarr-theme") || "dark",
 );
 ```
 
@@ -130,7 +199,7 @@ templ Base(title string) {
         <script>
             document.documentElement.setAttribute(
                 'data-theme',
-                localStorage.getItem('janitarr-theme') || 'night'
+                localStorage.getItem('janitarr-theme') || 'dark'
             );
         </script>
     </head>
@@ -145,7 +214,7 @@ templ Base(title string) {
 
 **`src/templates/components/nav.templ`**
 
-Convert to DaisyUI drawer + menu pattern:
+Convert to DaisyUI drawer + menu pattern with light/dark toggle:
 
 ```go
 templ Nav(currentPath string) {
@@ -168,14 +237,16 @@ templ Nav(currentPath string) {
         </div>
         <div class="drawer-side">
             <label for="nav-drawer" class="drawer-overlay"></label>
-            <aside class="bg-base-200 w-64 min-h-full">
+            <aside class="bg-base-200 w-64 min-h-full flex flex-col">
                 <div class="p-4 text-xl font-bold">Janitarr</div>
-                <ul class="menu p-4 gap-2">
+                <ul class="menu p-4 gap-2 flex-1">
                     @NavItem("/", "Dashboard", currentPath)
                     @NavItem("/servers", "Servers", currentPath)
                     @NavItem("/logs", "Activity Logs", currentPath)
                     @NavItem("/settings", "Settings", currentPath)
                 </ul>
+                // Light/Dark toggle at bottom of sidebar
+                @ThemeToggle()
             </aside>
         </div>
     </div>
@@ -189,9 +260,37 @@ templ NavItem(href, label, currentPath string) {
         </a>
     </li>
 }
+
+templ ThemeToggle() {
+    <div class="p-4 border-t border-base-300">
+        <label class="flex items-center gap-3 cursor-pointer"
+               x-data="{ isDark: localStorage.getItem('janitarr-theme') !== 'light' }"
+               x-init="$watch('isDark', val => {
+                   const theme = val ? 'dark' : 'light';
+                   localStorage.setItem('janitarr-theme', theme);
+                   document.documentElement.setAttribute('data-theme', theme);
+               })">
+            // Sun icon (light mode)
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+            </svg>
+            <input type="checkbox" class="toggle toggle-sm"
+                   x-model="isDark"/>
+            // Moon icon (dark mode)
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+            </svg>
+        </label>
+    </div>
+}
 ```
 
-- Remove dark mode toggle button (replaced by theme selector in Settings)
+- Light/dark toggle placed at bottom of navigation sidebar
+- Uses DaisyUI `toggle` component with sun/moon icons
+- Alpine.js manages state and persists to localStorage
+- Toggle is checked (right position) for dark mode, unchecked (left position) for light mode
 
 #### 4. Server Card Component
 
@@ -396,74 +495,7 @@ templ LogTypeBadge(logType string) {
 **`src/templates/pages/settings.templ`**
 
 - Each settings section in a `card bg-base-100 shadow-xl`
-- Add theme selector (see below)
-
-### Theme Selector Implementation
-
-Add to Settings page (`src/templates/pages/settings.templ`):
-
-```go
-templ ThemeSelector() {
-    <div class="card bg-base-100 shadow-xl">
-        <div class="card-body">
-            <h2 class="card-title">Appearance</h2>
-            <p class="text-base-content/70">Choose your preferred theme</p>
-
-            <div class="form-control w-full max-w-xs">
-                <label class="label">
-                    <span class="label-text">Theme</span>
-                </label>
-                <select
-                    class="select select-bordered w-full"
-                    x-data
-                    x-on:change="
-                        localStorage.setItem('janitarr-theme', $event.target.value);
-                        document.documentElement.setAttribute('data-theme', $event.target.value);
-                    "
-                    x-init="$el.value = localStorage.getItem('janitarr-theme') || 'night'"
-                >
-                    <optgroup label="Dark Themes">
-                        <option value="night">Night (Default)</option>
-                        <option value="dark">Dark</option>
-                        <option value="synthwave">Synthwave</option>
-                        <option value="halloween">Halloween</option>
-                        <option value="forest">Forest</option>
-                        <option value="aqua">Aqua</option>
-                        <option value="black">Black</option>
-                        <option value="luxury">Luxury</option>
-                        <option value="dracula">Dracula</option>
-                        <option value="business">Business</option>
-                        <option value="coffee">Coffee</option>
-                        <option value="dim">Dim</option>
-                        <option value="nord">Nord</option>
-                        <option value="sunset">Sunset</option>
-                    </optgroup>
-                    <optgroup label="Light Themes">
-                        <option value="light">Light</option>
-                        <option value="cupcake">Cupcake</option>
-                        <option value="bumblebee">Bumblebee</option>
-                        <option value="emerald">Emerald</option>
-                        <option value="corporate">Corporate</option>
-                        <option value="retro">Retro</option>
-                        <option value="cyberpunk">Cyberpunk</option>
-                        <option value="valentine">Valentine</option>
-                        <option value="garden">Garden</option>
-                        <option value="lofi">Lofi</option>
-                        <option value="pastel">Pastel</option>
-                        <option value="fantasy">Fantasy</option>
-                        <option value="wireframe">Wireframe</option>
-                        <option value="cmyk">CMYK</option>
-                        <option value="autumn">Autumn</option>
-                        <option value="acid">Acid</option>
-                        <option value="lemonade">Lemonade</option>
-                        <option value="winter">Winter</option>
-                    </optgroup>
-                </select>
-            </div>
-        </div>
-    </div>
-}
-```
+- No theme selector needed (toggle is in navigation sidebar)
 
 ### Toast Notifications
 
@@ -491,9 +523,9 @@ templ Toast(message string, toastType string) {
 
 ### Phase 2: Base Layout and Navigation
 
-1. Update `base.templ` with theme initialization script
+1. Update `base.templ` with theme initialization script (default to "dark")
 2. Convert `nav.templ` to drawer + menu pattern
-3. Remove dark mode toggle (moving to Settings)
+3. Add light/dark theme toggle to navigation sidebar
 
 ### Phase 3: Component Migration
 
@@ -508,11 +540,11 @@ templ Toast(message string, toastType string) {
 1. Update `dashboard.templ` with converted components
 2. Update `servers.templ` with converted components
 3. Update `logs.templ` with converted components
-4. Update `settings.templ` with converted components + theme selector
+4. Update `settings.templ` with converted components (no theme selector needed)
 
 ### Phase 5: Testing and Polish
 
-1. Test all 32 themes render correctly
+1. Test light and dark themes render correctly
 2. Verify theme persistence across page reloads
 3. Test responsive behavior (drawer collapse on mobile)
 4. Verify all htmx interactions still work
@@ -520,14 +552,15 @@ templ Toast(message string, toastType string) {
 
 ## Acceptance Criteria
 
-1. **Theme Selection**: Users can select any of the 32 DaisyUI themes from Settings
+1. **Theme Toggle**: Users can toggle between light and dark mode via navigation sidebar switch
 2. **Theme Persistence**: Selected theme persists across browser sessions via localStorage
-3. **Default Theme**: "Night" theme is applied on first visit before user selection
+3. **Default Theme**: "Dark" theme is applied on first visit before user toggles
 4. **Component Consistency**: All UI elements use DaisyUI component classes
 5. **No Visual Regression**: All existing functionality works correctly
 6. **Responsive Design**: Drawer collapses to hamburger menu on mobile
 7. **Build Success**: `make build` completes without errors
 8. **Tests Pass**: All existing tests continue to pass
+9. **Custom Themes**: Custom "light" and "dark" themes defined in tailwind.config.cjs for future customization
 
 ## Dependencies
 
@@ -537,18 +570,18 @@ templ Toast(message string, toastType string) {
 {
   "devDependencies": {
     "tailwindcss": "^3.4.0",
-    "daisyui": "^4.x.x"
+    "daisyui": "^5.x.x"
   }
 }
 ```
 
 ### Bundle Size Impact
 
-DaisyUI adds ~30-40KB to the compiled CSS (varies by number of themes enabled). This is acceptable given:
+DaisyUI adds ~10-15KB to the compiled CSS (with only 2 custom themes enabled). This is minimal given:
 
 - CSS is cached after first load
 - Replaces significant custom styling
-- Provides 32 themes worth of styling
+- Only 2 themes (light/dark) instead of 35
 
 ## Risks and Mitigations
 

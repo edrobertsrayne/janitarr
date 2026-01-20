@@ -14,10 +14,10 @@ templ Base(title string) {
 		<script src="/static/js/htmx-json-enc.min.js"></script>
 		<script src="/static/js/alpine.min.js" defer></script>
 		<script>
-			// Set theme from localStorage or default to "night"
+			// Set theme from localStorage or default to "dark"
 			document.documentElement.setAttribute(
 				'data-theme',
-				localStorage.getItem('janitarr-theme') || 'night'
+				localStorage.getItem('janitarr-theme') || 'dark'
 			);
 		</script>
 	</head>

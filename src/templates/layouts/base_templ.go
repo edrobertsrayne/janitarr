@@ -44,7 +44,7 @@ func Base(title string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " - Janitarr</title><link rel=\"stylesheet\" href=\"/static/css/app.css\"><script src=\"/static/js/htmx.min.js\"></script><script src=\"/static/js/htmx-json-enc.min.js\"></script><script src=\"/static/js/alpine.min.js\" defer></script><script>\n\t\t\t// Set theme from localStorage or default to \"night\"\n\t\t\tdocument.documentElement.setAttribute(\n\t\t\t\t'data-theme',\n\t\t\t\tlocalStorage.getItem('janitarr-theme') || 'night'\n\t\t\t);\n\t\t</script></head><body class=\"bg-base-100 min-h-screen\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " - Janitarr</title><link rel=\"stylesheet\" href=\"/static/css/app.css\"><script src=\"/static/js/htmx.min.js\"></script><script src=\"/static/js/htmx-json-enc.min.js\"></script><script src=\"/static/js/alpine.min.js\" defer></script><script>\n\t\t\t// Set theme from localStorage or default to \"dark\"\n\t\t\tdocument.documentElement.setAttribute(\n\t\t\t\t'data-theme',\n\t\t\t\tlocalStorage.getItem('janitarr-theme') || 'dark'\n\t\t\t);\n\t\t</script></head><body class=\"bg-base-100 min-h-screen\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

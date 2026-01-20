@@ -620,7 +620,7 @@ Phases 0-13 are complete. Phases 14-15 are pending:
 - **Phase 10:** Enhanced Logging System - charmbracelet/log integration, log levels, metadata, retention, filters ✅
 - **Phase 11:** Interactive CLI Forms - charmbracelet/huh integration, interactive forms, confirmations, --non-interactive flag ✅
 - **Phase 12:** Web Interface and API Bug Fixes - Quality profile JSON fix, server card feedback, form encoding, connection logging ✅
-- **Phase 13:** DaisyUI Migration - 32-theme support, semantic components, responsive drawer ✅
+- **Phase 13:** DaisyUI Migration - semantic components, responsive drawer, light/dark toggle ✅
 - **Phase 14:** Log Full-Text Search - Search filter for activity logs ⏳
 - **Phase 15:** Extended Prometheus Metrics - Scheduler status, server counts, database metrics (Low priority) ⏳
 
@@ -919,14 +919,15 @@ go get golang.org/x/term  # for IsTerminal check
 **Verification:** `make build && go test ./...`
 **Status:** All implementation tasks complete. All tests pass. Binary builds successfully.
 
-This phase migrates the web frontend from raw Tailwind CSS utility classes to DaisyUI components, enabling 32-theme support with "night" as the default theme.
+This phase migrates the web frontend from raw Tailwind CSS utility classes to DaisyUI components. The theme system uses a simple light/dark toggle in the navigation sidebar with custom theme definitions for future customization.
 
 ### 13.1 Install DaisyUI and Configure Tailwind
 
 - [x] Install DaisyUI: `bun add -D daisyui@latest` (v5.5.14)
 - [x] Update `tailwind.config.cjs`:
   - [x] Add DaisyUI plugin: `plugins: [require("daisyui")]`
-  - [x] Enable all 32 themes: `daisyui: { themes: true, darkTheme: "night" }`
+  - [x] Define custom "light" and "dark" themes (clones of DaisyUI defaults for future customization)
+  - [x] Set `darkTheme: "dark"` for prefers-color-scheme support
   - [x] Remove `darkMode: "class"` (DaisyUI uses data-theme attribute)
 - [x] Remove custom CSS from `static/css/input.css` (DaisyUI provides everything)
 - [x] Run `make generate` to rebuild CSS
@@ -937,7 +938,7 @@ This phase migrates the web frontend from raw Tailwind CSS utility classes to Da
 
 - [x] Update `src/templates/layouts/base.templ`:
   - [x] Remove `x-data="{ darkMode: ... }"` and `:class="{ 'dark': darkMode }"` from `<html>`
-  - [x] Add inline script to set `data-theme` from localStorage or default to "night"
+  - [x] Add inline script to set `data-theme` from localStorage or default to "dark"
   - [x] Change body class from `bg-gray-100 dark:bg-gray-900` to `bg-base-100`
   - [x] Wrap content in DaisyUI drawer structure
 
@@ -949,7 +950,7 @@ This phase migrates the web frontend from raw Tailwind CSS utility classes to Da
   - [x] Convert to DaisyUI drawer + menu pattern with `lg:drawer-open`
   - [x] Add mobile navbar with hamburger menu (visible on `lg:hidden`)
   - [x] Use `menu` class for navigation links with `active` state
-  - [x] Remove dark mode toggle button (replaced by theme selector in Settings)
+  - [x] Add light/dark theme toggle at bottom of navigation sidebar (ThemeToggle component)
   - [x] Use semantic colors: `bg-base-200`, `text-base-content`
 
 ### 13.4 Convert Server Card Component
@@ -1043,19 +1044,13 @@ This phase migrates the web frontend from raw Tailwind CSS utility classes to Da
   - [x] Update clear logs button to `btn btn-error btn-sm`
   - [x] Convert log entries using updated `LogEntry` component
 
-### 13.11 Update Settings Page with Theme Selector
+### 13.11 Update Settings Page
 
-**Reference:** `specs/daisyui-migration.md` (Theme Selector Implementation section)
+**Reference:** `specs/daisyui-migration.md`
 
 - [x] Update `src/templates/pages/settings.templ`:
   - [x] Wrap each section in `card bg-base-100 shadow-xl`
-  - [x] Add new "Appearance" card with theme selector:
-    - [x] Dropdown with all 32 themes in two optgroups (Dark/Light)
-    - [x] "Night" as first option marked "(Default)"
-    - [x] Use Alpine.js to:
-      - [x] Save selection to localStorage as `janitarr-theme`
-      - [x] Apply theme immediately via `data-theme` attribute
-      - [x] Initialize dropdown value from localStorage
+  - [ ] Remove theme selector card (toggle is now in navigation sidebar)
   - [x] Convert form controls in config form to DaisyUI classes
 
 ### 13.12 Remove Custom CSS and Dark Mode Logic
@@ -1079,9 +1074,10 @@ This phase migrates the web frontend from raw Tailwind CSS utility classes to Da
 - [x] Run build: `make build` - Success
 - [x] Run tests: `go test ./...` - All pass
 - [ ] Manual testing (optional):
-  - [ ] All 32 themes render correctly
+  - [ ] Light and dark themes render correctly
+  - [ ] Theme toggle in navigation sidebar works
   - [ ] Theme persists across browser sessions
-  - [ ] "Night" is default on first visit
+  - [ ] "Dark" is default on first visit
   - [ ] Drawer collapses on mobile (hamburger menu works)
   - [ ] All buttons, inputs, cards have consistent DaisyUI styling
   - [ ] No visual regressions in functionality
@@ -1091,22 +1087,22 @@ This phase migrates the web frontend from raw Tailwind CSS utility classes to Da
 
 ## Files to Modify (Phase 13)
 
-| File                                               | Changes                                                  |
-| -------------------------------------------------- | -------------------------------------------------------- |
-| `tailwind.config.cjs`                              | Add DaisyUI plugin, enable all themes                    |
-| `package.json`                                     | Add daisyui dependency                                   |
-| `static/css/input.css`                             | Remove custom CSS (DaisyUI provides everything)          |
-| `src/templates/layouts/base.templ`                 | Theme initialization, drawer structure, remove dark mode |
-| `src/templates/components/nav.templ`               | DaisyUI drawer + menu, mobile hamburger, remove toggle   |
-| `src/templates/components/server_card.templ`       | DaisyUI card, badges, semantic colors                    |
-| `src/templates/components/stats_card.templ`        | DaisyUI stat component                                   |
-| `src/templates/components/log_entry.templ`         | DaisyUI card, badges, semantic colors                    |
-| `src/templates/components/forms/server_form.templ` | DaisyUI modal, form controls, loading spinner            |
-| `src/templates/components/forms/config_form.templ` | DaisyUI form controls, card containers                   |
-| `src/templates/pages/dashboard.templ`              | DaisyUI stats, table, empty states, links                |
-| `src/templates/pages/servers.templ`                | DaisyUI buttons, empty state                             |
-| `src/templates/pages/logs.templ`                   | DaisyUI filter bar, form controls                        |
-| `src/templates/pages/settings.templ`               | DaisyUI cards, theme selector component                  |
+| File                                               | Changes                                                    |
+| -------------------------------------------------- | ---------------------------------------------------------- |
+| `tailwind.config.cjs`                              | Add DaisyUI plugin, define custom light/dark themes        |
+| `package.json`                                     | Add daisyui dependency                                     |
+| `static/css/input.css`                             | Remove custom CSS (DaisyUI provides everything)            |
+| `src/templates/layouts/base.templ`                 | Theme initialization (default "dark"), drawer structure    |
+| `src/templates/components/nav.templ`               | DaisyUI drawer + menu, mobile hamburger, light/dark toggle |
+| `src/templates/components/server_card.templ`       | DaisyUI card, badges, semantic colors                      |
+| `src/templates/components/stats_card.templ`        | DaisyUI stat component                                     |
+| `src/templates/components/log_entry.templ`         | DaisyUI card, badges, semantic colors                      |
+| `src/templates/components/forms/server_form.templ` | DaisyUI modal, form controls, loading spinner              |
+| `src/templates/components/forms/config_form.templ` | DaisyUI form controls, card containers                     |
+| `src/templates/pages/dashboard.templ`              | DaisyUI stats, table, empty states, links                  |
+| `src/templates/pages/servers.templ`                | DaisyUI buttons, empty state                               |
+| `src/templates/pages/logs.templ`                   | DaisyUI filter bar, form controls                          |
+| `src/templates/pages/settings.templ`               | DaisyUI cards (no theme selector - toggle is in nav)       |
 
 ---
 
@@ -1115,9 +1111,10 @@ This phase migrates the web frontend from raw Tailwind CSS utility classes to Da
 ### Phase 13: DaisyUI Migration ✅
 
 - [x] DaisyUI installed and configured in Tailwind
+- [x] Custom "light" and "dark" themes defined in tailwind.config.cjs
+- [x] Theme toggle in navigation sidebar works
 - [x] Theme system works (localStorage persistence, data-theme attribute)
-- [x] "Night" is default theme on first visit
-- [x] All 32 themes selectable from Settings
+- [x] "Dark" is default theme on first visit
 - [x] Navigation uses responsive drawer (hamburger on mobile)
 - [x] All components use DaisyUI semantic classes
 - [x] No hardcoded dark: classes remain

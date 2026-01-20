@@ -43,6 +43,7 @@ type LogFilters struct {
 	Operation *string
 	FromDate  *string // RFC3339 format
 	ToDate    *string // RFC3339 format
+	Search    *string // Full-text search across log messages
 }
 
 // LogStorer defines the interface for storing and retrieving log entries.

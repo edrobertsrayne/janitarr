@@ -42,6 +42,11 @@ var GetLogsFunc = func(db *DB, ctx context.Context, limit, offset int, filters l
 		args = append(args, *filters.ToDate)
 	}
 
+	if filters.Search != nil && *filters.Search != "" {
+		query += " AND message LIKE '%' || ? || '%'"
+		args = append(args, *filters.Search)
+	}
+
 	query += " ORDER BY timestamp DESC LIMIT ? OFFSET ?"
 	args = append(args, limit, offset)
 
