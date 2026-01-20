@@ -33,7 +33,7 @@ func runStatus(cmd *cobra.Command, args []string) error {
 	schedulerStatus := services.GetSchedulerStatusFunc(db)
 
 	// Server counts
-	servers, err := services.NewServerManager(db).ListServers()
+	servers, err := services.NewServerManager(db, nil).ListServers()
 	if err != nil {
 		return fmt.Errorf("failed to list servers: %w", err)
 	}

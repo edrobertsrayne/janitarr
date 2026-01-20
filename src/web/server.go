@@ -96,7 +96,7 @@ func (s *Server) setupRoutes() {
 
 	// Handlers
 	configHandlers := api.NewConfigHandlers(s.config.DB)
-	serverManager := services.NewServerManager(s.config.DB)
+	serverManager := services.NewServerManager(s.config.DB, s.config.Logger)
 	serverHandlers := api.NewServerHandlers(serverManager, s.config.DB)
 	logHandlers := api.NewLogHandlers(s.config.DB)
 	healthHandlers := api.NewHealthHandlers(s.config.DB, s.config.Scheduler)

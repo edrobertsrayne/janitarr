@@ -10,6 +10,20 @@ import (
 	"github.com/user/janitarr/src/database"
 )
 
+// mockLogger is a test logger that implements ServerManagerLogger
+type mockLogger struct {
+	infoCalls  []string
+	errorCalls []string
+}
+
+func (m *mockLogger) Info(msg string, keysAndValues ...interface{}) {
+	m.infoCalls = append(m.infoCalls, msg)
+}
+
+func (m *mockLogger) Error(msg string, keysAndValues ...interface{}) {
+	m.errorCalls = append(m.errorCalls, msg)
+}
+
 // testDB creates a test database with an in-memory SQLite database.
 func testDB(t *testing.T) *database.DB {
 	t.Helper()
@@ -66,7 +80,7 @@ func TestAddServer_Success(t *testing.T) {
 	server := mockRadarrServer()
 	defer server.Close()
 
-	mgr := NewServerManager(db)
+	mgr := NewServerManager(db, nil)
 
 	info, err := mgr.AddServer(context.Background(), "Test Radarr", server.URL, "test-api-key", "radarr")
 	if err != nil {
@@ -95,7 +109,7 @@ func TestAddServer_Sonarr(t *testing.T) {
 	server := mockSonarrServer()
 	defer server.Close()
 
-	mgr := NewServerManager(db)
+	mgr := NewServerManager(db, nil)
 
 	info, err := mgr.AddServer(context.Background(), "Test Sonarr", server.URL, "test-api-key", "sonarr")
 	if err != nil {
@@ -115,7 +129,7 @@ func TestAddServer_DuplicateName(t *testing.T) {
 	server := mockRadarrServer()
 	defer server.Close()
 
-	mgr := NewServerManager(db)
+	mgr := NewServerManager(db, nil)
 
 	// Add first server
 	_, err := mgr.AddServer(context.Background(), "Test Server", server.URL, "test-api-key", "radarr")
@@ -135,7 +149,7 @@ func TestAddServer_DuplicateURLType(t *testing.T) {
 	server := mockRadarrServer()
 	defer server.Close()
 
-	mgr := NewServerManager(db)
+	mgr := NewServerManager(db, nil)
 
 	// Add first server
 	_, err := mgr.AddServer(context.Background(), "First Radarr", server.URL, "test-api-key", "radarr")
@@ -157,7 +171,7 @@ func TestAddServer_SameURLDifferentType(t *testing.T) {
 	defer radarrServer.Close()
 	defer sonarrServer.Close()
 
-	mgr := NewServerManager(db)
+	mgr := NewServerManager(db, nil)
 
 	// Add Radarr server
 	_, err := mgr.AddServer(context.Background(), "Test Radarr", radarrServer.URL, "test-api-key", "radarr")
@@ -177,7 +191,7 @@ func TestAddServer_ConnectionFailed(t *testing.T) {
 	server := mockFailingServer()
 	defer server.Close()
 
-	mgr := NewServerManager(db)
+	mgr := NewServerManager(db, nil)
 
 	_, err := mgr.AddServer(context.Background(), "Bad Server", server.URL, "test-api-key", "radarr")
 	if err == nil {
@@ -191,7 +205,7 @@ func TestAddServer_WrongServerType(t *testing.T) {
 	server := mockRadarrServer()
 	defer server.Close()
 
-	mgr := NewServerManager(db)
+	mgr := NewServerManager(db, nil)
 
 	_, err := mgr.AddServer(context.Background(), "Wrong Type", server.URL, "test-api-key", "sonarr")
 	if err == nil {
@@ -204,7 +218,7 @@ func TestUpdateServer_Success(t *testing.T) {
 	server := mockRadarrServer()
 	defer server.Close()
 
-	mgr := NewServerManager(db)
+	mgr := NewServerManager(db, nil)
 
 	// Add a server first
 	info, err := mgr.AddServer(context.Background(), "Original Name", server.URL, "test-api-key", "radarr")
@@ -231,7 +245,7 @@ func TestUpdateServer_Success(t *testing.T) {
 
 func TestUpdateServer_NotFound(t *testing.T) {
 	db := testDB(t)
-	mgr := NewServerManager(db)
+	mgr := NewServerManager(db, nil)
 
 	newName := "Updated Name"
 	err := mgr.UpdateServer(context.Background(), "nonexistent-id", ServerUpdate{Name: &newName})
@@ -245,7 +259,7 @@ func TestRemoveServer_Success(t *testing.T) {
 	server := mockRadarrServer()
 	defer server.Close()
 
-	mgr := NewServerManager(db)
+	mgr := NewServerManager(db, nil)
 
 	// Add a server
 	info, err := mgr.AddServer(context.Background(), "To Delete", server.URL, "test-api-key", "radarr")
@@ -268,7 +282,7 @@ func TestRemoveServer_Success(t *testing.T) {
 
 func TestRemoveServer_NotFound(t *testing.T) {
 	db := testDB(t)
-	mgr := NewServerManager(db)
+	mgr := NewServerManager(db, nil)
 
 	err := mgr.RemoveServer("nonexistent-id")
 	if err == nil {
@@ -281,7 +295,7 @@ func TestTestConnection_Success(t *testing.T) {
 	server := mockRadarrServer()
 	defer server.Close()
 
-	mgr := NewServerManager(db)
+	mgr := NewServerManager(db, nil)
 
 	// Add a server first
 	info, err := mgr.AddServer(context.Background(), "Test Server", server.URL, "test-api-key", "radarr")
@@ -311,7 +325,7 @@ func TestTestConnection_Unauthorized(t *testing.T) {
 	mockServer := mockUnauthorizedServer()
 	defer mockServer.Close()
 
-	mgr := NewServerManager(db)
+	mgr := NewServerManager(db, nil)
 
 	// We need to bypass the normal AddServer which would fail connection test
 	// Add server directly to database
@@ -343,7 +357,7 @@ func TestTestNewConnection_Success_Radarr(t *testing.T) {
 	server := mockRadarrServer()
 	defer server.Close()
 
-	mgr := NewServerManager(db)
+	mgr := NewServerManager(db, nil)
 
 	// Test connection without saving the server
 	result, err := mgr.TestNewConnection(context.Background(), server.URL, "test-api-key", "radarr")
@@ -367,7 +381,7 @@ func TestTestNewConnection_Success_Sonarr(t *testing.T) {
 	server := mockSonarrServer()
 	defer server.Close()
 
-	mgr := NewServerManager(db)
+	mgr := NewServerManager(db, nil)
 
 	// Test connection without saving the server
 	result, err := mgr.TestNewConnection(context.Background(), server.URL, "test-api-key", "sonarr")
@@ -391,7 +405,7 @@ func TestTestNewConnection_InvalidType(t *testing.T) {
 	server := mockRadarrServer()
 	defer server.Close()
 
-	mgr := NewServerManager(db)
+	mgr := NewServerManager(db, nil)
 
 	// Test with invalid server type
 	_, err := mgr.TestNewConnection(context.Background(), server.URL, "test-api-key", "invalid")
@@ -408,7 +422,7 @@ func TestTestNewConnection_Failed(t *testing.T) {
 	server := mockFailingServer()
 	defer server.Close()
 
-	mgr := NewServerManager(db)
+	mgr := NewServerManager(db, nil)
 
 	// Test connection to a failing server
 	result, err := mgr.TestNewConnection(context.Background(), server.URL, "test-api-key", "radarr")
@@ -429,7 +443,7 @@ func TestGetServer_ByID(t *testing.T) {
 	server := mockRadarrServer()
 	defer server.Close()
 
-	mgr := NewServerManager(db)
+	mgr := NewServerManager(db, nil)
 
 	// Add a server
 	info, err := mgr.AddServer(context.Background(), "Find By ID", server.URL, "test-api-key", "radarr")
@@ -455,7 +469,7 @@ func TestGetServer_ByName(t *testing.T) {
 	server := mockRadarrServer()
 	defer server.Close()
 
-	mgr := NewServerManager(db)
+	mgr := NewServerManager(db, nil)
 
 	// Add a server
 	info, err := mgr.AddServer(context.Background(), "Find By Name", server.URL, "test-api-key", "radarr")
@@ -478,7 +492,7 @@ func TestGetServer_ByNameCaseInsensitive(t *testing.T) {
 	server := mockRadarrServer()
 	defer server.Close()
 
-	mgr := NewServerManager(db)
+	mgr := NewServerManager(db, nil)
 
 	// Add a server
 	info, err := mgr.AddServer(context.Background(), "Case Test", server.URL, "test-api-key", "radarr")
@@ -498,7 +512,7 @@ func TestGetServer_ByNameCaseInsensitive(t *testing.T) {
 
 func TestGetServer_NotFound(t *testing.T) {
 	db := testDB(t)
-	mgr := NewServerManager(db)
+	mgr := NewServerManager(db, nil)
 
 	_, err := mgr.GetServer(context.Background(), "nonexistent")
 	if err == nil {
@@ -513,7 +527,7 @@ func TestListServers(t *testing.T) {
 	defer radarrServer.Close()
 	defer sonarrServer.Close()
 
-	mgr := NewServerManager(db)
+	mgr := NewServerManager(db, nil)
 
 	// Initially empty
 	servers, err := mgr.ListServers()
@@ -552,7 +566,7 @@ func TestUpdateServer_URLRequiresConnectionTest(t *testing.T) {
 	defer server.Close()
 	defer failingServer.Close()
 
-	mgr := NewServerManager(db)
+	mgr := NewServerManager(db, nil)
 
 	// Add a server
 	info, err := mgr.AddServer(context.Background(), "Test Server", server.URL, "test-api-key", "radarr")
@@ -575,7 +589,7 @@ func TestUpdateServer_APIKeyRequiresConnectionTest(t *testing.T) {
 	defer mockServer.Close()
 	defer realServer.Close()
 
-	mgr := NewServerManager(db)
+	mgr := NewServerManager(db, nil)
 
 	// Add a server with working connection
 	info, err := mgr.AddServer(context.Background(), "Test Server", realServer.URL, "good-key", "radarr")
@@ -597,7 +611,7 @@ func TestUpdateServer_APIKeyRequiresConnectionTest(t *testing.T) {
 // 	radarrServer := mockRadarrServer()
 // 	defer radarrServer.Close()
 //
-// 	mgr := NewServerManager(db)
+// 	mgr := NewServerManager(db, nil)
 //
 // 	// Add a server
 // 	info, err := mgr.AddServer(context.Background(), "Test Server", radarrServer.URL, "key", "radarr")
@@ -636,7 +650,7 @@ func TestUpdateServer_APIKeyRequiresConnectionTest(t *testing.T) {
 // 	server := mockRadarrServer()
 // 	defer server.Close()
 //
-// 	mgr := NewServerManager(db)
+// 	mgr := NewServerManager(db, nil)
 //
 // 	// Add a server (enabled by default)
 // 	info, err := mgr.AddServer(context.Background(), "Test Server", server.URL, "key", "radarr")
@@ -680,7 +694,7 @@ func TestEmptyNameValidation(t *testing.T) {
 	server := mockRadarrServer()
 	defer server.Close()
 
-	mgr := NewServerManager(db)
+	mgr := NewServerManager(db, nil)
 
 	_, err := mgr.AddServer(context.Background(), "", server.URL, "test-api-key", "radarr")
 	if err == nil {
@@ -690,7 +704,7 @@ func TestEmptyNameValidation(t *testing.T) {
 
 func TestEmptyURLValidation(t *testing.T) {
 	db := testDB(t)
-	mgr := NewServerManager(db)
+	mgr := NewServerManager(db, nil)
 
 	_, err := mgr.AddServer(context.Background(), "Test Server", "", "test-api-key", "radarr")
 	if err == nil {
@@ -703,7 +717,7 @@ func TestEmptyAPIKeyValidation(t *testing.T) {
 	server := mockRadarrServer()
 	defer server.Close()
 
-	mgr := NewServerManager(db)
+	mgr := NewServerManager(db, nil)
 
 	_, err := mgr.AddServer(context.Background(), "Test Server", server.URL, "", "radarr")
 	if err == nil {
@@ -716,10 +730,87 @@ func TestInvalidServerType(t *testing.T) {
 	server := mockRadarrServer()
 	defer server.Close()
 
-	mgr := NewServerManager(db)
+	mgr := NewServerManager(db, nil)
 
 	_, err := mgr.AddServer(context.Background(), "Test Server", server.URL, "test-api-key", "invalid")
 	if err == nil {
 		t.Fatal("expected error for invalid server type, got nil")
+	}
+}
+
+func TestTestConnection_LogsSuccess(t *testing.T) {
+	db := testDB(t)
+	server := mockRadarrServer()
+	defer server.Close()
+
+	logger := &mockLogger{}
+	mgr := NewServerManager(db, logger)
+
+	// Add a server first
+	info, err := mgr.AddServer(context.Background(), "Test Server", server.URL, "test-api-key", "radarr")
+	if err != nil {
+		t.Fatalf("failed to add server: %v", err)
+	}
+
+	// Clear the logger calls from AddServer
+	logger.infoCalls = nil
+	logger.errorCalls = nil
+
+	// Test the connection
+	result, err := mgr.TestConnection(context.Background(), info.ID)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if !result.Success {
+		t.Fatalf("expected successful connection")
+	}
+
+	// Verify logging
+	if len(logger.infoCalls) < 2 {
+		t.Errorf("expected at least 2 info logs (testing + success), got %d", len(logger.infoCalls))
+	}
+
+	if len(logger.errorCalls) != 0 {
+		t.Errorf("expected no error logs, got %d", len(logger.errorCalls))
+	}
+}
+
+func TestTestConnection_LogsFailure(t *testing.T) {
+	db := testDB(t)
+	server := mockFailingServer()
+	defer server.Close()
+
+	logger := &mockLogger{}
+	mgr := NewServerManager(db, logger)
+
+	// Add a server first
+	_, err := mgr.AddServer(context.Background(), "Test Server", server.URL, "test-api-key", "radarr")
+	if err == nil {
+		t.Fatal("expected error adding server with failing connection")
+	}
+
+	// Even though AddServer failed, we can still test TestNewConnection directly
+	// Clear logger
+	logger.infoCalls = nil
+	logger.errorCalls = nil
+
+	// Test new connection
+	result, err := mgr.TestNewConnection(context.Background(), server.URL, "test-api-key", "radarr")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if result.Success {
+		t.Fatal("expected failed connection")
+	}
+
+	// Verify logging
+	if len(logger.infoCalls) < 1 {
+		t.Errorf("expected at least 1 info log (testing), got %d", len(logger.infoCalls))
+	}
+
+	if len(logger.errorCalls) < 1 {
+		t.Errorf("expected at least 1 error log, got %d", len(logger.errorCalls))
 	}
 }

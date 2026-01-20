@@ -797,31 +797,38 @@ go get golang.org/x/term  # for IsTerminal check
 "
 ```
 
-### 12.4 Add Connection Test Logging
+### 12.4 Add Connection Test Logging ✅
 
 **Issue:** Server connection tests don't appear in log files.
 
 **Root Cause:** `TestConnection()` and `TestNewConnection()` in `src/services/server_manager.go:200-254` don't log results.
 
-- [ ] Add logger to ServerManager in `src/services/server_manager.go`:
-  - [ ] Add `logger *logger.Logger` field to ServerManager struct
-  - [ ] Update `NewServerManager(db, logger)` constructor
-  - [ ] Update all call sites of NewServerManager
+- [x] Add logger to ServerManager in `src/services/server_manager.go`:
+  - [x] Add `ServerManagerLogger` interface (lines 29-32)
+  - [x] Add `logger ServerManagerLogger` field to ServerManager struct (line 39)
+  - [x] Update `NewServerManager(db, logger)` constructor (line 47)
+  - [x] Update all call sites of NewServerManager
 
-- [ ] Add logging to `TestConnection()` method (lines 200-224):
-  - [ ] Log at INFO level: "Testing connection" with server name
-  - [ ] Log success: "Connection successful" with version
-  - [ ] Log failure: "Connection failed" with error
+- [x] Add logging to `TestConnection()` method (lines 211-244):
+  - [x] Log at INFO level: "Testing connection" with server name
+  - [x] Log success: "Connection successful" with version
+  - [x] Log failure: "Connection failed" with error
 
-- [ ] Add logging to `TestNewConnection()` method (lines 226-254):
-  - [ ] Log at INFO level: "Testing new server connection" with URL and type
-  - [ ] Log success: "Connection successful" with version
-  - [ ] Log failure: "Connection failed" with error
+- [x] Add logging to `TestNewConnection()` method (lines 248-285):
+  - [x] Log at INFO level: "Testing new server connection" with URL and type
+  - [x] Log success: "Connection successful" with version
+  - [x] Log failure: "Connection failed" with error
 
-- [ ] Update call sites of `NewServerManager`:
-  - [ ] `src/web/server.go:99` - pass logger
-  - [ ] `src/cli/server.go` - pass logger (or create minimal logger)
-  - [ ] Any test files using ServerManager
+- [x] Update call sites of `NewServerManager`:
+  - [x] `src/web/server.go:99` - pass logger
+  - [x] `src/cli/server.go` - pass nil (CLI doesn't need logging)
+  - [x] `src/cli/status.go` - pass nil
+  - [x] `src/services/server_manager_test.go` - updated all tests to pass nil or mockLogger
+
+- [x] Add tests:
+  - [x] Created `mockLogger` in server_manager_test.go
+  - [x] Added `TestTestConnection_LogsSuccess` test
+  - [x] Added `TestTestConnection_LogsFailure` test
 
 ### 12.5 Write Tests
 

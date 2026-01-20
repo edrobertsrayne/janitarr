@@ -25,30 +25,39 @@ func defaultAPIClientFactory(url, apiKey, serverType string) APIClient {
 	return api.NewRadarrClient(url, apiKey)
 }
 
+// ServerManagerLogger is the interface for logging server connection tests.
+type ServerManagerLogger interface {
+	Info(msg string, keysAndValues ...interface{})
+	Error(msg string, keysAndValues ...interface{})
+}
+
 // ServerManager handles CRUD operations for server configurations.
 type ServerManager struct {
 	db         *database.DB
 	apiFactory APIClientFactory
+	logger     ServerManagerLogger
 }
 
 // Ensure ServerManager implements ServerManagerInterface
 var _ ServerManagerInterface = (*ServerManager)(nil)
 
-// NewServerManager creates a new ServerManager with the given database.
+// NewServerManager creates a new ServerManager with the given database and logger.
 // This function is assigned to NewServerManagerFunc for testability.
-func NewServerManager(db *database.DB) ServerManagerInterface {
+func NewServerManager(db *database.DB, logger ServerManagerLogger) ServerManagerInterface {
 	return &ServerManager{
 		db:         db,
 		apiFactory: defaultAPIClientFactory,
+		logger:     logger,
 	}
 }
 
 // NewServerManagerWithFactory creates a new ServerManager with a custom API factory.
 // Useful for testing.
-func NewServerManagerWithFactory(db *database.DB, factory APIClientFactory) ServerManagerInterface {
+func NewServerManagerWithFactory(db *database.DB, factory APIClientFactory, logger ServerManagerLogger) ServerManagerInterface {
 	return &ServerManager{
 		db:         db,
 		apiFactory: factory,
+		logger:     logger,
 	}
 }
 
@@ -207,13 +216,24 @@ func (m *ServerManager) TestConnection(ctx context.Context, id string) (*Connect
 		return nil, fmt.Errorf("server not found: %s", id)
 	}
 
+	if m.logger != nil {
+		m.logger.Info("Testing connection", "server", server.Name, "type", server.Type)
+	}
+
 	client := m.apiFactory(server.URL, server.APIKey, string(server.Type))
 	status, err := client.TestConnection(ctx)
 	if err != nil {
+		if m.logger != nil {
+			m.logger.Error("Connection failed", "server", server.Name, "error", err.Error())
+		}
 		return &ConnectionResult{
 			Success: false,
 			Error:   err.Error(),
 		}, nil
+	}
+
+	if m.logger != nil {
+		m.logger.Info("Connection successful", "server", server.Name, "version", status.Version)
 	}
 
 	return &ConnectionResult{
@@ -234,16 +254,27 @@ func (m *ServerManager) TestNewConnection(ctx context.Context, url, apiKey, serv
 	// Normalize URL (remove trailing slash, ensure protocol)
 	url = api.NormalizeURL(url)
 
+	if m.logger != nil {
+		m.logger.Info("Testing new server connection", "url", url, "type", serverType)
+	}
+
 	// Create API client
 	client := m.apiFactory(url, apiKey, serverType)
 
 	// Test connection
 	status, err := client.TestConnection(ctx)
 	if err != nil {
+		if m.logger != nil {
+			m.logger.Error("Connection failed", "url", url, "error", err.Error())
+		}
 		return &ConnectionResult{
 			Success: false,
 			Error:   err.Error(),
 		}, nil
+	}
+
+	if m.logger != nil {
+		m.logger.Info("Connection successful", "url", url, "version", status.Version)
 	}
 
 	return &ConnectionResult{

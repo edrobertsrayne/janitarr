@@ -123,7 +123,7 @@ func runServerAdd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("missing required flags: --name, --type, --url, --api-key (or run without flags for interactive mode)")
 	}
 
-	serverManager := services.NewServerManagerFunc(db)
+	serverManager := services.NewServerManagerFunc(db, nil)
 
 	hideCursor()
 	showProgress("Testing connection")
@@ -149,7 +149,7 @@ func runServerList(cmd *cobra.Command, args []string) error {
 	}
 	defer db.Close()
 
-	serverManager := services.NewServerManagerFunc(db) // Use NewServerManagerFunc
+	serverManager := services.NewServerManagerFunc(db, nil) // Use NewServerManagerFunc
 	servers, err := serverManager.ListServers()
 	if err != nil {
 		return fmt.Errorf("failed to list servers: %w", err)
@@ -185,7 +185,7 @@ func runServerEdit(cmd *cobra.Command, args []string) error {
 		}
 
 		// Get all servers for selector
-		serverManager := services.NewServerManagerFunc(db)
+		serverManager := services.NewServerManagerFunc(db, nil)
 		servers, err := serverManager.ListServers()
 		if err != nil {
 			return fmt.Errorf("failed to list servers: %w", err)
@@ -234,7 +234,7 @@ func runServerEdit(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	serverManager := services.NewServerManagerFunc(db)
+	serverManager := services.NewServerManagerFunc(db, nil)
 
 	// Check if flags are provided
 	flagName, _ := cmd.Flags().GetString("name")
@@ -314,7 +314,7 @@ func runServerRemove(cmd *cobra.Command, args []string) error {
 	}
 	defer db.Close()
 
-	serverManager := services.NewServerManagerFunc(db)
+	serverManager := services.NewServerManagerFunc(db, nil)
 
 	var serverToRemove *database.Server
 
