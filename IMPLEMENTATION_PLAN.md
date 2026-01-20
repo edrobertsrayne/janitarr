@@ -718,18 +718,18 @@ go get golang.org/x/term  # for IsTerminal check
   - [x] Verify all tests pass: `go test ./...`
   - [x] Verify build succeeds: `make build`
 
-### 12.2 Fix Server Card Test Button (No Feedback)
+### 12.2 Fix Server Card Test Button (No Feedback) ✅
 
 **Issue:** Test button on server card appears to do nothing when clicked.
 
 **Root Cause:** `src/templates/components/server_card.templ:38` uses `hx-swap="none"` which discards the API response.
 
-- [ ] Update `src/templates/components/server_card.templ`:
-  - [ ] Replace HTMX approach with Alpine.js fetch (consistent with form's Test Connection button)
-  - [ ] Add `x-data` attribute with state for `testing` and `testResult`
-  - [ ] Use JavaScript `fetch()` to call `/api/servers/{id}/test`
-  - [ ] Display result text below button (success in green, error in red)
-  - [ ] Add loading state during test
+- [x] Update `src/templates/components/server_card.templ`:
+  - [x] Replace HTMX approach with Alpine.js fetch (consistent with form's Test Connection button)
+  - [x] Add `x-data` attribute with state for `testing` and `testResult`
+  - [x] Use JavaScript `fetch()` to call `/api/servers/{id}/test`
+  - [x] Display result text below button (success in green, error in red)
+  - [x] Add loading state during test
 
 **Example implementation:**
 

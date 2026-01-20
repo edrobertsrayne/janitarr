@@ -31,7 +31,7 @@ func ServerCard(server services.ServerInfo) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"bg-white dark:bg-gray-800 rounded-lg shadow p-6\"><div class=\"flex items-start justify-between mb-4\"><div><h3 class=\"text-lg font-semibold text-gray-900 dark:text-white\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"bg-white dark:bg-gray-800 rounded-lg shadow p-6\" x-data=\"{ testing: false, testResult: '' }\"><div class=\"flex items-start justify-between mb-4\"><div><h3 class=\"text-lg font-semibold text-gray-900 dark:text-white\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -83,46 +83,33 @@ func ServerCard(server services.ServerInfo) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</p></div><div class=\"flex gap-2\"><button hx-post=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</p></div><div class=\"flex flex-col gap-2\"><div class=\"flex gap-2\"><button type=\"button\" @click=\"testing = true; testResult = ''; fetch('/api/servers/' + '{ server.ID }' + '/test', { method: 'POST' }).then(r => r.json()).then(data => { testing = false; testResult = data.success ? 'Connected (' + data.version + ')' : (data.error || 'Connection failed') }).catch(err => { testing = false; testResult = 'Error: ' + err.message })\" :disabled=\"testing\" class=\"px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed\"><span x-show=\"!testing\">Test</span> <span x-show=\"testing\">Testing...</span></button> <button hx-get=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var4 string
-		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs("/api/servers/" + server.ID + "/test")
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs("/servers/" + server.ID + "/edit")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/server_card.templ`, Line: 37, Col: 51}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/server_card.templ`, Line: 46, Col: 47}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" hx-swap=\"none\" class=\"px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600\">Test</button> <button hx-get=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" hx-target=\"#modal-container\" hx-swap=\"innerHTML\" class=\"px-3 py-1.5 text-sm bg-gray-600 text-white rounded hover:bg-gray-700 dark:bg-gray-500 dark:hover:bg-gray-600\">Edit</button> <button hx-delete=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var5 string
-		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs("/servers/" + server.ID + "/edit")
+		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs("/api/servers/" + server.ID)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/server_card.templ`, Line: 43, Col: 46}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/server_card.templ`, Line: 53, Col: 44}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" hx-target=\"#modal-container\" hx-swap=\"innerHTML\" class=\"px-3 py-1.5 text-sm bg-gray-600 text-white rounded hover:bg-gray-700 dark:bg-gray-500 dark:hover:bg-gray-600\">Edit</button> <button hx-delete=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var6 string
-		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs("/api/servers/" + server.ID)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/server_card.templ`, Line: 50, Col: 43}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" hx-confirm=\"Are you sure you want to delete this server?\" hx-target=\"closest div.bg-white\" hx-swap=\"outerHTML swap:1s\" class=\"px-3 py-1.5 text-sm bg-red-600 text-white rounded hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600\">Delete</button></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" hx-confirm=\"Are you sure you want to delete this server?\" hx-target=\"closest div.bg-white\" hx-swap=\"outerHTML swap:1s\" class=\"px-3 py-1.5 text-sm bg-red-600 text-white rounded hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600\">Delete</button></div><div x-show=\"testResult\" class=\"mt-1 text-xs\" :class=\"testResult.startsWith('Connected') ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'\" x-text=\"testResult\"></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

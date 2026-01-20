@@ -3,7 +3,7 @@ package components
 import "github.com/user/janitarr/src/services"
 
 templ ServerCard(server services.ServerInfo) {
-	<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+	<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6" x-data="{ testing: false, testResult: '' }">
 		<div class="flex items-start justify-between mb-4">
 			<div>
 				<h3 class="text-lg font-semibold text-gray-900 dark:text-white">{ server.Name }</h3>
@@ -32,28 +32,38 @@ templ ServerCard(server services.ServerInfo) {
 		<div class="mb-4">
 			<p class="text-sm text-gray-600 dark:text-gray-400 break-all">{ server.URL }</p>
 		</div>
-		<div class="flex gap-2">
-			<button
-				hx-post={ "/api/servers/" + server.ID + "/test" }
-				hx-swap="none"
-				class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600">
-				Test
-			</button>
-			<button
-				hx-get={ "/servers/" + server.ID + "/edit" }
-				hx-target="#modal-container"
-				hx-swap="innerHTML"
-				class="px-3 py-1.5 text-sm bg-gray-600 text-white rounded hover:bg-gray-700 dark:bg-gray-500 dark:hover:bg-gray-600">
-				Edit
-			</button>
-			<button
-				hx-delete={ "/api/servers/" + server.ID }
-				hx-confirm="Are you sure you want to delete this server?"
-				hx-target="closest div.bg-white"
-				hx-swap="outerHTML swap:1s"
-				class="px-3 py-1.5 text-sm bg-red-600 text-white rounded hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600">
-				Delete
-			</button>
+		<div class="flex flex-col gap-2">
+			<div class="flex gap-2">
+				<button
+					type="button"
+					@click="testing = true; testResult = ''; fetch('/api/servers/' + '{ server.ID }' + '/test', { method: 'POST' }).then(r => r.json()).then(data => { testing = false; testResult = data.success ? 'Connected (' + data.version + ')' : (data.error || 'Connection failed') }).catch(err => { testing = false; testResult = 'Error: ' + err.message })"
+					:disabled="testing"
+					class="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed">
+					<span x-show="!testing">Test</span>
+					<span x-show="testing">Testing...</span>
+				</button>
+				<button
+					hx-get={ "/servers/" + server.ID + "/edit" }
+					hx-target="#modal-container"
+					hx-swap="innerHTML"
+					class="px-3 py-1.5 text-sm bg-gray-600 text-white rounded hover:bg-gray-700 dark:bg-gray-500 dark:hover:bg-gray-600">
+					Edit
+				</button>
+				<button
+					hx-delete={ "/api/servers/" + server.ID }
+					hx-confirm="Are you sure you want to delete this server?"
+					hx-target="closest div.bg-white"
+					hx-swap="outerHTML swap:1s"
+					class="px-3 py-1.5 text-sm bg-red-600 text-white rounded hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600">
+					Delete
+				</button>
+			</div>
+			<div
+				x-show="testResult"
+				class="mt-1 text-xs"
+				:class="testResult.startsWith('Connected') ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"
+				x-text="testResult">
+			</div>
 		</div>
 	</div>
 }
