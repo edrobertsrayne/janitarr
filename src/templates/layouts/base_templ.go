@@ -44,7 +44,7 @@ func Base(title string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " - Janitarr</title><link rel=\"stylesheet\" href=\"/static/css/app.css\"><script src=\"/static/js/htmx.min.js\"></script><script src=\"/static/js/alpine.min.js\" defer></script></head><body class=\"h-full bg-gray-100 dark:bg-gray-900\"><div class=\"flex h-full\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " - Janitarr</title><link rel=\"stylesheet\" href=\"/static/css/app.css\"><script src=\"/static/js/htmx.min.js\"></script><script src=\"/static/js/htmx-json-enc.min.js\"></script><script src=\"/static/js/alpine.min.js\" defer></script></head><body class=\"h-full bg-gray-100 dark:bg-gray-900\"><div class=\"flex h-full\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

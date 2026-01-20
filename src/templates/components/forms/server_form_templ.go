@@ -74,7 +74,7 @@ func ServerForm(server *services.ServerInfo, isEdit bool) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " x-data=\"{ loading: false }\" @htmx:before-request=\"loading = true\" @htmx:after-request=\"loading = false; document.getElementById('server-modal')?.remove(); window.location.reload();\"><div class=\"space-y-4\"><div><label for=\"name\" class=\"block text-sm font-medium text-gray-700 dark:text-gray-300\">Name</label> <input type=\"text\" id=\"name\" name=\"name\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " hx-ext=\"json-enc\" x-data=\"{ loading: false }\" @htmx:before-request=\"loading = true\" @htmx:after-request=\"loading = false; if (event.detail.successful) { document.getElementById('server-modal')?.remove(); window.location.reload(); } else { try { const resp = JSON.parse(event.detail.xhr.responseText); alert(resp.error || 'Failed to save server'); } catch(e) { alert('Failed to save server'); } }\"><div class=\"space-y-4\"><div><label for=\"name\" class=\"block text-sm font-medium text-gray-700 dark:text-gray-300\">Name</label> <input type=\"text\" id=\"name\" name=\"name\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -86,7 +86,7 @@ func ServerForm(server *services.ServerInfo, isEdit bool) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(server.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/forms/server_form.templ`, Line: 32, Col: 27}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/forms/server_form.templ`, Line: 33, Col: 27}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -129,7 +129,7 @@ func ServerForm(server *services.ServerInfo, isEdit bool) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(server.URL)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/forms/server_form.templ`, Line: 74, Col: 26}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/forms/server_form.templ`, Line: 75, Col: 26}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {

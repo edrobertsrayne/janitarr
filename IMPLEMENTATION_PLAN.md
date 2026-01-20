@@ -764,18 +764,18 @@ go get golang.org/x/term  # for IsTerminal check
 3. JSON decode fails on form data, producing empty struct with empty values
 4. Empty values cause connection test to fail
 
-- [ ] Add HTMX json-enc extension to `src/templates/layouts/base.templ`:
-  - [ ] Add `<script src="https://unpkg.com/htmx.org/dist/ext/json-enc.js"></script>` or include locally
-  - [ ] Alternatively, download to `static/js/htmx-json-enc.min.js` and add local script tag
+- [x] Add HTMX json-enc extension to `src/templates/layouts/base.templ`:
+  - [x] Downloaded to `static/js/htmx-json-enc.min.js`
+  - [x] Added local script tag (line 14)
 
-- [ ] Update `src/templates/components/forms/server_form.templ`:
-  - [ ] Add `hx-ext="json-enc"` attribute to the form element (line 15)
-  - [ ] This converts form data to JSON automatically for HTMX requests
+- [x] Update `src/templates/components/forms/server_form.templ`:
+  - [x] Add `hx-ext="json-enc"` attribute to the form element (line 21)
+  - [x] This converts form data to JSON automatically for HTMX requests
 
-- [ ] Fix error handling in form's `@htmx:after-request`:
-  - [ ] Change line 23 to check response status before closing modal
-  - [ ] Display error message if request failed
-  - [ ] Only reload on success
+- [x] Fix error handling in form's `@htmx:after-request`:
+  - [x] Changed line 24 to check response status before closing modal
+  - [x] Display error message if request failed
+  - [x] Only reload on success
 
 **Updated form event handler:**
 
