@@ -616,6 +616,7 @@ All phases have been completed:
 - **Phase 9:** Test Suite Cleanup - Refactored tests, removed obsolete files
 - **Phase 10:** Enhanced Logging System - charmbracelet/log integration, log levels, metadata, retention, filters
 - **Phase 11:** Interactive CLI Forms - charmbracelet/huh integration, interactive forms, confirmations, --non-interactive flag
+- **Phase 12:** Web Interface and API Bug Fixes - Quality profile JSON fix, server card feedback, form encoding, connection logging
 
 ---
 
@@ -646,6 +647,16 @@ All phases have been completed:
 - [x] `--non-interactive` flag works
 - [x] Non-TTY input detected and handled
 - [x] `logs --clear` has confirmation with log count
+
+### Phase 12: Web Interface and API Bug Fixes ✅
+
+- [x] Quality profile JSON unmarshaling fixed (now uses integer ID instead of struct)
+- [x] Quality profile names fetched via API and mapped to IDs
+- [x] Server card test button provides visual feedback (Alpine.js implementation)
+- [x] Server edit form uses JSON encoding (HTMX json-enc extension)
+- [x] Connection tests logged with server name and result
+- [x] All tests pass (unit tests + race detection)
+- [x] Binary builds successfully
 
 ---
 
