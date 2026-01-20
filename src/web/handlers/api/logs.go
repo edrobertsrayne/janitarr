@@ -32,6 +32,7 @@ func (h *LogHandlers) ListLogs(w http.ResponseWriter, r *http.Request) {
 	operationFilter := r.URL.Query().Get("operation")
 	fromDate := r.URL.Query().Get("from")
 	toDate := r.URL.Query().Get("to")
+	searchQuery := r.URL.Query().Get("search")
 
 	limit := 20 // Default limit
 	if limitStr != "" {
@@ -63,6 +64,9 @@ func (h *LogHandlers) ListLogs(w http.ResponseWriter, r *http.Request) {
 	}
 	if toDate != "" {
 		filters.ToDate = &toDate
+	}
+	if searchQuery != "" {
+		filters.Search = &searchQuery
 	}
 
 	logs, err := h.DB.GetLogs(ctx, limit, offset, filters)
