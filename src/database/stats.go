@@ -56,3 +56,34 @@ func (db *DB) GetServerStats(serverID string) ServerStats {
 
 	return stats
 }
+
+// GetServerCounts retrieves server counts grouped by type
+func (db *DB) GetServerCounts() (map[string]ServerCounts, error) {
+	rows, err := db.conn.Query(`
+		SELECT
+			type,
+			COUNT(*) as configured,
+			SUM(CASE WHEN enabled = 1 THEN 1 ELSE 0 END) as enabled
+		FROM servers
+		GROUP BY type
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	counts := make(map[string]ServerCounts)
+	for rows.Next() {
+		var serverType string
+		var configured, enabled int
+		if err := rows.Scan(&serverType, &configured, &enabled); err != nil {
+			return nil, err
+		}
+		counts[serverType] = ServerCounts{
+			Configured: configured,
+			Enabled:    enabled,
+		}
+	}
+
+	return counts, rows.Err()
+}

@@ -41,6 +41,16 @@ type Server struct {
 func NewServer(config ServerConfig) *Server {
 	r := chi.NewRouter()
 	prometheusMetrics := metrics.NewMetrics() // Initialize Prometheus metrics
+
+	// Wire scheduler and database to metrics
+	if config.Scheduler != nil {
+		prometheusMetrics.SetScheduler(config.Scheduler)
+	}
+	if config.DB != nil {
+		prometheusMetrics.SetDatabase(config.DB)
+	}
+	prometheusMetrics.SetVersion("0.1.0") // TODO: Get from build flags
+
 	wsHub := websocket.NewLogHub(config.Logger)
 	go wsHub.Run() // Start the WebSocket hub
 	return &Server{

@@ -121,3 +121,9 @@ type SystemStats struct {
 	SearchesLast24h int    `json:"searchesLast24h"`
 	ErrorsLast24h   int    `json:"errorsLast24h"`
 }
+
+// ServerCounts represents counts of servers by type
+type ServerCounts struct {
+	Configured int `json:"configured"` // Total servers configured
+	Enabled    int `json:"enabled"`    // Servers that are enabled
+}
