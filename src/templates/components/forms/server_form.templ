@@ -113,11 +113,60 @@ templ ServerForm(server *services.ServerInfo, isEdit bool) {
 						</label>
 					</div>
 				}
-				<div x-data="{ testResult: '', testing: false }">
+				<div
+					x-data="{ testResult: '', testing: false }"
+					if isEdit && server != nil {
+						data-is-edit="true"
+						data-server-id={ server.ID }
+					} else {
+						data-is-edit="false"
+					}>
 					<button
 						type="button"
 						id="test-connection-btn"
-						@click="testing = true; testResult = ''; fetch('/api/servers/test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: document.getElementById('name').value, type: document.querySelector('input[name=type]:checked')?.value || 'radarr', url: document.getElementById('url').value, apiKey: document.getElementById('apiKey').value }) }).then(r => r.json()).then(data => { testing = false; testResult = data.success ? 'Connection successful' : (data.error || 'Connection failed') }).catch(err => { testing = false; testResult = 'Connection failed: ' + err.message })"
+						@click="
+							testing = true;
+							testResult = '';
+							const apiKeyValue = document.getElementById('apiKey').value;
+							const container = $el.closest('[data-is-edit]');
+							const isEditMode = container.dataset.isEdit === 'true';
+							const serverId = container.dataset.serverId;
+
+							// If editing and no new API key provided, use existing server test endpoint
+							if (isEditMode && !apiKeyValue && serverId) {
+								fetch('/api/servers/' + serverId + '/test', { method: 'POST' })
+									.then(r => r.json())
+									.then(data => {
+										testing = false;
+										testResult = data.success ? 'Connection successful (' + (data.version || '') + ')' : (data.error || 'Connection failed');
+									})
+									.catch(err => {
+										testing = false;
+										testResult = 'Connection failed: ' + err.message;
+									});
+							} else {
+								// New server or editing with new API key - test with provided credentials
+								fetch('/api/servers/test', {
+									method: 'POST',
+									headers: { 'Content-Type': 'application/json' },
+									body: JSON.stringify({
+										name: document.getElementById('name').value,
+										type: document.querySelector('input[name=type]:checked')?.value || 'radarr',
+										url: document.getElementById('url').value,
+										apiKey: apiKeyValue
+									})
+								})
+									.then(r => r.json())
+									.then(data => {
+										testing = false;
+										testResult = data.success ? 'Connection successful (' + (data.version || '') + ')' : (data.error || 'Connection failed');
+									})
+									.catch(err => {
+										testing = false;
+										testResult = 'Connection failed: ' + err.message;
+									});
+							}
+						"
 						:disabled="testing"
 						class="w-full btn btn-ghost">
 						<span x-show="!testing">Test Connection</span>
@@ -126,7 +175,7 @@ templ ServerForm(server *services.ServerInfo, isEdit bool) {
 							Testing...
 						</span>
 					</button>
-					<div x-show="testResult" class="mt-2 text-sm" :class="testResult === 'Connection successful' ? 'text-success' : 'text-error'" x-text="testResult"></div>
+					<div x-show="testResult" class="mt-2 text-sm" :class="testResult.startsWith('Connection successful') ? 'text-success' : 'text-error'" x-text="testResult"></div>
 				</div>
 			</form>
 			<div class="modal-action">

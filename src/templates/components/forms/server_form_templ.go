@@ -175,22 +175,50 @@ func ServerForm(server *services.ServerInfo, isEdit bool) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<div x-data=\"{ testResult: '', testing: false }\"><button type=\"button\" id=\"test-connection-btn\" @click=\"testing = true; testResult = ''; fetch('/api/servers/test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: document.getElementById('name').value, type: document.querySelector('input[name=type]:checked')?.value || 'radarr', url: document.getElementById('url').value, apiKey: document.getElementById('apiKey').value }) }).then(r => r.json()).then(data => { testing = false; testResult = data.success ? 'Connection successful' : (data.error || 'Connection failed') }).catch(err => { testing = false; testResult = 'Connection failed: ' + err.message })\" :disabled=\"testing\" class=\"w-full btn btn-ghost\"><span x-show=\"!testing\">Test Connection</span> <span x-show=\"testing\" class=\"flex items-center gap-2\"><span class=\"loading loading-spinner loading-sm\"></span> Testing...</span></button><div x-show=\"testResult\" class=\"mt-2 text-sm\" :class=\"testResult === 'Connection successful' ? 'text-success' : 'text-error'\" x-text=\"testResult\"></div></div></form><div class=\"modal-action\"><button type=\"button\" onclick=\"document.getElementById('server-modal').close()\" class=\"btn btn-ghost\">Cancel</button> <button type=\"submit\" form=\"server-form\" x-bind:disabled=\"loading\" class=\"btn btn-primary\"><span x-show=\"!loading\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<div x-data=\"{ testResult: '', testing: false }\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if isEdit {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "Update")
+		if isEdit && server != nil {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, " data-is-edit=\"true\" data-server-id=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var5 string
+			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(server.ID)
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/forms/server_form.templ`, Line: 120, Col: 32}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "Create")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, " data-is-edit=\"false\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</span> <span x-show=\"loading\" class=\"flex items-center gap-2\"><span class=\"loading loading-spinner loading-sm\"></span> Saving...</span></button></div></div><form method=\"dialog\" class=\"modal-backdrop\"><button>close</button></form></dialog>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "><button type=\"button\" id=\"test-connection-btn\" @click=\"\n\t\t\t\t\t\t\ttesting = true;\n\t\t\t\t\t\t\ttestResult = '';\n\t\t\t\t\t\t\tconst apiKeyValue = document.getElementById('apiKey').value;\n\t\t\t\t\t\t\tconst container = $el.closest('[data-is-edit]');\n\t\t\t\t\t\t\tconst isEditMode = container.dataset.isEdit === 'true';\n\t\t\t\t\t\t\tconst serverId = container.dataset.serverId;\n\n\t\t\t\t\t\t\t// If editing and no new API key provided, use existing server test endpoint\n\t\t\t\t\t\t\tif (isEditMode && !apiKeyValue && serverId) {\n\t\t\t\t\t\t\t\tfetch('/api/servers/' + serverId + '/test', { method: 'POST' })\n\t\t\t\t\t\t\t\t\t.then(r => r.json())\n\t\t\t\t\t\t\t\t\t.then(data => {\n\t\t\t\t\t\t\t\t\t\ttesting = false;\n\t\t\t\t\t\t\t\t\t\ttestResult = data.success ? 'Connection successful (' + (data.version || '') + ')' : (data.error || 'Connection failed');\n\t\t\t\t\t\t\t\t\t})\n\t\t\t\t\t\t\t\t\t.catch(err => {\n\t\t\t\t\t\t\t\t\t\ttesting = false;\n\t\t\t\t\t\t\t\t\t\ttestResult = 'Connection failed: ' + err.message;\n\t\t\t\t\t\t\t\t\t});\n\t\t\t\t\t\t\t} else {\n\t\t\t\t\t\t\t\t// New server or editing with new API key - test with provided credentials\n\t\t\t\t\t\t\t\tfetch('/api/servers/test', {\n\t\t\t\t\t\t\t\t\tmethod: 'POST',\n\t\t\t\t\t\t\t\t\theaders: { 'Content-Type': 'application/json' },\n\t\t\t\t\t\t\t\t\tbody: JSON.stringify({\n\t\t\t\t\t\t\t\t\t\tname: document.getElementById('name').value,\n\t\t\t\t\t\t\t\t\t\ttype: document.querySelector('input[name=type]:checked')?.value || 'radarr',\n\t\t\t\t\t\t\t\t\t\turl: document.getElementById('url').value,\n\t\t\t\t\t\t\t\t\t\tapiKey: apiKeyValue\n\t\t\t\t\t\t\t\t\t})\n\t\t\t\t\t\t\t\t})\n\t\t\t\t\t\t\t\t\t.then(r => r.json())\n\t\t\t\t\t\t\t\t\t.then(data => {\n\t\t\t\t\t\t\t\t\t\ttesting = false;\n\t\t\t\t\t\t\t\t\t\ttestResult = data.success ? 'Connection successful (' + (data.version || '') + ')' : (data.error || 'Connection failed');\n\t\t\t\t\t\t\t\t\t})\n\t\t\t\t\t\t\t\t\t.catch(err => {\n\t\t\t\t\t\t\t\t\t\ttesting = false;\n\t\t\t\t\t\t\t\t\t\ttestResult = 'Connection failed: ' + err.message;\n\t\t\t\t\t\t\t\t\t});\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\" :disabled=\"testing\" class=\"w-full btn btn-ghost\"><span x-show=\"!testing\">Test Connection</span> <span x-show=\"testing\" class=\"flex items-center gap-2\"><span class=\"loading loading-spinner loading-sm\"></span> Testing...</span></button><div x-show=\"testResult\" class=\"mt-2 text-sm\" :class=\"testResult.startsWith('Connection successful') ? 'text-success' : 'text-error'\" x-text=\"testResult\"></div></div></form><div class=\"modal-action\"><button type=\"button\" onclick=\"document.getElementById('server-modal').close()\" class=\"btn btn-ghost\">Cancel</button> <button type=\"submit\" form=\"server-form\" x-bind:disabled=\"loading\" class=\"btn btn-primary\"><span x-show=\"!loading\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if isEdit {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "Update")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "Create")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "</span> <span x-show=\"loading\" class=\"flex items-center gap-2\"><span class=\"loading loading-spinner loading-sm\"></span> Saving...</span></button></div></div><form method=\"dialog\" class=\"modal-backdrop\"><button>close</button></form></dialog>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
