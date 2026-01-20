@@ -19,6 +19,7 @@
     "@types/bun": "latest",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
+    "daisyui": "^5.5.14",
     "eslint": "^8.0.0",
     "playwright": "^1.49.0",
     "tailwindcss": "3",

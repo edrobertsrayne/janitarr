@@ -1,109 +1,63 @@
 # Janitarr Specifications
 
-This directory contains the design specifications for Janitarr, an automation tool for managing Radarr and Sonarr media servers. These specifications define the requirements, acceptance criteria, and implementation constraints for each feature area.
-
-## About These Specifications
-
-Each specification document follows a consistent structure:
-
-- **Context**: Background and purpose of the feature
-- **Requirements**: User stories with acceptance criteria
-- **Edge Cases & Constraints**: Technical considerations and limitations
-
-The specifications are implementation-agnostic and focus on _what_ the system should do rather than _how_ it should be built.
+Automation tool for managing Radarr and Sonarr media servers. Written in Go.
 
 ## Technology Stack
 
-Janitarr is implemented in Go with the following technologies:
+| Component       | Technology                                |
+| --------------- | ----------------------------------------- |
+| Language        | Go 1.22+                                  |
+| Web Framework   | Chi (go-chi/chi/v5)                       |
+| Database        | modernc.org/sqlite (pure Go, no CGO)      |
+| CLI             | Cobra (spf13/cobra)                       |
+| CLI Forms       | charmbracelet/huh                         |
+| Console Logging | charmbracelet/log                         |
+| Templates       | templ (a-h/templ)                         |
+| Frontend        | htmx + Alpine.js + Tailwind CSS + DaisyUI |
 
-- **Language**: Go 1.22+
-- **Web Framework**: Chi (go-chi/chi/v5)
-- **Database**: modernc.org/sqlite (pure Go, no CGO)
-- **CLI**: Cobra (spf13/cobra)
-- **CLI Forms**: charmbracelet/huh (interactive terminal forms)
-- **Console Logging**: charmbracelet/log (colorized structured logging)
-- **Templates**: templ (a-h/templ)
-- **Frontend**: htmx + Alpine.js + Tailwind CSS
+## Core Architecture
 
-See [go-architecture.md](./go-architecture.md) for Go-specific patterns and conventions.
+| Spec                                       | Code   | Purpose                                     |
+| ------------------------------------------ | ------ | ------------------------------------------- |
+| [go-architecture.md](./go-architecture.md) | `src/` | Go patterns, conventions, project structure |
 
-## Specifications by Category
+## Server Configuration
 
-### Configuration
+| Spec                                                 | Code                                                          | Purpose                                            |
+| ---------------------------------------------------- | ------------------------------------------------------------- | -------------------------------------------------- |
+| [server-configuration.md](./server-configuration.md) | `src/services/server_manager.go`<br>`src/database/servers.go` | Radarr/Sonarr connections, credentials, validation |
 
-| Spec                                                 | Code                                                          | Purpose                                                                    |
-| ---------------------------------------------------- | ------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| [server-configuration.md](./server-configuration.md) | `src/services/server_manager.go`<br>`src/database/servers.go` | Managing Radarr and Sonarr server connections, credentials, and validation |
+## Content Detection
 
-### Detection
+| Spec                                                           | Code                                                                     | Purpose                                    |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------ |
+| [missing-content-detection.md](./missing-content-detection.md) | `src/services/detector.go`<br>`src/api/radarr.go`<br>`src/api/sonarr.go` | Identify missing monitored episodes/movies |
+| [quality-cutoff-detection.md](./quality-cutoff-detection.md)   | `src/services/detector.go`<br>`src/api/radarr.go`<br>`src/api/sonarr.go` | Identify media below quality cutoff        |
 
-| Spec                                                           | Code                                                                     | Purpose                                                                            |
-| -------------------------------------------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
-| [missing-content-detection.md](./missing-content-detection.md) | `src/services/detector.go`<br>`src/api/radarr.go`<br>`src/api/sonarr.go` | Identifying monitored episodes and movies that are missing from media libraries    |
-| [quality-cutoff-detection.md](./quality-cutoff-detection.md)   | `src/services/detector.go`<br>`src/api/radarr.go`<br>`src/api/sonarr.go` | Identifying media that exists but hasn't met the configured quality profile cutoff |
+## Search & Automation
 
-### Actions
+| Spec                                                       | Code                                                                                      | Purpose                                                   |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| [search-triggering.md](./search-triggering.md)             | `src/services/search_trigger.go`<br>`src/api/client.go`                                   | Trigger searches with limits, dry-run mode                |
+| [automatic-scheduling.md](./automatic-scheduling.md)       | `src/services/scheduler.go`<br>`src/services/automation.go`                               | Scheduled detection/search cycles, manual triggers        |
+| [unified-service-startup.md](./unified-service-startup.md) | `src/cli/start.go`<br>`src/cli/dev.go`<br>`src/web/server.go`<br>`src/metrics/metrics.go` | Unified daemon startup, health checks, Prometheus metrics |
 
-| Spec                                           | Code                                                    | Purpose                                                                                                                                  |
-| ---------------------------------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| [search-triggering.md](./search-triggering.md) | `src/services/search_trigger.go`<br>`src/api/client.go` | Initiating content searches in Radarr/Sonarr with user-defined limits per category<br>**Includes:** Dry-run mode for previewing searches |
+## Logging & Monitoring
 
-### Automation
+| Spec                                         | Code                                                                            | Purpose                                           |
+| -------------------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------- |
+| [logging.md](./logging.md)                   | `src/logger/logger.go`<br>`src/database/logs.go`<br>`src/web/websocket/logs.go` | Unified logging: console, web streaming, database |
+| [activity-logging.md](./activity-logging.md) | `src/logger/logger.go`<br>`src/database/logs.go`                                | Audit trail for searches, cycles, failures        |
 
-| Spec                                                       | Code                                                                                      | Purpose                                                                                                                                                              |
-| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [automatic-scheduling.md](./automatic-scheduling.md)       | `src/services/scheduler.go`<br>`src/services/automation.go`                               | Configuring and executing detection and search operations on a scheduled interval<br>**Includes:** Manual triggers, dry-run preview mode                             |
-| [unified-service-startup.md](./unified-service-startup.md) | `src/cli/start.go`<br>`src/cli/dev.go`<br>`src/web/server.go`<br>`src/metrics/metrics.go` | Running scheduler daemon and web server together with unified startup commands<br>**Includes:** Development mode, production mode, health checks, Prometheus metrics |
+## Web Frontend
 
-### Monitoring
+| Spec                                           | Code                                          | Purpose                                              |
+| ---------------------------------------------- | --------------------------------------------- | ---------------------------------------------------- |
+| [web-frontend.md](./web-frontend.md)           | `src/templates/`<br>`src/web/handlers/pages/` | templ + htmx + Alpine.js UI, WebSocket log streaming |
+| [daisyui-migration.md](./daisyui-migration.md) | `src/templates/`<br>`tailwind.config.cjs`     | DaisyUI components, 32-theme switcher                |
 
-| Spec                                         | Code                                                                            | Purpose                                                                                                 |
-| -------------------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| [logging.md](./logging.md)                   | `src/logger/logger.go`<br>`src/database/logs.go`<br>`src/web/websocket/logs.go` | Unified logging system with console output (charmbracelet/log), web streaming, and database persistence |
-| [activity-logging.md](./activity-logging.md) | `src/logger/logger.go`<br>`src/database/logs.go`                                | Recording all triggered searches, automation cycles, and failures for audit and troubleshooting         |
+## CLI Interface
 
-### User Interface
-
-| Spec                                   | Code                                          | Purpose                                                                                                                                                              |
-| -------------------------------------- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [web-frontend.md](./web-frontend.md)   | `src/templates/`<br>`src/web/handlers/pages/` | Modern web interface using templ templates, htmx for dynamic updates, and Alpine.js for interactivity<br>**Includes:** Tailwind CSS styling, WebSocket log streaming |
-| [cli-interface.md](./cli-interface.md) | `src/cli/`<br>`src/cli/forms/`                | Interactive terminal forms using charmbracelet/huh for server management and configuration<br>**Includes:** Server add/edit forms, configuration dialogs             |
-
-### Architecture
-
-| Spec                                       | Purpose                                                       |
-| ------------------------------------------ | ------------------------------------------------------------- |
-| [go-architecture.md](./go-architecture.md) | Go-specific patterns, conventions, and implementation details |
-
-## Implementation Flow
-
-The specifications are organized to reflect the logical flow of the automation system:
-
-1. **Configuration** → User configures server connections
-2. **Detection** → System identifies missing content and quality upgrade opportunities
-3. **Actions** → System triggers searches based on configured limits
-4. **Automation** → System executes the detection and action cycle on schedule
-5. **Monitoring** → System logs all operations for visibility and troubleshooting
-
-## Reading Guide
-
-If you're new to the project, read the specifications in this recommended order:
-
-1. Start with [server-configuration.md](./server-configuration.md) - the foundation
-2. Read the detection specs: [missing-content-detection.md](./missing-content-detection.md) and [quality-cutoff-detection.md](./quality-cutoff-detection.md)
-3. Understand actions via [search-triggering.md](./search-triggering.md)
-4. Learn about automation in [automatic-scheduling.md](./automatic-scheduling.md)
-5. See [unified-service-startup.md](./unified-service-startup.md) for running the complete application
-6. Review [logging.md](./logging.md) for the unified logging system
-7. Review [activity-logging.md](./activity-logging.md) for what events are logged
-8. (Optional) See [web-frontend.md](./web-frontend.md) for web UI specifications
-9. (Optional) See [cli-interface.md](./cli-interface.md) for interactive CLI forms
-
-## Contributing
-
-When adding new features:
-
-1. Create a specification document in this directory first
-2. Follow the existing document structure (Context → Requirements → Edge Cases)
-3. Update this README to include your new specification in the appropriate category
-4. Link to the relevant implementation code locations
+| Spec                                   | Code                           | Purpose                                        |
+| -------------------------------------- | ------------------------------ | ---------------------------------------------- |
+| [cli-interface.md](./cli-interface.md) | `src/cli/`<br>`src/cli/forms/` | Interactive terminal forms (charmbracelet/huh) |

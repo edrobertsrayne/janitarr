@@ -1,6 +1,9 @@
 module.exports = {
   content: ["./src/templates/**/*.templ", "./src/templates/**/*_templ.go"],
-  darkMode: "class",
   theme: { extend: {} },
-  plugins: [],
+  plugins: [require("daisyui")],
+  daisyui: {
+    themes: true, // Enable all 32 themes
+    darkTheme: "night", // Default dark theme
+  },
 };

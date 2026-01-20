@@ -10,12 +10,74 @@ templ Settings(config database.AppConfig, logCount int) {
 	@layouts.Base("Settings") {
 		<div class="max-w-4xl mx-auto">
 			<div class="mb-6">
-				<h1 class="text-3xl font-bold text-gray-900 dark:text-white">Settings</h1>
-				<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+				<h1 class="text-3xl font-bold">Settings</h1>
+				<p class="mt-2 text-sm text-base-content/60">
 					Configure automation schedule and search limits
 				</p>
 			</div>
+			@ThemeSelector()
 			@forms.ConfigForm(config, logCount)
 		</div>
 	}
+}
+
+templ ThemeSelector() {
+	<div class="card bg-base-100 shadow-xl mb-6">
+		<div class="card-body">
+			<h2 class="card-title">Appearance</h2>
+			<p class="text-base-content/70">Choose your preferred theme</p>
+
+			<div class="form-control w-full max-w-xs">
+				<label class="label">
+					<span class="label-text">Theme</span>
+				</label>
+				<select
+					class="select select-bordered w-full"
+					x-data
+					x-on:change="
+						localStorage.setItem('janitarr-theme', $event.target.value);
+						document.documentElement.setAttribute('data-theme', $event.target.value);
+					"
+					x-init="$el.value = localStorage.getItem('janitarr-theme') || 'night'"
+				>
+					<optgroup label="Dark Themes">
+						<option value="night">Night (Default)</option>
+						<option value="dark">Dark</option>
+						<option value="synthwave">Synthwave</option>
+						<option value="halloween">Halloween</option>
+						<option value="forest">Forest</option>
+						<option value="aqua">Aqua</option>
+						<option value="black">Black</option>
+						<option value="luxury">Luxury</option>
+						<option value="dracula">Dracula</option>
+						<option value="business">Business</option>
+						<option value="coffee">Coffee</option>
+						<option value="dim">Dim</option>
+						<option value="nord">Nord</option>
+						<option value="sunset">Sunset</option>
+					</optgroup>
+					<optgroup label="Light Themes">
+						<option value="light">Light</option>
+						<option value="cupcake">Cupcake</option>
+						<option value="bumblebee">Bumblebee</option>
+						<option value="emerald">Emerald</option>
+						<option value="corporate">Corporate</option>
+						<option value="retro">Retro</option>
+						<option value="cyberpunk">Cyberpunk</option>
+						<option value="valentine">Valentine</option>
+						<option value="garden">Garden</option>
+						<option value="lofi">Lofi</option>
+						<option value="pastel">Pastel</option>
+						<option value="fantasy">Fantasy</option>
+						<option value="wireframe">Wireframe</option>
+						<option value="cmyk">CMYK</option>
+						<option value="autumn">Autumn</option>
+						<option value="acid">Acid</option>
+						<option value="lemonade">Lemonade</option>
+						<option value="winter">Winter</option>
+					</optgroup>
+				</select>
+			</div>
+		</div>
+	</div>
 }

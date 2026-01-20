@@ -31,7 +31,7 @@ func ServerForm(server *services.ServerInfo, isEdit bool) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4\" id=\"server-modal\"><div class=\"bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6\"><h2 class=\"text-xl font-bold text-gray-900 dark:text-white mb-4\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<dialog id=\"server-modal\" class=\"modal\"><div class=\"modal-box\"><h3 class=\"font-bold text-lg\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -46,7 +46,7 @@ func ServerForm(server *services.ServerInfo, isEdit bool) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</h2><form")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</h3><form id=\"server-form\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -58,7 +58,7 @@ func ServerForm(server *services.ServerInfo, isEdit bool) templ.Component {
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs("/api/servers/" + server.ID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/forms/server_form.templ`, Line: 17, Col: 41}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/forms/server_form.templ`, Line: 18, Col: 41}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -74,7 +74,7 @@ func ServerForm(server *services.ServerInfo, isEdit bool) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " hx-ext=\"json-enc\" x-data=\"{ loading: false }\" @htmx:before-request=\"loading = true\" @htmx:after-request=\"loading = false; if (event.detail.successful) { document.getElementById('server-modal')?.remove(); window.location.reload(); } else { try { const resp = JSON.parse(event.detail.xhr.responseText); alert(resp.error || 'Failed to save server'); } catch(e) { alert('Failed to save server'); } }\"><div class=\"space-y-4\"><div><label for=\"name\" class=\"block text-sm font-medium text-gray-700 dark:text-gray-300\">Name</label> <input type=\"text\" id=\"name\" name=\"name\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " hx-ext=\"json-enc\" x-data=\"{ loading: false }\" @htmx:before-request=\"loading = true\" @htmx:after-request=\"loading = false; if (event.detail.successful) { document.getElementById('server-modal')?.close(); window.location.reload(); } else { try { const resp = JSON.parse(event.detail.xhr.responseText); alert(resp.error || 'Failed to save server'); } catch(e) { alert('Failed to save server'); } }\" class=\"space-y-4 mt-4\"><div class=\"form-control w-full\"><label class=\"label\"><span class=\"label-text\">Name</span></label> <input type=\"text\" id=\"name\" name=\"name\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -86,7 +86,7 @@ func ServerForm(server *services.ServerInfo, isEdit bool) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(server.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/forms/server_form.templ`, Line: 33, Col: 27}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/forms/server_form.templ`, Line: 36, Col: 26}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -97,7 +97,7 @@ func ServerForm(server *services.ServerInfo, isEdit bool) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, " required class=\"mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white\"></div><div><label class=\"block text-sm font-medium text-gray-700 dark:text-gray-300\">Type</label><div class=\"mt-2 flex gap-4\"><div class=\"flex items-center\"><input type=\"radio\" id=\"radarr\" name=\"type\" value=\"radarr\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, " required class=\"input input-bordered w-full\"></div><div class=\"form-control w-full\"><label class=\"label\"><span class=\"label-text\">Type</span></label><div class=\"space-y-2\"><div class=\"form-control\"><label class=\"label cursor-pointer justify-start gap-4\"><input type=\"radio\" id=\"radarr\" name=\"type\" value=\"radarr\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -107,7 +107,7 @@ func ServerForm(server *services.ServerInfo, isEdit bool) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, " required class=\"h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:bg-gray-700 dark:border-gray-600\"> <label for=\"radarr\" class=\"ml-2 block text-sm text-gray-700 dark:text-gray-300\">Radarr</label></div><div class=\"flex items-center\"><input type=\"radio\" id=\"sonarr\" name=\"type\" value=\"sonarr\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, " required class=\"radio radio-primary\"> <span class=\"label-text\">Radarr</span></label></div><div class=\"form-control\"><label class=\"label cursor-pointer justify-start gap-4\"><input type=\"radio\" id=\"sonarr\" name=\"type\" value=\"sonarr\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -117,7 +117,7 @@ func ServerForm(server *services.ServerInfo, isEdit bool) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, " class=\"h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:bg-gray-700 dark:border-gray-600\"> <label for=\"sonarr\" class=\"ml-2 block text-sm text-gray-700 dark:text-gray-300\">Sonarr</label></div></div></div><div><label for=\"url\" class=\"block text-sm font-medium text-gray-700 dark:text-gray-300\">URL</label> <input type=\"url\" id=\"url\" name=\"url\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, " class=\"radio radio-secondary\"> <span class=\"label-text\">Sonarr</span></label></div></div></div><div class=\"form-control w-full\"><label class=\"label\"><span class=\"label-text\">URL</span></label> <input type=\"url\" id=\"url\" name=\"url\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -129,7 +129,7 @@ func ServerForm(server *services.ServerInfo, isEdit bool) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(server.URL)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/forms/server_form.templ`, Line: 75, Col: 26}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/forms/server_form.templ`, Line: 82, Col: 25}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -140,7 +140,7 @@ func ServerForm(server *services.ServerInfo, isEdit bool) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, " placeholder=\"http://localhost:7878\" required class=\"mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white\"></div><div><label for=\"apiKey\" class=\"block text-sm font-medium text-gray-700 dark:text-gray-300\">API Key</label> <input type=\"password\" id=\"apiKey\" name=\"apiKey\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, " placeholder=\"http://localhost:7878\" required class=\"input input-bordered w-full\"></div><div class=\"form-control w-full\"><label class=\"label\"><span class=\"label-text\">API Key</span></label> <input type=\"password\" id=\"apiKey\" name=\"apiKey\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -155,12 +155,12 @@ func ServerForm(server *services.ServerInfo, isEdit bool) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, " class=\"mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white\"></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, " class=\"input input-bordered w-full\"></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if isEdit && server != nil {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<div class=\"flex items-center\"><input type=\"checkbox\" id=\"enabled\" name=\"enabled\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<div class=\"form-control\"><label class=\"label cursor-pointer justify-start gap-4\"><input type=\"checkbox\" id=\"enabled\" name=\"enabled\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -170,12 +170,12 @@ func ServerForm(server *services.ServerInfo, isEdit bool) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, " class=\"h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600\"> <label for=\"enabled\" class=\"ml-2 block text-sm text-gray-700 dark:text-gray-300\">Enabled</label></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, " class=\"checkbox checkbox-primary\"> <span class=\"label-text\">Enabled</span></label></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<div x-data=\"{ testResult: '', testing: false }\"><button type=\"button\" id=\"test-connection-btn\" @click=\"testing = true; testResult = ''; fetch('/api/servers/test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: document.getElementById('name').value, type: document.querySelector('input[name=type]:checked')?.value || 'radarr', url: document.getElementById('url').value, apiKey: document.getElementById('apiKey').value }) }).then(r => r.json()).then(data => { testing = false; testResult = data.success ? 'Connection successful' : (data.error || 'Connection failed') }).catch(err => { testing = false; testResult = 'Connection failed: ' + err.message })\" :disabled=\"testing\" class=\"w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500\"><span x-show=\"!testing\">Test Connection</span> <span x-show=\"testing\">Testing...</span></button><div x-show=\"testResult\" class=\"mt-2 text-sm\" :class=\"testResult === 'Connection successful' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'\" x-text=\"testResult\"></div></div></div><div class=\"mt-6 flex gap-3\"><button type=\"submit\" x-bind:disabled=\"loading\" class=\"flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-500 dark:hover:bg-blue-600\"><span x-show=\"!loading\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<div x-data=\"{ testResult: '', testing: false }\"><button type=\"button\" id=\"test-connection-btn\" @click=\"testing = true; testResult = ''; fetch('/api/servers/test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: document.getElementById('name').value, type: document.querySelector('input[name=type]:checked')?.value || 'radarr', url: document.getElementById('url').value, apiKey: document.getElementById('apiKey').value }) }).then(r => r.json()).then(data => { testing = false; testResult = data.success ? 'Connection successful' : (data.error || 'Connection failed') }).catch(err => { testing = false; testResult = 'Connection failed: ' + err.message })\" :disabled=\"testing\" class=\"w-full btn btn-ghost\"><span x-show=\"!testing\">Test Connection</span> <span x-show=\"testing\" class=\"flex items-center gap-2\"><span class=\"loading loading-spinner loading-sm\"></span> Testing...</span></button><div x-show=\"testResult\" class=\"mt-2 text-sm\" :class=\"testResult === 'Connection successful' ? 'text-success' : 'text-error'\" x-text=\"testResult\"></div></div></form><div class=\"modal-action\"><button type=\"button\" onclick=\"document.getElementById('server-modal').close()\" class=\"btn btn-ghost\">Cancel</button> <button type=\"submit\" form=\"server-form\" x-bind:disabled=\"loading\" class=\"btn btn-primary\"><span x-show=\"!loading\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -190,7 +190,7 @@ func ServerForm(server *services.ServerInfo, isEdit bool) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</span> <span x-show=\"loading\" class=\"flex items-center justify-center\"><svg class=\"animate-spin h-5 w-5\" xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\"><circle class=\"opacity-25\" cx=\"12\" cy=\"12\" r=\"10\" stroke=\"currentColor\" stroke-width=\"4\"></circle> <path class=\"opacity-75\" fill=\"currentColor\" d=\"M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z\"></path></svg></span></button> <button type=\"button\" @click=\"document.getElementById('server-modal').remove()\" class=\"px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-500\">Cancel</button></div></form></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</span> <span x-show=\"loading\" class=\"flex items-center gap-2\"><span class=\"loading loading-spinner loading-sm\"></span> Saving...</span></button></div></div><form method=\"dialog\" class=\"modal-backdrop\"><button>close</button></form></dialog>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

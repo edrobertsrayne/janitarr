@@ -34,18 +34,15 @@ templ Dashboard(data DashboardData) {
 	@layouts.Base("Dashboard") {
 		<div class="max-w-7xl mx-auto">
 			<div class="mb-6 flex justify-between items-center">
-				<h1 class="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+				<h1 class="text-3xl font-bold">Dashboard</h1>
 				<button
 					hx-post="/api/automation/trigger"
 					hx-swap="none"
 					hx-indicator="#run-spinner"
-					class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+					class="btn btn-primary"
 				>
 					<span id="run-spinner" class="htmx-indicator">
-						<svg class="animate-spin h-5 w-5 mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-							<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-							<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-						</svg>
+						<span class="loading loading-spinner loading-sm"></span>
 					</span>
 					Run Now
 				</button>
@@ -66,43 +63,48 @@ templ Dashboard(data DashboardData) {
 				}
 			</div>
 			<!-- Server Status -->
-			<div class="bg-white dark:bg-gray-800 rounded-lg shadow mb-8">
-				<div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-					<h2 class="text-xl font-semibold text-gray-900 dark:text-white">Servers</h2>
-				</div>
-				<div class="p-6">
+			<div class="card bg-base-100 shadow-xl mb-8">
+				<div class="card-body">
+					<h2 class="card-title">Servers</h2>
+					<div class="divider mt-0"></div>
 					if len(data.Servers) == 0 {
-						<p class="text-gray-500 dark:text-gray-400 text-center py-8">
-							No servers configured. <a href="/servers" class="text-blue-600 hover:underline">Add a server</a> to get started.
-						</p>
+						<div class="p-12 text-center">
+							<svg class="mx-auto h-12 w-12 text-base-content/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"></path>
+							</svg>
+							<h3 class="mt-2 text-lg font-semibold">No servers configured</h3>
+							<p class="text-base-content/60 mt-1">
+								<a href="/servers" class="link link-primary">Add a server</a> to get started.
+							</p>
+						</div>
 					} else {
 						<div class="overflow-x-auto">
-							<table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+							<table class="table">
 								<thead>
 									<tr>
-										<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
-										<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
-										<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">URL</th>
-										<th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+										<th>Name</th>
+										<th>Type</th>
+										<th>URL</th>
+										<th>Status</th>
 									</tr>
 								</thead>
-								<tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+								<tbody>
 									for _, server := range data.Servers {
 										<tr>
-											<td class="px-4 py-3 text-sm text-gray-900 dark:text-white">{ server.Name }</td>
-											<td class="px-4 py-3 text-sm">
-												<span class={ "px-2 py-1 rounded text-xs font-medium",
-													templ.KV("bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200", server.Type == "radarr"),
-													templ.KV("bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200", server.Type == "sonarr") }>
+											<td>{ server.Name }</td>
+											<td>
+												<span class={ "badge",
+													templ.KV("badge-primary", server.Type == "radarr"),
+													templ.KV("badge-secondary", server.Type == "sonarr") }>
 													{ server.Type }
 												</span>
 											</td>
-											<td class="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">{ server.URL }</td>
-											<td class="px-4 py-3 text-sm">
+											<td class="text-base-content/70">{ server.URL }</td>
+											<td>
 												if server.Enabled {
-													<span class="px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded text-xs font-medium">Enabled</span>
+													<span class="badge badge-success">Enabled</span>
 												} else {
-													<span class="px-2 py-1 bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200 rounded text-xs font-medium">Disabled</span>
+													<span class="badge badge-ghost">Disabled</span>
 												}
 											</td>
 										</tr>
@@ -114,45 +116,46 @@ templ Dashboard(data DashboardData) {
 				</div>
 			</div>
 			<!-- Recent Activity -->
-			<div class="bg-white dark:bg-gray-800 rounded-lg shadow">
-				<div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-					<h2 class="text-xl font-semibold text-gray-900 dark:text-white">Recent Activity</h2>
-				</div>
-				<div class="p-6">
+			<div class="card bg-base-100 shadow-xl">
+				<div class="card-body">
+					<h2 class="card-title">Recent Activity</h2>
+					<div class="divider mt-0"></div>
 					if len(data.RecentLogs) == 0 {
-						<p class="text-gray-500 dark:text-gray-400 text-center py-8">No recent activity</p>
+						<div class="p-12 text-center">
+							<p class="text-base-content/60">No recent activity</p>
+						</div>
 					} else {
 						<div class="space-y-4">
 							for _, log := range data.RecentLogs {
 								<div class={ "p-4 rounded-lg",
-									templ.KV("bg-red-50 dark:bg-red-900/20", log.IsError),
-									templ.KV("bg-gray-50 dark:bg-gray-900/20", !log.IsError) }>
+									templ.KV("bg-error/10", log.IsError),
+									templ.KV("bg-base-200", !log.IsError) }>
 									<div class="flex items-start">
 										<div class="flex-shrink-0">
 											if log.IsError {
-												<svg class="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+												<svg class="h-5 w-5 text-error" fill="currentColor" viewBox="0 0 20 20">
 													<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
 												</svg>
 											} else {
-												<svg class="h-5 w-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+												<svg class="h-5 w-5 text-info" fill="currentColor" viewBox="0 0 20 20">
 													<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
 												</svg>
 											}
 										</div>
 										<div class="ml-3 flex-1">
 											<p class={ "text-sm",
-												templ.KV("text-red-800 dark:text-red-200", log.IsError),
-												templ.KV("text-gray-800 dark:text-gray-200", !log.IsError) }>
+												templ.KV("text-error", log.IsError),
+												templ.KV("text-base-content", !log.IsError) }>
 												{ log.Message }
 											</p>
-											<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{ log.Timestamp }</p>
+											<p class="text-xs text-base-content/60 mt-1">{ log.Timestamp }</p>
 										</div>
 									</div>
 								</div>
 							}
 						</div>
 						<div class="mt-4 text-center">
-							<a href="/logs" class="text-blue-600 hover:underline text-sm">View all logs →</a>
+							<a href="/logs" class="link link-primary text-sm">View all logs →</a>
 						</div>
 					}
 				</div>

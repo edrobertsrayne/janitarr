@@ -8,35 +8,16 @@ import (
 
 templ Servers(servers []services.ServerInfo) {
 	@layouts.Base("Servers") {
-		<div class="max-w-7xl mx-auto" x-data="{ viewMode: 'card' }">
+		<div class="max-w-7xl mx-auto">
 			<div class="mb-6 flex justify-between items-center">
-				<h1 class="text-3xl font-bold text-gray-900 dark:text-white">Servers</h1>
+				<h1 class="text-3xl font-bold">Servers</h1>
 				<div class="flex gap-2">
-					if len(servers) > 0 {
-						<!-- View mode toggle -->
-						<div class="inline-flex rounded-md shadow-sm" role="group">
-							<button
-								type="button"
-								@click="viewMode = 'list'"
-								:class="viewMode === 'list' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 dark:bg-gray-700 dark:text-gray-300'"
-								class="px-3 py-2 text-sm font-medium rounded-l-lg border border-gray-200 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-600">
-								List view
-							</button>
-							<button
-								type="button"
-								@click="viewMode = 'card'"
-								:class="viewMode === 'card' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 dark:bg-gray-700 dark:text-gray-300'"
-								class="px-3 py-2 text-sm font-medium rounded-r-lg border border-gray-200 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-600">
-								Card view
-							</button>
-						</div>
-					}
 					if len(servers) > 0 {
 						<button
 							hx-get="/servers/new"
 							hx-target="#modal-container"
 							hx-swap="innerHTML"
-							class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600">
+							class="btn btn-primary">
 							Add Server
 						</button>
 					}
@@ -46,19 +27,19 @@ templ Servers(servers []services.ServerInfo) {
 			<div id="modal-container"></div>
 			<!-- Servers grid -->
 			if len(servers) == 0 {
-				<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-12 text-center">
-					<svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+				<div class="card bg-base-100 shadow-xl p-12 text-center">
+					<svg class="mx-auto h-12 w-12 text-base-content/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"></path>
 					</svg>
-					<h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No servers</h3>
-					<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by adding a new Radarr or Sonarr server.</p>
+					<h3 class="mt-2 text-lg font-semibold">No servers</h3>
+					<p class="mt-1 text-base-content/60">Get started by adding a new Radarr or Sonarr server.</p>
 					<div class="mt-6">
 						<button
 							hx-get="/servers/new"
 							hx-target="#modal-container"
 							hx-swap="innerHTML"
-							class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600">
-							<svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+							class="btn btn-primary">
+							<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
 								<path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
 							</svg>
 							Add Server

@@ -1,38 +1,47 @@
 package components
 
-templ Nav() {
-	<nav class="w-64 bg-white dark:bg-gray-800 shadow-lg">
-		<div class="p-4">
-			<h1 class="text-xl font-bold text-gray-900 dark:text-white">Janitarr</h1>
+templ Nav(currentPath string) {
+	<div class="drawer lg:drawer-open">
+		<input id="nav-drawer" type="checkbox" class="drawer-toggle"/>
+		<div class="drawer-content flex flex-col">
+			<!-- Mobile navbar (visible on mobile, hidden on desktop) -->
+			<div class="navbar bg-base-100 lg:hidden">
+				<div class="flex-none">
+					<label for="nav-drawer" class="btn btn-square btn-ghost">
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-5 h-5 stroke-current">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+						</svg>
+					</label>
+				</div>
+				<div class="flex-1">
+					<span class="text-xl font-bold">Janitarr</span>
+				</div>
+			</div>
+			<!-- Main content -->
+			<main class="flex-1 p-6 overflow-auto">
+				{ children... }
+			</main>
 		</div>
-		<ul class="space-y-2 p-4">
-			<li>
-				<a href="/" class="block px-4 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
-					Dashboard
-				</a>
-			</li>
-			<li>
-				<a href="/servers" class="block px-4 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
-					Servers
-				</a>
-			</li>
-			<li>
-				<a href="/logs" class="block px-4 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
-					Activity Logs
-				</a>
-			</li>
-			<li>
-				<a href="/settings" class="block px-4 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
-					Settings
-				</a>
-			</li>
-		</ul>
-		<!-- Dark mode toggle -->
-		<div class="p-4 border-t dark:border-gray-700">
-			<button @click="darkMode = !darkMode; localStorage.setItem('darkMode', darkMode)"
-					class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-				<span x-text="darkMode ? 'Light Mode' : 'Dark Mode'"></span>
-			</button>
+		<div class="drawer-side">
+			<label for="nav-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
+			<aside class="bg-base-200 w-64 min-h-full">
+				<div class="p-4 text-xl font-bold">Janitarr</div>
+				<ul class="menu p-4 gap-2">
+					@NavItem("/", "Dashboard", currentPath)
+					@NavItem("/servers", "Servers", currentPath)
+					@NavItem("/logs", "Activity Logs", currentPath)
+					@NavItem("/settings", "Settings", currentPath)
+				</ul>
+			</aside>
 		</div>
-	</nav>
+	</div>
+}
+
+templ NavItem(href, label, currentPath string) {
+	<li>
+		<a href={ templ.SafeURL(href) }
+		   class={ templ.KV("active", href == currentPath) }>
+			{ label }
+		</a>
+	</li>
 }

@@ -47,7 +47,11 @@ func Settings(config database.AppConfig, logCount int) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"max-w-4xl mx-auto\"><div class=\"mb-6\"><h1 class=\"text-3xl font-bold text-gray-900 dark:text-white\">Settings</h1><p class=\"mt-2 text-sm text-gray-600 dark:text-gray-400\">Configure automation schedule and search limits</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"max-w-4xl mx-auto\"><div class=\"mb-6\"><h1 class=\"text-3xl font-bold\">Settings</h1><p class=\"mt-2 text-sm text-base-content/60\">Configure automation schedule and search limits</p></div>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = ThemeSelector().Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -62,6 +66,35 @@ func Settings(config database.AppConfig, logCount int) templ.Component {
 			return nil
 		})
 		templ_7745c5c3_Err = layouts.Base("Settings").Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func ThemeSelector() templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var3 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var3 == nil {
+			templ_7745c5c3_Var3 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"card bg-base-100 shadow-xl mb-6\"><div class=\"card-body\"><h2 class=\"card-title\">Appearance</h2><p class=\"text-base-content/70\">Choose your preferred theme</p><div class=\"form-control w-full max-w-xs\"><label class=\"label\"><span class=\"label-text\">Theme</span></label> <select class=\"select select-bordered w-full\" x-data x-on:change=\"\n\t\t\t\t\t\tlocalStorage.setItem('janitarr-theme', $event.target.value);\n\t\t\t\t\t\tdocument.documentElement.setAttribute('data-theme', $event.target.value);\n\t\t\t\t\t\" x-init=\"$el.value = localStorage.getItem('janitarr-theme') || 'night'\"><optgroup label=\"Dark Themes\"><option value=\"night\">Night (Default)</option> <option value=\"dark\">Dark</option> <option value=\"synthwave\">Synthwave</option> <option value=\"halloween\">Halloween</option> <option value=\"forest\">Forest</option> <option value=\"aqua\">Aqua</option> <option value=\"black\">Black</option> <option value=\"luxury\">Luxury</option> <option value=\"dracula\">Dracula</option> <option value=\"business\">Business</option> <option value=\"coffee\">Coffee</option> <option value=\"dim\">Dim</option> <option value=\"nord\">Nord</option> <option value=\"sunset\">Sunset</option></optgroup> <optgroup label=\"Light Themes\"><option value=\"light\">Light</option> <option value=\"cupcake\">Cupcake</option> <option value=\"bumblebee\">Bumblebee</option> <option value=\"emerald\">Emerald</option> <option value=\"corporate\">Corporate</option> <option value=\"retro\">Retro</option> <option value=\"cyberpunk\">Cyberpunk</option> <option value=\"valentine\">Valentine</option> <option value=\"garden\">Garden</option> <option value=\"lofi\">Lofi</option> <option value=\"pastel\">Pastel</option> <option value=\"fantasy\">Fantasy</option> <option value=\"wireframe\">Wireframe</option> <option value=\"cmyk\">CMYK</option> <option value=\"autumn\">Autumn</option> <option value=\"acid\">Acid</option> <option value=\"lemonade\">Lemonade</option> <option value=\"winter\">Winter</option></optgroup></select></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
