@@ -21,6 +21,7 @@ devenv.lock
 # Go build artifacts
 /janitarr
 /tmp/
+coverage.out
 
 # Generated CSS
 static/css/app.css
