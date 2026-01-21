@@ -16,6 +16,23 @@ make build              # Generate templates + build binary
 ./janitarr dev          # Development mode (verbose logging)
 ```
 
+### Running with Playwright UI Testing
+
+When using Claude Code's Playwright MCP to test the web interface, the dev server must be accessible to the Playwright container. Use the `--host` flag to bind to all network interfaces:
+
+```bash
+# Get the host's network IP address
+HOST_IP=$(ip a | grep -oP '(?<=inet\s)\d+\.\d+\.\d+\.\d+' | grep -v '^127' | head -1)
+
+# Run dev server with correct host binding
+./janitarr dev --host 0.0.0.0
+
+# Then navigate to it in Playwright (in Claude Code):
+# http://$HOST_IP:3434
+```
+
+**Important**: Always use `--host 0.0.0.0` when testing with Playwright, as Docker containers cannot reach `localhost`. The default `--host localhost` only binds to the loopback interface.
+
 ## Validation
 
 Run these after implementing to get immediate feedback:
