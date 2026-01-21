@@ -1,6 +1,9 @@
 package components
 
-import "github.com/user/janitarr/src/logger"
+import (
+	"fmt"
+	"github.com/user/janitarr/src/logger"
+)
 
 templ LogEntry(entry logger.LogEntry) {
 	<div class={ "card bg-base-100 shadow-sm mb-2", templ.KV("bg-error/10", entry.Type == logger.LogTypeError) }>
@@ -24,6 +27,13 @@ templ LogEntry(entry logger.LogEntry) {
 					<p class="text-sm">
 						{ entry.Message }
 					</p>
+					if len(entry.Metadata) > 0 {
+						<div class="text-xs text-base-content/60 mt-2 space-y-1">
+							for key, value := range entry.Metadata {
+								<p><span class="font-semibold">{ key }:</span> { fmt.Sprint(value) }</p>
+							}
+						</div>
+					}
 					if entry.Count > 0 {
 						<p class="text-xs text-base-content/50 mt-1">
 							Count: { string(rune(entry.Count + 48)) }

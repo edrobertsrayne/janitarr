@@ -46,6 +46,9 @@ func (l *Logger) LogCycleStart(isManual bool) *LogEntry {
 		Type:     LogTypeCycleStart,
 		Message:  "Automation cycle started.",
 		IsManual: isManual,
+		Metadata: map[string]interface{}{
+			"manual": isManual,
+		},
 	}
 
 	// Console log at info level
@@ -61,6 +64,11 @@ func (l *Logger) LogCycleEnd(totalSearches, failures int, isManual bool) *LogEnt
 		Message:  "Automation cycle finished.",
 		IsManual: isManual,
 		Count:    totalSearches, // Store total searches in count
+		Metadata: map[string]interface{}{
+			"searches": totalSearches,
+			"failures": failures,
+			"manual":   isManual,
+		},
 	}
 
 	// Console log at info level
@@ -80,6 +88,10 @@ func (l *Logger) LogDetectionComplete(serverName, serverType string, missing, cu
 		ServerType: serverType,
 		Message:    "Detection complete.",
 		Count:      missing + cutoffUnmet, // Store total in count for simple querying
+		Metadata: map[string]interface{}{
+			"missing":      missing,
+			"cutoff_unmet": cutoffUnmet,
+		},
 	}
 
 	// Console log at info level
@@ -123,6 +135,11 @@ func (l *Logger) LogMovieSearch(serverName, serverType, title string, year int, 
 		Category:   category,
 		Message:    "Search triggered.",
 		Count:      1,
+		Metadata: map[string]interface{}{
+			"title":   title,
+			"year":    year,
+			"quality": qualityProfile,
+		},
 	}
 
 	// Console log at info level with detailed metadata
@@ -138,6 +155,7 @@ func (l *Logger) LogMovieSearch(serverName, serverType, title string, year int, 
 
 // LogEpisodeSearch logs an episode search with detailed metadata.
 func (l *Logger) LogEpisodeSearch(serverName, serverType, seriesTitle, episodeTitle string, season, episode int, qualityProfile, category string) *LogEntry {
+	episodeStr := fmt.Sprintf("S%02dE%02d", season, episode)
 	entry := LogEntry{
 		Type:       LogTypeSearch,
 		ServerName: serverName,
@@ -145,10 +163,15 @@ func (l *Logger) LogEpisodeSearch(serverName, serverType, seriesTitle, episodeTi
 		Category:   category,
 		Message:    "Search triggered.",
 		Count:      1,
+		Metadata: map[string]interface{}{
+			"series":  seriesTitle,
+			"episode": episodeStr,
+			"title":   episodeTitle,
+			"quality": qualityProfile,
+		},
 	}
 
 	// Console log at info level with detailed metadata
-	episodeStr := fmt.Sprintf("S%02dE%02d", season, episode)
 	l.console.Info("Search triggered",
 		"series", seriesTitle,
 		"episode", episodeStr,

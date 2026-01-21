@@ -41,7 +41,95 @@ This document is designed for AI coding agents. Each task:
 
 ## Current Status
 
-All planned phases are complete. The implementation plan is currently empty and ready for new feature work.
+**Active Phase:** Phase 19 - Web Interface Bug Fixes
+
+---
+
+## Phase 19: Web Interface Bug Fixes
+
+**Reference:** `specs/logging.md`, `specs/web-frontend.md`
+**Priority:** High - User-facing functionality is broken
+
+### Overview
+
+Two related issues affect the web interface usability:
+
+1. **Web logs lack terminal log detail** - The web interface shows simplified logs (e.g., "Search triggered. Count: 1") while terminal logs show full details (title, year, quality, etc.)
+2. **Server management broken** - Edit button doesn't open modal, Test button fails with literal "{ server.ID }" error
+
+### Bug 1: Web Log Metadata Parity
+
+**Root Cause:** The `Metadata` field in `LogEntry` struct exists but is never populated by logging methods. Terminal logs receive full details via `console.Info()` key-value pairs, but the database entry only stores a simplified message.
+
+**Files to modify:**
+
+- `src/logger/logger.go` - Populate `Metadata` field in all logging methods
+- `src/templates/components/log_entry.templ` - Render metadata key-value pairs
+
+**Tasks:**
+
+- [x] Update `LogMovieSearch()` to populate `Metadata` with title, year, quality profile
+- [x] Update `LogEpisodeSearch()` to populate `Metadata` with series, season, episode, title, quality
+- [x] Update `LogDetectionComplete()` to populate `Metadata` with missing count, cutoff_unmet count
+- [x] Update `LogCycleStart()` and `LogCycleEnd()` to populate `Metadata` with relevant stats
+- [x] Update `log_entry.templ` to render `entry.Metadata` as key-value pairs
+- [x] Run `templ generate` and verify template compiles
+- [ ] Test that web logs now show same detail as terminal logs (manual browser verification needed)
+
+### Bug 2a: Edit Modal Not Opening
+
+**Root Cause:** DaisyUI `<dialog>` elements require `.showModal()` to be called via JavaScript. When htmx swaps in the form content, the dialog is inserted but never opened.
+
+**Files to modify:**
+
+- `src/templates/components/server_card.templ` - Add `hx-on::after-swap` to call `showModal()`
+- OR `src/templates/components/forms/server_form.templ` - Add auto-open script
+
+**Tasks:**
+
+- [ ] Add `hx-on::after-swap="document.getElementById('server-modal').showModal()"` to Edit button
+- [ ] OR add inline `<script>` in server_form.templ that auto-opens the dialog on render
+- [ ] Run `templ generate` and verify template compiles
+- [ ] Test that clicking Edit opens the modal dialog
+
+### Bug 2b: Test Button Returns Literal "{ server.ID }"
+
+**Root Cause:** Template variable interpolation failure. The code uses `'{ server.ID }'` inside a JavaScript string literal, which Templ does not interpolate. The literal text "{ server.ID }" is sent to the API.
+
+**File:** `src/templates/components/server_card.templ` (line 19)
+
+**Current (broken):**
+
+```templ
+@click="fetch('/api/servers/' + '{ server.ID }' + '/test', { method: 'POST' })"
+```
+
+**Tasks:**
+
+- [ ] Fix template interpolation using one of these approaches:
+  - Use `hx-post={ "/api/servers/" + server.ID + "/test" }` instead of @click fetch
+  - OR use `data-server-id={ server.ID }` and read from dataset in JavaScript
+  - OR build entire onclick attribute value with Templ concatenation
+- [ ] Run `templ generate` and verify template compiles
+- [ ] Test that Test button now calls correct endpoint with actual server ID
+
+### Bug 2c: Test Without API Key (Cascading Fix)
+
+**Root Cause:** This is a cascading failure from Bug 2b. The backend implementation (`server_manager.go:TestConnection`) correctly retrieves and uses stored API keys - the issue is that the wrong server ID ("{ server.ID }") is being sent.
+
+**Tasks:**
+
+- [ ] After fixing Bug 2b, verify that testing existing servers without entering a new API key works
+- [ ] Confirm the stored decrypted API key is used for the connection test
+
+### Completion Criteria
+
+- [ ] Web log entries display same detail level as terminal logs
+- [ ] Clicking Edit on a server card opens the edit modal
+- [ ] Test Connection on server cards works and returns actual connection status
+- [ ] Testing existing servers without new API key uses stored credentials
+- [ ] All tests pass: `go test ./...`
+- [ ] Templates compile: `templ generate`
 
 ---
 
