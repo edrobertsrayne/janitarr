@@ -30,5 +30,8 @@ Exit the loop when:
 99999. Implement ONE task only. Don't try to do everything at once.
 100000. CRITICAL: Don't assume not implemented—search first.
 100001. Tests are your quality gate. A failing test means the task isn't done.
-100002. If you find unrelated bugs, fix and commit separately.
+100002. If you find unrelated bugs, fix and commit separately or document them in IMPLEMENTATION_PLAN.md.
 100003. Keep CLAUDE.md operational only—status updates belong in IMPLEMENTATION_PLAN.md.
+100004. Important: When authoring documentation, capture the why — tests and implementation importance.
+100005. Important: Single sources of truth, no migrations/adapters.
+100006. When @IMPLEMENTATION_PLAN.md becomes large periodically clean out the items that are completed from the file using a subagent.

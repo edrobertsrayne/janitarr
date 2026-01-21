@@ -20,15 +20,54 @@ This specification describes the migration of Janitarr's web frontend from raw T
 
 ## Technical Approach
 
+### Version Compatibility
+
+> **CRITICAL WARNING:** DaisyUI v5 is NOT compatible with Tailwind CSS v3!
+>
+> If you install the wrong version, DaisyUI classes will have NO styling. The UI will render as plain unstyled HTML. This is a **silent failure** - no errors are shown during build or at runtime.
+
+**IMPORTANT:** DaisyUI version must be compatible with the installed Tailwind CSS version:
+
+| DaisyUI Version | Tailwind CSS Version | Configuration Method                    |
+| --------------- | -------------------- | --------------------------------------- |
+| v4.x            | v3.x                 | `require("daisyui")` in tailwind.config |
+| v5.x            | v4.x                 | `@plugin "daisyui"` in CSS file         |
+
+This project uses **Tailwind CSS v3**, so **DaisyUI v4.x** must be used.
+
 ### DaisyUI Installation
 
-Add DaisyUI as a Tailwind plugin:
+Add DaisyUI v4 as a Tailwind plugin:
 
 ```bash
-npm install -D daisyui@latest
+npm install -D daisyui@^4.12.24
+# or with bun:
+bun add -D daisyui@^4.12.24
 ```
 
-Update `tailwind.config.cjs` with custom theme definitions:
+**DO NOT use `daisyui@latest`** - this installs v5 which requires Tailwind CSS v4.
+
+### Verification After Installation
+
+Always verify the correct version is installed and CSS is compiled properly:
+
+```bash
+# Check DaisyUI version (must be 4.x.x, NOT 5.x.x)
+cat node_modules/daisyui/package.json | grep '"version"'
+
+# Rebuild CSS
+make generate
+
+# Verify DaisyUI classes are in compiled CSS
+grep -c "btn" static/css/app.css       # Should be > 100
+grep -c "drawer" static/css/app.css    # Should be > 10
+grep -c "data-theme" static/css/app.css # Should be > 0
+grep -c "base-100" static/css/app.css   # Should be > 0
+```
+
+If any grep returns 0, DaisyUI is not working. Check the version.
+
+Update `tailwind.config.cjs` with custom theme definitions (DaisyUI v4 format):
 
 ```javascript
 module.exports = {
@@ -40,69 +79,35 @@ module.exports = {
       {
         // Custom light theme (clone of DaisyUI light for future customization)
         light: {
-          "color-scheme": "light",
-          "--color-base-100": "oklch(100% 0 0)",
-          "--color-base-200": "oklch(98% 0 0)",
-          "--color-base-300": "oklch(95% 0 0)",
-          "--color-base-content": "oklch(21% 0.006 285.885)",
-          "--color-primary": "oklch(45% 0.24 277.023)",
-          "--color-primary-content": "oklch(93% 0.034 272.788)",
-          "--color-secondary": "oklch(65% 0.241 354.308)",
-          "--color-secondary-content": "oklch(94% 0.028 342.258)",
-          "--color-accent": "oklch(77% 0.152 181.912)",
-          "--color-accent-content": "oklch(38% 0.063 188.416)",
-          "--color-neutral": "oklch(14% 0.005 285.823)",
-          "--color-neutral-content": "oklch(92% 0.004 286.32)",
-          "--color-info": "oklch(74% 0.16 232.661)",
-          "--color-info-content": "oklch(29% 0.066 243.157)",
-          "--color-success": "oklch(76% 0.177 163.223)",
-          "--color-success-content": "oklch(37% 0.077 168.94)",
-          "--color-warning": "oklch(82% 0.189 84.429)",
-          "--color-warning-content": "oklch(41% 0.112 45.904)",
-          "--color-error": "oklch(71% 0.194 13.428)",
-          "--color-error-content": "oklch(27% 0.105 12.094)",
-          "--radius-selector": "0.5rem",
-          "--radius-field": "0.25rem",
-          "--radius-box": "0.5rem",
-          "--size-selector": "0.25rem",
-          "--size-field": "0.25rem",
-          "--border": "1px",
-          "--depth": "1",
-          "--noise": "0",
+          primary: "#570df8",
+          secondary: "#f000b8",
+          accent: "#37cdbe",
+          neutral: "#3d4451",
+          "base-100": "#ffffff",
+          "base-200": "#f9fafb",
+          "base-300": "#d1d5db",
+          "base-content": "#1f2937",
+          info: "#3abff8",
+          success: "#36d399",
+          warning: "#fbbd23",
+          error: "#f87272",
         },
       },
       {
         // Custom dark theme (clone of DaisyUI dark for future customization)
         dark: {
-          "color-scheme": "dark",
-          "--color-base-100": "oklch(25.33% 0.016 252.42)",
-          "--color-base-200": "oklch(23.26% 0.014 253.1)",
-          "--color-base-300": "oklch(21.15% 0.012 254.09)",
-          "--color-base-content": "oklch(97.807% 0.029 256.847)",
-          "--color-primary": "oklch(58% 0.233 277.117)",
-          "--color-primary-content": "oklch(96% 0.018 272.314)",
-          "--color-secondary": "oklch(65% 0.241 354.308)",
-          "--color-secondary-content": "oklch(94% 0.028 342.258)",
-          "--color-accent": "oklch(77% 0.152 181.912)",
-          "--color-accent-content": "oklch(38% 0.063 188.416)",
-          "--color-neutral": "oklch(14% 0.005 285.823)",
-          "--color-neutral-content": "oklch(92% 0.004 286.32)",
-          "--color-info": "oklch(74% 0.16 232.661)",
-          "--color-info-content": "oklch(29% 0.066 243.157)",
-          "--color-success": "oklch(76% 0.177 163.223)",
-          "--color-success-content": "oklch(37% 0.077 168.94)",
-          "--color-warning": "oklch(82% 0.189 84.429)",
-          "--color-warning-content": "oklch(41% 0.112 45.904)",
-          "--color-error": "oklch(71% 0.194 13.428)",
-          "--color-error-content": "oklch(27% 0.105 12.094)",
-          "--radius-selector": "0.5rem",
-          "--radius-field": "0.25rem",
-          "--radius-box": "0.5rem",
-          "--size-selector": "0.25rem",
-          "--size-field": "0.25rem",
-          "--border": "1px",
-          "--depth": "1",
-          "--noise": "0",
+          primary: "#661ae6",
+          secondary: "#d926aa",
+          accent: "#1fb2a5",
+          neutral: "#2a323c",
+          "base-100": "#1d232a",
+          "base-200": "#191e24",
+          "base-300": "#15191e",
+          "base-content": "#a6adba",
+          info: "#3abff8",
+          success: "#36d399",
+          warning: "#fbbd23",
+          error: "#f87272",
         },
       },
     ],
@@ -110,6 +115,8 @@ module.exports = {
   },
 };
 ```
+
+**Note:** DaisyUI v4 uses simple hex color values, not oklch() or CSS custom properties. The v5 syntax (oklch colors, `--color-*` variables) will NOT work with Tailwind CSS v3.
 
 ### Theme System
 
@@ -516,10 +523,11 @@ templ Toast(message string, toastType string) {
 
 ### Phase 1: Setup and Configuration
 
-1. Install DaisyUI: `npm install -D daisyui@latest`
+1. Install DaisyUI v4: `npm install -D daisyui@^4.12.24` (**NOT `@latest`** which installs v5)
 2. Update `tailwind.config.cjs` with DaisyUI plugin and theme config
 3. Remove custom CSS from `static/css/input.css`
 4. Run `make generate` to rebuild CSS
+5. Verify DaisyUI classes in compiled CSS: `grep -c "btn" static/css/app.css` should return > 100
 
 ### Phase 2: Base Layout and Navigation
 
@@ -570,10 +578,12 @@ templ Toast(message string, toastType string) {
 {
   "devDependencies": {
     "tailwindcss": "^3.4.0",
-    "daisyui": "^5.x.x"
+    "daisyui": "^4.12.24"
   }
 }
 ```
+
+**CRITICAL:** DaisyUI v4.x is required for Tailwind CSS v3.x compatibility. Do NOT use v5.x.
 
 ### Bundle Size Impact
 
@@ -587,6 +597,7 @@ DaisyUI adds ~10-15KB to the compiled CSS (with only 2 custom themes enabled). T
 
 | Risk                                           | Impact             | Mitigation                                                            |
 | ---------------------------------------------- | ------------------ | --------------------------------------------------------------------- |
+| DaisyUI v5 installed with Tailwind CSS v3      | No styles rendered | Pin DaisyUI to v4.x; verify CSS contains DaisyUI classes after build  |
 | DaisyUI class conflicts with existing Tailwind | Broken styling     | Big-bang migration removes old classes entirely                       |
 | Theme switch causes layout shift               | Poor UX            | Theme is set synchronously before render via inline script            |
 | Breaking htmx/Alpine.js interactions           | Lost functionality | Test thoroughly; DaisyUI is class-based and doesn't interfere with JS |
