@@ -16,7 +16,10 @@ templ ServerCard(server services.ServerInfo) {
 			<div class="card-actions justify-end">
 				<button
 					type="button"
-					@click="testing = true; testResult = ''; fetch('/api/servers/' + '{ server.ID }' + '/test', { method: 'POST' }).then(r => r.json()).then(data => { testing = false; testResult = data.success ? 'Connected (' + data.version + ')' : (data.error || 'Connection failed') }).catch(err => { testing = false; testResult = 'Error: ' + err.message })"
+					hx-post={ "/api/servers/" + server.ID + "/test" }
+					hx-swap="none"
+					@click="testing = true; testResult = ''"
+					@htmx:after-request="testing = false; if ($event.detail.successful) { const data = JSON.parse($event.detail.xhr.response); testResult = data.success ? 'Connected (' + data.version + ')' : (data.error || 'Connection failed') } else { testResult = 'Error: Request failed' }"
 					:disabled="testing"
 					class="btn btn-ghost btn-sm">
 					<span x-show="!testing">Test</span>

@@ -105,12 +105,9 @@ Two related issues affect the web interface usability:
 
 **Tasks:**
 
-- [ ] Fix template interpolation using one of these approaches:
-  - Use `hx-post={ "/api/servers/" + server.ID + "/test" }` instead of @click fetch
-  - OR use `data-server-id={ server.ID }` and read from dataset in JavaScript
-  - OR build entire onclick attribute value with Templ concatenation
-- [ ] Run `templ generate` and verify template compiles
-- [ ] Test that Test button now calls correct endpoint with actual server ID
+- [x] Fix template interpolation using `hx-post={ "/api/servers/" + server.ID + "/test" }` instead of @click fetch
+- [x] Run `templ generate` and verify template compiles
+- [ ] Test that Test button now calls correct endpoint with actual server ID (manual browser verification needed)
 
 ### Bug 2c: Test Without API Key (Cascading Fix)
 
