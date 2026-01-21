@@ -10,6 +10,7 @@ playwright-report/
 ui/test-results/
 
 .claude/
+.gemini/
 
 # devenv
 .devenv/

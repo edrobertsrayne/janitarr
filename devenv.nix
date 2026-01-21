@@ -4,20 +4,14 @@
   config,
   ...
 }: {
-  # Fix for devenv secretspec module
-  _module.args.secretspec = null;
-
   # Packages - equivalent to buildInputs in flake.nix
-  packages = [
-    pkgs.chromium # for headless testing
-    pkgs.golangci-lint # comprehensive Go linting
-    pkgs.gomod2nix # for Nix packaging
+  packages = with pkgs; [
+    golangci-lint # comprehensive Go linting
+    gomod2nix # for Nix packaging
   ];
 
   # Enable dotenv to load from .env file
   dotenv.enable = true;
-
-  env.CHROMIUM_PATH = "${pkgs.chromium}/bin/chromium";
 
   # Enable Claude Code integration
   claude.code.enable = true;
@@ -46,6 +40,11 @@
       env = {
         CONTEXT7_API_KEY = config.dotenv.vars.CONTEXT7_API_KEY or "";
       };
+    };
+    playwright = {
+      type = "stdio";
+      command = "docker";
+      args = ["run" "-i" "--rm" "--init" "--pull=always" "mcr.microsoft.com/playwright/mcp"];
     };
   };
 
@@ -123,12 +122,11 @@
     echo ""
     echo "MCP Servers (Claude Code integration):"
     echo "  - context7 - Codebase context provider"
+    echo "  - playwright - Browser automation for testing"
     echo ""
     echo "Quick commands:"
     echo "  make generate  - Generate templ templates + Tailwind CSS"
     echo "  make build     - Generate and build binary"
     echo "  make test      - Run tests with race detection"
-    echo ""
-    echo "First time? Run: bun install"
   '';
 }
