@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/user/janitarr/src/api"
+	"github.com/user/janitarr/src/database"
 )
 
 // Error constants for server operations
@@ -119,6 +120,8 @@ type ServerManagerInterface interface {
 	TestNewConnection(ctx context.Context, url, apiKey, serverType string) (*ConnectionResult, error)
 	ListServers() ([]ServerInfo, error)
 	GetServer(ctx context.Context, idOrName string) (*ServerInfo, error)
+	GetEnabledServers() ([]database.Server, error)
+	SetServerEnabled(id string, enabled bool) error
 }
 
 // StringPtr is a helper function to return a pointer to a string.

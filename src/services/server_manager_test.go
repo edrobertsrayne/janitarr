@@ -605,89 +605,87 @@ func TestUpdateServer_APIKeyRequiresConnectionTest(t *testing.T) {
 	}
 }
 
-// TODO: These tests are for GetEnabledServers and SetServerEnabled which are not yet implemented
-// func TestGetEnabledServers(t *testing.T) {
-// 	db := testDB(t)
-// 	radarrServer := mockRadarrServer()
-// 	defer radarrServer.Close()
-//
-// 	mgr := NewServerManager(db, nil)
-//
-// 	// Add a server
-// 	info, err := mgr.AddServer(context.Background(), "Test Server", radarrServer.URL, "key", "radarr")
-// 	if err != nil {
-// 		t.Fatalf("unexpected error adding server: %v", err)
-// 	}
-//
-// 	// Should be enabled by default
-// 	enabled, err := mgr.GetEnabledServers()
-// 	if err != nil {
-// 		t.Fatalf("unexpected error getting enabled servers: %v", err)
-// 	}
-// 	if len(enabled) != 1 {
-// 		t.Errorf("expected 1 enabled server, got %d", len(enabled))
-// 	}
-//
-// 	// Disable the server
-// 	isEnabled := false
-// 	err = mgr.SetServerEnabled(info.ID, isEnabled)
-// 	if err != nil {
-// 		t.Fatalf("unexpected error disabling server: %v", err)
-// 	}
-//
-// 	// Should now have no enabled servers
-// 	enabled, err = mgr.GetEnabledServers()
-// 	if err != nil {
-// 		t.Fatalf("unexpected error getting enabled servers: %v", err)
-// 	}
-// 	if len(enabled) != 0 {
-// 		t.Errorf("expected 0 enabled servers, got %d", len(enabled))
-// 	}
-// }
-//
-// func TestSetServerEnabled(t *testing.T) {
-// 	db := testDB(t)
-// 	server := mockRadarrServer()
-// 	defer server.Close()
-//
-// 	mgr := NewServerManager(db, nil)
-//
-// 	// Add a server (enabled by default)
-// 	info, err := mgr.AddServer(context.Background(), "Test Server", server.URL, "key", "radarr")
-// 	if err != nil {
-// 		t.Fatalf("unexpected error adding server: %v", err)
-// 	}
-//
-// 	// Verify enabled
-// 	serverInfo, _ := mgr.GetServer(context.Background(), info.ID)
-// 	if !serverInfo.Enabled {
-// 		t.Error("expected server to be enabled by default")
-// 	}
-//
-// 	// Disable
-// 	err = mgr.SetServerEnabled(info.ID, false)
-// 	if err != nil {
-// 		t.Fatalf("unexpected error disabling server: %v", err)
-// 	}
-//
-// 	// Verify disabled
-// 	serverInfo, _ = mgr.GetServer(context.Background(), info.ID)
-// 	if serverInfo.Enabled {
-// 		t.Error("expected server to be disabled")
-// 	}
-//
-// 	// Re-enable
-// 	err = mgr.SetServerEnabled(info.ID, true)
-// 	if err != nil {
-// 		t.Fatalf("unexpected error enabling server: %v", err)
-// 	}
-//
-// 	// Verify enabled again
-// 	serverInfo, _ = mgr.GetServer(context.Background(), info.ID)
-// 	if !serverInfo.Enabled {
-// 		t.Error("expected server to be enabled")
-// 	}
-// }
+func TestGetEnabledServers(t *testing.T) {
+	db := testDB(t)
+	radarrServer := mockRadarrServer()
+	defer radarrServer.Close()
+
+	mgr := NewServerManager(db, nil)
+
+	// Add a server
+	info, err := mgr.AddServer(context.Background(), "Test Server", radarrServer.URL, "key", "radarr")
+	if err != nil {
+		t.Fatalf("unexpected error adding server: %v", err)
+	}
+
+	// Should be enabled by default
+	enabled, err := mgr.GetEnabledServers()
+	if err != nil {
+		t.Fatalf("unexpected error getting enabled servers: %v", err)
+	}
+	if len(enabled) != 1 {
+		t.Errorf("expected 1 enabled server, got %d", len(enabled))
+	}
+
+	// Disable the server
+	err = mgr.SetServerEnabled(info.ID, false)
+	if err != nil {
+		t.Fatalf("unexpected error disabling server: %v", err)
+	}
+
+	// Should now have no enabled servers
+	enabled, err = mgr.GetEnabledServers()
+	if err != nil {
+		t.Fatalf("unexpected error getting enabled servers: %v", err)
+	}
+	if len(enabled) != 0 {
+		t.Errorf("expected 0 enabled servers, got %d", len(enabled))
+	}
+}
+
+func TestSetServerEnabled(t *testing.T) {
+	db := testDB(t)
+	server := mockRadarrServer()
+	defer server.Close()
+
+	mgr := NewServerManager(db, nil)
+
+	// Add a server (enabled by default)
+	info, err := mgr.AddServer(context.Background(), "Test Server", server.URL, "key", "radarr")
+	if err != nil {
+		t.Fatalf("unexpected error adding server: %v", err)
+	}
+
+	// Verify enabled
+	serverInfo, _ := mgr.GetServer(context.Background(), info.ID)
+	if !serverInfo.Enabled {
+		t.Error("expected server to be enabled by default")
+	}
+
+	// Disable
+	err = mgr.SetServerEnabled(info.ID, false)
+	if err != nil {
+		t.Fatalf("unexpected error disabling server: %v", err)
+	}
+
+	// Verify disabled
+	serverInfo, _ = mgr.GetServer(context.Background(), info.ID)
+	if serverInfo.Enabled {
+		t.Error("expected server to be disabled")
+	}
+
+	// Re-enable
+	err = mgr.SetServerEnabled(info.ID, true)
+	if err != nil {
+		t.Fatalf("unexpected error enabling server: %v", err)
+	}
+
+	// Verify enabled again
+	serverInfo, _ = mgr.GetServer(context.Background(), info.ID)
+	if !serverInfo.Enabled {
+		t.Error("expected server to be enabled")
+	}
+}
 
 func TestEmptyNameValidation(t *testing.T) {
 	db := testDB(t)

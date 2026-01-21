@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	"github.com/user/janitarr/src/database"
 	"github.com/user/janitarr/src/services"
 )
 
@@ -109,6 +110,31 @@ func (m *mockServerManager) GetServer(ctx context.Context, idOrName string) (*se
 		return server, nil
 	}
 	return nil, errors.New("server not found")
+}
+
+func (m *mockServerManager) GetEnabledServers() ([]database.Server, error) {
+	var enabled []database.Server
+	for _, s := range m.servers {
+		if s.Enabled {
+			enabled = append(enabled, database.Server{
+				ID:      s.ID,
+				Name:    s.Name,
+				URL:     s.URL,
+				Type:    database.ServerType(s.Type),
+				Enabled: s.Enabled,
+			})
+		}
+	}
+	return enabled, nil
+}
+
+func (m *mockServerManager) SetServerEnabled(id string, enabled bool) error {
+	server, exists := m.servers[id]
+	if !exists {
+		return errors.New("server not found")
+	}
+	server.Enabled = enabled
+	return nil
 }
 
 func TestListServers_Empty(t *testing.T) {
