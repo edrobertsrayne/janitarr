@@ -26,6 +26,7 @@ templ ServerCard(server services.ServerInfo) {
 					hx-get={ "/servers/" + server.ID + "/edit" }
 					hx-target="#modal-container"
 					hx-swap="innerHTML"
+					hx-on::after-swap="document.getElementById('server-modal').showModal()"
 					class="btn btn-ghost btn-sm">
 					Edit
 				</button>

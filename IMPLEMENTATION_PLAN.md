@@ -87,10 +87,9 @@ Two related issues affect the web interface usability:
 
 **Tasks:**
 
-- [ ] Add `hx-on::after-swap="document.getElementById('server-modal').showModal()"` to Edit button
-- [ ] OR add inline `<script>` in server_form.templ that auto-opens the dialog on render
-- [ ] Run `templ generate` and verify template compiles
-- [ ] Test that clicking Edit opens the modal dialog
+- [x] Add `hx-on::after-swap="document.getElementById('server-modal').showModal()"` to Edit button
+- [x] Run `templ generate` and verify template compiles
+- [ ] Test that clicking Edit opens the modal dialog (manual browser verification needed)
 
 ### Bug 2b: Test Button Returns Literal "{ server.ID }"
 
