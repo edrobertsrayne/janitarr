@@ -6,13 +6,13 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/user/janitarr/src/logger"
+	"github.com/user/janitarr/src/version"
 )
 
 var (
 	dbPath         string
 	logLevel       string
 	nonInteractive bool
-	version        = "0.1.0"
 )
 
 func NewRootCmd() *cobra.Command {
@@ -20,7 +20,7 @@ func NewRootCmd() *cobra.Command {
 		Use:     "janitarr",
 		Short:   "Automation tool for Radarr and Sonarr",
 		Long:    `Janitarr automates content discovery and search triggering for media servers.`,
-		Version: version,
+		Version: version.Short(),
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			// Validate log level if provided
 			if cmd.Flags().Changed("log-level") || logLevel != "" {

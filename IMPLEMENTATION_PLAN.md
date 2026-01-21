@@ -47,6 +47,21 @@ This document is designed for AI coding agents. Each task:
 
 ## Completed Phases (Archive)
 
+### Phase 20: Build-Time Version Information ✓
+
+**Completed:** 2026-01-21
+**Commit:** TBD
+
+**Summary:** Implemented dynamic version information from git instead of hardcoded version strings. Created a new `version` package with build-time variables (`Version`, `Commit`, `BuildDate`) that are set via ldflags during compilation. Updated the Makefile to inject version information from `git describe`, commit hash, and build timestamp. Updated both the CLI (`--version` flag) and web server (Prometheus metrics `janitarr_info`) to use the version package. All tests pass.
+
+**Files Changed:**
+
+- `src/version/version.go` - New package with build-time variables
+- `src/version/version_test.go` - Tests for version package
+- `Makefile` - Added ldflags to inject version info
+- `src/cli/root.go` - Use version package instead of hardcoded version
+- `src/web/server.go` - Use version package for Prometheus metrics
+
 ### Phase 19: Web Interface Bug Fixes ✓
 
 **Reference:** `specs/logging.md`, `specs/web-frontend.md`

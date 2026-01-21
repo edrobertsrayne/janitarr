@@ -12,6 +12,7 @@ import (
 	"github.com/user/janitarr/src/logger"
 	"github.com/user/janitarr/src/metrics"
 	"github.com/user/janitarr/src/services"
+	"github.com/user/janitarr/src/version"
 	"github.com/user/janitarr/src/web/handlers/api"             // Import api package
 	"github.com/user/janitarr/src/web/handlers/pages"           // Import pages package
 	webMiddleware "github.com/user/janitarr/src/web/middleware" // Custom middleware package
@@ -49,7 +50,7 @@ func NewServer(config ServerConfig) *Server {
 	if config.DB != nil {
 		prometheusMetrics.SetDatabase(config.DB)
 	}
-	prometheusMetrics.SetVersion("0.1.0") // TODO: Get from build flags
+	prometheusMetrics.SetVersion(version.Short())
 
 	wsHub := websocket.NewLogHub(config.Logger)
 	go wsHub.Run() // Start the WebSocket hub
