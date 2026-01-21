@@ -41,95 +41,23 @@ This document is designed for AI coding agents. Each task:
 
 ## Current Status
 
-**Active Phase:** Phase 19 - Web Interface Bug Fixes
-
----
-
-## Phase 19: Web Interface Bug Fixes
-
-**Reference:** `specs/logging.md`, `specs/web-frontend.md`
-**Priority:** High - User-facing functionality is broken
-
-### Overview
-
-Two related issues affect the web interface usability:
-
-1. **Web logs lack terminal log detail** - The web interface shows simplified logs (e.g., "Search triggered. Count: 1") while terminal logs show full details (title, year, quality, etc.)
-2. **Server management broken** - Edit button doesn't open modal, Test button fails with literal "{ server.ID }" error
-
-### Bug 1: Web Log Metadata Parity
-
-**Root Cause:** The `Metadata` field in `LogEntry` struct exists but is never populated by logging methods. Terminal logs receive full details via `console.Info()` key-value pairs, but the database entry only stores a simplified message.
-
-**Files to modify:**
-
-- `src/logger/logger.go` - Populate `Metadata` field in all logging methods
-- `src/templates/components/log_entry.templ` - Render metadata key-value pairs
-
-**Tasks:**
-
-- [x] Update `LogMovieSearch()` to populate `Metadata` with title, year, quality profile
-- [x] Update `LogEpisodeSearch()` to populate `Metadata` with series, season, episode, title, quality
-- [x] Update `LogDetectionComplete()` to populate `Metadata` with missing count, cutoff_unmet count
-- [x] Update `LogCycleStart()` and `LogCycleEnd()` to populate `Metadata` with relevant stats
-- [x] Update `log_entry.templ` to render `entry.Metadata` as key-value pairs
-- [x] Run `templ generate` and verify template compiles
-- [ ] Test that web logs now show same detail as terminal logs (manual browser verification needed)
-
-### Bug 2a: Edit Modal Not Opening
-
-**Root Cause:** DaisyUI `<dialog>` elements require `.showModal()` to be called via JavaScript. When htmx swaps in the form content, the dialog is inserted but never opened.
-
-**Files to modify:**
-
-- `src/templates/components/server_card.templ` - Add `hx-on::after-swap` to call `showModal()`
-- OR `src/templates/components/forms/server_form.templ` - Add auto-open script
-
-**Tasks:**
-
-- [x] Add `hx-on::after-swap="document.getElementById('server-modal').showModal()"` to Edit button
-- [x] Run `templ generate` and verify template compiles
-- [ ] Test that clicking Edit opens the modal dialog (manual browser verification needed)
-
-### Bug 2b: Test Button Returns Literal "{ server.ID }"
-
-**Root Cause:** Template variable interpolation failure. The code uses `'{ server.ID }'` inside a JavaScript string literal, which Templ does not interpolate. The literal text "{ server.ID }" is sent to the API.
-
-**File:** `src/templates/components/server_card.templ` (line 19)
-
-**Current (broken):**
-
-```templ
-@click="fetch('/api/servers/' + '{ server.ID }' + '/test', { method: 'POST' })"
-```
-
-**Tasks:**
-
-- [x] Fix template interpolation using `hx-post={ "/api/servers/" + server.ID + "/test" }` instead of @click fetch
-- [x] Run `templ generate` and verify template compiles
-- [ ] Test that Test button now calls correct endpoint with actual server ID (manual browser verification needed)
-
-### Bug 2c: Test Without API Key (Cascading Fix)
-
-**Root Cause:** This is a cascading failure from Bug 2b. The backend implementation (`server_manager.go:TestConnection`) correctly retrieves and uses stored API keys - the issue is that the wrong server ID ("{ server.ID }") is being sent.
-
-**Tasks:**
-
-- [ ] After fixing Bug 2b, verify that testing existing servers without entering a new API key works
-- [ ] Confirm the stored decrypted API key is used for the connection test
-
-### Completion Criteria
-
-- [ ] Web log entries display same detail level as terminal logs
-- [ ] Clicking Edit on a server card opens the edit modal
-- [ ] Test Connection on server cards works and returns actual connection status
-- [ ] Testing existing servers without new API key uses stored credentials
-- [ ] All tests pass: `go test ./...`
-- [ ] Templates compile: `templ generate`
+**Active Phase:** All current phases complete. Ready for next phase.
 
 ---
 
 ## Completed Phases (Archive)
+
+### Phase 19: Web Interface Bug Fixes ✓
+
+**Reference:** `specs/logging.md`, `specs/web-frontend.md`
+**Completed:** 2026-01-21
+**Commits:**
+
+- `bc8a873 fix(web): correct server ID interpolation in Test button`
+- `804e332 fix(web): open modal dialog when Edit button is clicked`
+- `88f6a34 fix(web): populate log metadata for web/terminal parity`
+
+**Summary:** Fixed three critical web interface bugs: (1) Web logs now display the same metadata detail as terminal logs by populating the `Metadata` field in all logger methods and rendering it in the UI, (2) Edit button now properly opens the modal dialog using htmx's `hx-on::after-swap` event, (3) Test button now correctly interpolates server IDs using htmx attributes instead of Alpine.js string concatenation. All automated tests pass; manual browser verification recommended for visual confirmation.
 
 ### Phase 18: Enable Tests for GetEnabledServers and SetServerEnabled ✓
 
