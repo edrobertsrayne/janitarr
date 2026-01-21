@@ -50,7 +50,7 @@ This document is designed for AI coding agents. Each task:
 ### Phase 20: Build-Time Version Information ✓
 
 **Completed:** 2026-01-21
-**Commit:** TBD
+**Commit:** `9675487 feat: implement build-time version information from git`
 
 **Summary:** Implemented dynamic version information from git instead of hardcoded version strings. Created a new `version` package with build-time variables (`Version`, `Commit`, `BuildDate`) that are set via ldflags during compilation. Updated the Makefile to inject version information from `git describe`, commit hash, and build timestamp. Updated both the CLI (`--version` flag) and web server (Prometheus metrics `janitarr_info`) to use the version package. All tests pass.
 
