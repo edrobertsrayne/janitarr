@@ -47,6 +47,13 @@ All planned phases are complete. The implementation plan is currently empty and 
 
 ## Completed Phases (Archive)
 
+### Phase 18: Enable Tests for GetEnabledServers and SetServerEnabled ✓
+
+**Completed:** 2026-01-21
+**Commit:** `0e39409 test: enable tests for GetEnabledServers and SetServerEnabled`
+
+**Summary:** Activated previously commented-out tests for `GetEnabledServers` and `SetServerEnabled` methods. Added these methods to the `ServerManagerInterface` and updated the mock implementation in web handlers. All tests pass successfully, improving test coverage for server management functionality.
+
 ### Phase 17: DaisyUI Version Compatibility Fix ✓
 
 **Reference:** `specs/daisyui-migration.md`
