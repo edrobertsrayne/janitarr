@@ -23,7 +23,7 @@ var devCmd = &cobra.Command{
 }
 
 func init() {
-	devCmd.Flags().IntP("port", "p", 3434, "Web server port")
+	devCmd.Flags().IntP("port", "p", 3435, "Web server port (default: 3435 for dev mode)")
 	devCmd.Flags().String("host", "localhost", "Web server host")
 }
 

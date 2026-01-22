@@ -156,7 +156,7 @@ make build
 
 ---
 
-### [ ] Task 3: Change Dev Mode Default Port (Issue #9)
+### [x] Task 3: Change Dev Mode Default Port (Issue #9)
 
 **File:** `src/cli/dev.go`
 **Difficulty:** Trivial
