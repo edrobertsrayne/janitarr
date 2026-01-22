@@ -86,7 +86,7 @@ func ServerCard(server services.ServerInfo) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" hx-swap=\"none\" @click=\"testing = true; testResult = ''\" @htmx:after-request=\"testing = false; if ($event.detail.successful) { const data = JSON.parse($event.detail.xhr.response); testResult = data.success ? 'Connected (' + data.version + ')' : (data.error || 'Connection failed') } else { testResult = 'Error: Request failed' }\" :disabled=\"testing\" class=\"btn btn-ghost btn-sm\"><span x-show=\"!testing\">Test</span> <span x-show=\"testing\">Testing...</span></button> <button hx-get=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" hx-swap=\"none\" @click=\"testing = true; testResult = ''\" @htmx:after-request=\"testing = false; if ($event.detail.successful) { const response = JSON.parse($event.detail.xhr.response); const data = response.data || response; testResult = data.success ? 'Connected (' + data.version + ')' : (data.error || 'Connection failed') } else { testResult = 'Error: Request failed' }\" :disabled=\"testing\" class=\"btn btn-ghost btn-sm\"><span x-show=\"!testing\">Test</span> <span x-show=\"testing\">Testing...</span></button> <button hx-get=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

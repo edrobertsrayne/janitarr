@@ -19,7 +19,7 @@ templ ServerCard(server services.ServerInfo) {
 					hx-post={ "/api/servers/" + server.ID + "/test" }
 					hx-swap="none"
 					@click="testing = true; testResult = ''"
-					@htmx:after-request="testing = false; if ($event.detail.successful) { const data = JSON.parse($event.detail.xhr.response); testResult = data.success ? 'Connected (' + data.version + ')' : (data.error || 'Connection failed') } else { testResult = 'Error: Request failed' }"
+					@htmx:after-request="testing = false; if ($event.detail.successful) { const response = JSON.parse($event.detail.xhr.response); const data = response.data || response; testResult = data.success ? 'Connected (' + data.version + ')' : (data.error || 'Connection failed') } else { testResult = 'Error: Request failed' }"
 					:disabled="testing"
 					class="btn btn-ghost btn-sm">
 					<span x-show="!testing">Test</span>

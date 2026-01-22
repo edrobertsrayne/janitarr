@@ -56,7 +56,7 @@ Issues are numbered 1-10 based on their line order in `ISSUES.md`:
 | 3       | Run Now button missing icon               | Fixed  |
 | 4       | Theme chooser still on Settings page      | Fixed  |
 | 5       | Dashboard URL field empty                 | Fixed  |
-| 6       | Test connection shows "connection failed" | Verify |
+| 6       | Test connection shows "connection failed" | Fixed  |
 | 7       | Edit server button does nothing           | Fixed  |
 | 8       | Delete uses browser modal, not DaisyUI    | Open   |
 | 9       | Dev mode should use different port        | Fixed  |
@@ -410,7 +410,7 @@ make build
 
 ---
 
-### [ ] Task 7: Verify Test Connection Works (Issue #6)
+### [x] Task 7: Verify Test Connection Works (Issue #6)
 
 **Note:** This was previously Task 6 - renumbered due to Issue #7 fix insertion.
 
