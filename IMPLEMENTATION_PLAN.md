@@ -41,7 +41,7 @@ This document is designed for AI coding agents. Each task:
 ## Current Status
 
 **Active Phase:** None - All phases complete
-**Previous Phase:** Phase 22 - E2E Test Suite Improvements (Complete ✓)
+**Previous Phase:** Phase 23 - Enable Skipped Database Tests (Complete ✓)
 
 ---
 
@@ -67,6 +67,24 @@ Issues are numbered 1-10 based on their line order in `ISSUES.md`:
 ---
 
 ## Completed Phases (Archive)
+
+### Phase 23: Enable Skipped Database Tests ✓
+
+**Completed:** 2026-01-22
+
+**Commit:** `956e156` - test: enable skipped database tests for PurgeOldLogs, GetServerStats, and GetSystemStats
+
+**Summary:** Enabled three previously skipped database tests that were marked as not implemented but had their implementations available. The tests were failing due to missing timestamps and IDs in test LogEntry instances. Fixed by adding explicit Timestamp values to prevent zero-time defaults and explicit ID values to prevent primary key collisions. All tests now verify correct behavior for log purging, server-specific statistics, and system-wide statistics.
+
+**Tests Updated:**
+
+- `TestLogsPurge` - Tests PurgeOldLogs method with proper retention period handling
+- `TestServerStats` - Tests GetServerStats method aggregating searches and errors per server
+- `TestSystemStats` - Tests GetSystemStats method with multi-server statistics
+
+**Why This Matters:** These tests validate critical functionality for log retention and statistics reporting that powers the dashboard. Previously, this functionality was untested, creating risk for production deployments. The statistics queries use SQL aggregation (`SUM(count)` for searches, `COUNT(*)` for errors) that needed verification with realistic test data.
+
+---
 
 ### Phase 22: E2E Test Suite Improvements ✓
 
