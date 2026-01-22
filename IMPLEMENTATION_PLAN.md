@@ -105,7 +105,7 @@ make build
 
 ---
 
-### [ ] Task 2: Remove Theme Chooser from Settings (Issue #4)
+### [x] Task 2: Remove Theme Chooser from Settings (Issue #4)
 
 **File:** `src/templates/pages/settings.templ`
 **Difficulty:** Trivial
