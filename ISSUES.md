@@ -1,12 +1,30 @@
 # Current Issues
 
-- Clicking buttons in the web interface does not open dialogs for add / edit server
-- Logs in the web interface do not match logs in the CLI
-- The Run Now button on the dashboard appears odd, is there a missing icon that's not showing?
-- Theme choser is still on the Settings page, despite being removed and replaced with a light/dark toggle. Needs to be removed.
-- The servers list on the dashboard has a field for URL that doesn't show anything.
-- Clicking "test" on the Servers card gives a "connection failed" error despite the server working as expected.
-- The edit server button does nothing
-- The server delete button opens a browser modal rather than a DaisyUI modal
-- Starting the CLI tool in dev mode should use a different port than the production mode's 3434
-- If a dev or production server is started, it should check if its preferred port is free and if not fall back to the next available port
+**Status:** All issues resolved as of 2026-01-22
+
+All previously reported issues have been fixed and are documented in IMPLEMENTATION_PLAN.md under Phase 21 (ISSUES.md Fixes).
+
+## Previously Resolved Issues
+
+1. ✓ Add Server button modal trigger - Fixed in commit `2c8acfd`
+2. ✓ Web logs metadata parity with CLI - Fixed in commit `88f6a34`
+3. ✓ Run Now button missing icon - Fixed in commit `f3f9bb6`
+4. ✓ Theme chooser on Settings page - Fixed in commit `d12deec`
+5. ✓ Dashboard URL field empty - Fixed in commit `5e9cbcc`
+6. ✓ Test connection error handling - Fixed in Phase 19, commit `bc8a873`
+7. ✓ Edit server button functionality - Fixed in commit `c0c78af`
+8. ✓ Delete modal using DaisyUI - Fixed in commit `e12f4f3`
+9. ✓ Dev mode port configuration - Fixed in commit `22ce9f5`
+10. ✓ Port availability checking - Fixed in commit `7cd1c5b`
+
+## Reporting New Issues
+
+If you encounter new issues, please document them here following this format:
+
+```
+- [Brief description of the issue]
+  - **Environment:** [Browser/OS/Version]
+  - **Steps to reproduce:** [Numbered steps]
+  - **Expected behavior:** [What should happen]
+  - **Actual behavior:** [What actually happens]
+```
