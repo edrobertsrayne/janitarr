@@ -1504,7 +1504,7 @@ direnv exec . bunx playwright test tests/e2e/error-handling.spec.ts --reporter=l
 
 ---
 
-### [ ] Task 8: Add Settings Persistence Tests
+### [x] Task 8: Add Settings Persistence Tests
 
 **File:** `tests/e2e/settings-persistence.spec.ts` (new)
 **Difficulty:** Moderate
