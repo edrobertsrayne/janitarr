@@ -573,7 +573,7 @@ make build
 
 ---
 
-### [ ] Task 9: Fix Log Count Display (Issue #2, Part A)
+### [x] Task 9: Fix Log Count Display (Issue #2, Part A)
 
 **File:** `src/templates/components/log_entry.templ`
 **Difficulty:** Trivial

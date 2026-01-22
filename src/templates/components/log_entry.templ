@@ -36,7 +36,7 @@ templ LogEntry(entry logger.LogEntry) {
 					}
 					if entry.Count > 0 {
 						<p class="text-xs text-base-content/50 mt-1">
-							Count: { string(rune(entry.Count + 48)) }
+							Count: { fmt.Sprint(entry.Count) }
 						</p>
 					}
 				</div>
