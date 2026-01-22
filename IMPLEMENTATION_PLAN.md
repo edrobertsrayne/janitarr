@@ -60,7 +60,7 @@ Issues are numbered 1-10 based on their line order in `ISSUES.md`:
 | 7       | Edit server button does nothing           | Fixed  |
 | 8       | Delete uses browser modal, not DaisyUI    | Fixed  |
 | 9       | Dev mode should use different port        | Fixed  |
-| 10      | Port availability checking needed         | Open   |
+| 10      | Port availability checking needed         | Fixed  |
 
 **Note:** Phase 19 (commit `804e332`) added `hx-on::after-swap` to the Edit button. Issue #7 was fully resolved in commit `58a1a6f` by adding a setTimeout delay to ensure the modal is ready in the DOM.
 
@@ -610,7 +610,7 @@ go test ./...
 
 ---
 
-### [ ] Task 10: Add Port Availability Checking (Issue #10)
+### [x] Task 10: Add Port Availability Checking (Issue #10)
 
 **Files:** `src/web/port.go` (new), `src/cli/start.go`, `src/cli/dev.go`
 **Difficulty:** Moderate

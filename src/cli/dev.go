@@ -45,6 +45,11 @@ func runDev(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("invalid port number: %d (must be between 1 and 65535)", port)
 	}
 
+	// Check if port is available
+	if !web.IsPortAvailable(host, port) {
+		return fmt.Errorf("port %d is already in use on %s. Use --port to specify a different port", port, host)
+	}
+
 	// Ensure data directory exists
 	dbDir := filepath.Dir(dbPath)
 	if err := os.MkdirAll(dbDir, 0755); err != nil {
