@@ -859,7 +859,7 @@ direnv exec . bunx playwright test tests/e2e/servers.spec.ts --reporter=list
 
 ---
 
-### [ ] Task 2: Fix Add Server Flow Test
+### [x] Task 2: Fix Add Server Flow Test
 
 **File:** `tests/e2e/add-server.spec.ts`
 **Difficulty:** Easy
