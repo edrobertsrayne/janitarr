@@ -195,7 +195,7 @@ make build
 
 ---
 
-### [ ] Task 4: Add Icon to Run Now Button (Issue #3)
+### [x] Task 4: Add Icon to Run Now Button (Issue #3)
 
 **File:** `src/templates/pages/dashboard.templ`
 **Difficulty:** Easy
