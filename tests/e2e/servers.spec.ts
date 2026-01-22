@@ -22,15 +22,12 @@ test.describe("Servers page", () => {
     // The form might be in a modal or inline
     await page.waitForTimeout(500);
 
-    // Look for form fields
-    const nameField = page.getByLabel(/name/i).first();
-    const urlField = page.getByLabel(/url/i).first();
+    // Look for form fields - use ID selectors since DaisyUI labels don't have for attributes
+    const nameField = page.locator("#name");
+    const urlField = page.locator("#url");
 
-    // At least one of these fields should be visible
-    const nameVisible = await nameField.isVisible().catch(() => false);
-    const urlVisible = await urlField.isVisible().catch(() => false);
-
-    expect(nameVisible || urlVisible).toBeTruthy();
+    await expect(nameField).toBeVisible();
+    await expect(urlField).toBeVisible();
   });
 
   test("create server with valid data", async ({ page }) => {
@@ -44,8 +41,8 @@ test.describe("Servers page", () => {
     // Fill in server details
     // Note: This will fail connection test since we don't have a real server
     // but we can test the form behavior
-    await page.getByLabel(/name/i).first().fill("Test Radarr");
-    await page.getByLabel(/url/i).first().fill("http://localhost:7878");
+    await page.locator("#name").fill("Test Radarr");
+    await page.locator("#url").fill("http://localhost:7878");
 
     // Look for type selector (radio, select, or buttons)
     const typeSelector = page
@@ -57,10 +54,7 @@ test.describe("Servers page", () => {
     }
 
     // Fill API key
-    const apiKeyField = page.getByLabel(/api key/i).first();
-    if (await apiKeyField.isVisible()) {
-      await apiKeyField.fill("1234567890abcdef1234567890abcdef");
-    }
+    await page.locator("#apiKey").fill("1234567890abcdef1234567890abcdef");
 
     // Find and click submit button
     const submitButton = page

@@ -791,12 +791,14 @@ direnv exec . bunx playwright test --reporter=list
 
 ---
 
-### [ ] Task 1: Fix Existing Test Selectors
+### [x] Task 1: Fix Existing Test Selectors
 
 **File:** `tests/e2e/servers.spec.ts`
 **Difficulty:** Easy
 
 The existing server tests fail because they use `getByLabel()` which requires proper label-input associations. The form uses DaisyUI's label structure without `for` attributes.
+
+**Result:** ✓ All 7 tests pass. Fixed selectors on lines 26-30, 44-45, and 57.
 
 **Current code (lines 26-31):**
 
