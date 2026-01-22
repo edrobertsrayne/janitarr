@@ -1183,7 +1183,7 @@ direnv exec . bunx playwright test tests/e2e/delete-server.spec.ts --reporter=li
 
 ---
 
-### [ ] Task 5: Add Connection Test Tests
+### [x] Task 5: Add Connection Test Tests
 
 **File:** `tests/e2e/test-connection.spec.ts` (new)
 **Difficulty:** Moderate
