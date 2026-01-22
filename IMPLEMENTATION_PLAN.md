@@ -1287,7 +1287,7 @@ direnv exec . bunx playwright test tests/e2e/test-connection.spec.ts --reporter=
 
 ---
 
-### [ ] Task 6: Add Dashboard Integration Tests
+### [x] Task 6: Add Dashboard Integration Tests
 
 **File:** `tests/e2e/dashboard-integration.spec.ts` (new)
 **Difficulty:** Moderate
