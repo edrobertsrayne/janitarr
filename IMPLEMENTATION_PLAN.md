@@ -1073,7 +1073,7 @@ direnv exec . bunx playwright test tests/e2e/edit-server.spec.ts --reporter=list
 
 ---
 
-### [ ] Task 4: Add Delete Server Tests
+### [x] Task 4: Add Delete Server Tests
 
 **File:** `tests/e2e/delete-server.spec.ts` (new)
 **Difficulty:** Moderate
