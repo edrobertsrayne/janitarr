@@ -31,7 +31,7 @@ func ServerCard(server services.ServerInfo) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"card bg-base-100 shadow-xl\" x-data=\"{ testing: false, testResult: '' }\"><div class=\"card-body\"><div class=\"flex items-center justify-between\"><h2 class=\"card-title\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"card bg-base-100 shadow-xl\" x-data=\"{ testing: false, testResult: '', showDeleteModal: false }\"><div class=\"card-body\"><div class=\"flex items-center justify-between\"><h2 class=\"card-title\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -99,20 +99,33 @@ func ServerCard(server services.ServerInfo) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" hx-target=\"#modal-container\" hx-swap=\"innerHTML\" hx-on::after-swap=\"setTimeout(() => document.getElementById('server-modal')?.showModal(), 10)\" class=\"btn btn-ghost btn-sm\">Edit</button> <button hx-delete=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" hx-target=\"#modal-container\" hx-swap=\"innerHTML\" hx-on::after-swap=\"setTimeout(() => document.getElementById('server-modal')?.showModal(), 10)\" class=\"btn btn-ghost btn-sm\">Edit</button> <button @click=\"showDeleteModal = true\" class=\"btn btn-ghost btn-sm text-error\">Delete</button></div><div x-show=\"testResult\" class=\"mt-1 text-xs\" :class=\"testResult.startsWith('Connected') ? 'text-success' : 'text-error'\" x-text=\"testResult\"></div><!-- Delete Confirmation Modal --><dialog class=\"modal\" :class=\"{ 'modal-open': showDeleteModal }\"><div class=\"modal-box\"><h3 class=\"font-bold text-lg\">Delete Server</h3><p class=\"py-4\">Are you sure you want to delete <strong>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var6 string
-		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs("/api/servers/" + server.ID)
+		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(server.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/server_card.templ`, Line: 37, Col: 44}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/server_card.templ`, Line: 52, Col: 74}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" hx-confirm=\"Are you sure you want to delete this server?\" hx-target=\"closest div.card\" hx-swap=\"outerHTML swap:1s\" class=\"btn btn-ghost btn-sm text-error\">Delete</button></div><div x-show=\"testResult\" class=\"mt-1 text-xs\" :class=\"testResult.startsWith('Connected') ? 'text-success' : 'text-error'\" x-text=\"testResult\"></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</strong>? This action cannot be undone.</p><div class=\"modal-action\"><button @click=\"showDeleteModal = false\" class=\"btn\">Cancel</button> <button hx-delete=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var7 string
+		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs("/api/servers/" + server.ID)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/server_card.templ`, Line: 56, Col: 46}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\" hx-target=\"closest div.card\" hx-swap=\"outerHTML swap:1s\" @click=\"showDeleteModal = false\" class=\"btn btn-error\">Delete</button></div></div><div class=\"modal-backdrop\" @click=\"showDeleteModal = false\"></div></dialog></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -136,18 +149,18 @@ func ServerTypeBadge(serverType string) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var7 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var7 == nil {
-			templ_7745c5c3_Var7 = templ.NopComponent
+		templ_7745c5c3_Var8 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var8 == nil {
+			templ_7745c5c3_Var8 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		if serverType == "radarr" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<span class=\"badge badge-primary\">Radarr</span>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<span class=\"badge badge-primary\">Radarr</span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<span class=\"badge badge-secondary\">Sonarr</span>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<span class=\"badge badge-secondary\">Sonarr</span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -172,18 +185,18 @@ func ServerStatusBadge(enabled bool) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var8 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var8 == nil {
-			templ_7745c5c3_Var8 = templ.NopComponent
+		templ_7745c5c3_Var9 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var9 == nil {
+			templ_7745c5c3_Var9 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		if enabled {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<span class=\"badge badge-success\">Enabled</span>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<span class=\"badge badge-success\">Enabled</span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<span class=\"badge badge-ghost\">Disabled</span>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<span class=\"badge badge-ghost\">Disabled</span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

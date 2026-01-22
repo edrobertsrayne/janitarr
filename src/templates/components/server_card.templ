@@ -3,7 +3,7 @@ package components
 import "github.com/user/janitarr/src/services"
 
 templ ServerCard(server services.ServerInfo) {
-	<div class="card bg-base-100 shadow-xl" x-data="{ testing: false, testResult: '' }">
+	<div class="card bg-base-100 shadow-xl" x-data="{ testing: false, testResult: '', showDeleteModal: false }">
 		<div class="card-body">
 			<div class="flex items-center justify-between">
 				<h2 class="card-title">{ server.Name }</h2>
@@ -34,10 +34,7 @@ templ ServerCard(server services.ServerInfo) {
 					Edit
 				</button>
 				<button
-					hx-delete={ "/api/servers/" + server.ID }
-					hx-confirm="Are you sure you want to delete this server?"
-					hx-target="closest div.card"
-					hx-swap="outerHTML swap:1s"
+					@click="showDeleteModal = true"
 					class="btn btn-ghost btn-sm text-error">
 					Delete
 				</button>
@@ -48,6 +45,25 @@ templ ServerCard(server services.ServerInfo) {
 				:class="testResult.startsWith('Connected') ? 'text-success' : 'text-error'"
 				x-text="testResult">
 			</div>
+			<!-- Delete Confirmation Modal -->
+			<dialog class="modal" :class="{ 'modal-open': showDeleteModal }">
+				<div class="modal-box">
+					<h3 class="font-bold text-lg">Delete Server</h3>
+					<p class="py-4">Are you sure you want to delete <strong>{ server.Name }</strong>? This action cannot be undone.</p>
+					<div class="modal-action">
+						<button @click="showDeleteModal = false" class="btn">Cancel</button>
+						<button
+							hx-delete={ "/api/servers/" + server.ID }
+							hx-target="closest div.card"
+							hx-swap="outerHTML swap:1s"
+							@click="showDeleteModal = false"
+							class="btn btn-error">
+							Delete
+						</button>
+					</div>
+				</div>
+				<div class="modal-backdrop" @click="showDeleteModal = false"></div>
+			</dialog>
 		</div>
 	</div>
 }

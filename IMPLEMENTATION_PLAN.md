@@ -58,7 +58,7 @@ Issues are numbered 1-10 based on their line order in `ISSUES.md`:
 | 5       | Dashboard URL field empty                 | Fixed  |
 | 6       | Test connection shows "connection failed" | Fixed  |
 | 7       | Edit server button does nothing           | Fixed  |
-| 8       | Delete uses browser modal, not DaisyUI    | Open   |
+| 8       | Delete uses browser modal, not DaisyUI    | Fixed  |
 | 9       | Dev mode should use different port        | Fixed  |
 | 10      | Port availability checking needed         | Open   |
 
@@ -460,7 +460,7 @@ testResult = data.success
 
 ---
 
-### [ ] Task 8: Replace Delete Modal with DaisyUI (Issue #8)
+### [x] Task 8: Replace Delete Modal with DaisyUI (Issue #8)
 
 **File:** `src/templates/components/server_card.templ`
 **Difficulty:** Moderate
