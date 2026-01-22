@@ -947,7 +947,7 @@ direnv exec . bunx playwright test tests/e2e/add-server.spec.ts --reporter=list
 
 ---
 
-### [ ] Task 3: Add Edit Server Tests
+### [x] Task 3: Add Edit Server Tests
 
 **File:** `tests/e2e/edit-server.spec.ts` (new)
 **Difficulty:** Moderate
