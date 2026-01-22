@@ -51,15 +51,15 @@ Issues are numbered 1-10 based on their line order in `ISSUES.md`:
 
 | Issue # | Description                               | Status |
 | ------- | ----------------------------------------- | ------ |
-| 1       | Add Server button doesn't open modal      | Open   |
+| 1       | Add Server button doesn't open modal      | Fixed  |
 | 2       | Web logs don't match CLI logs             | Open   |
-| 3       | Run Now button missing icon               | Open   |
-| 4       | Theme chooser still on Settings page      | Open   |
-| 5       | Dashboard URL field empty                 | Open   |
+| 3       | Run Now button missing icon               | Fixed  |
+| 4       | Theme chooser still on Settings page      | Fixed  |
+| 5       | Dashboard URL field empty                 | Fixed  |
 | 6       | Test connection shows "connection failed" | Verify |
 | 7       | Edit server button does nothing           | Open   |
 | 8       | Delete uses browser modal, not DaisyUI    | Open   |
-| 9       | Dev mode should use different port        | Open   |
+| 9       | Dev mode should use different port        | Fixed  |
 | 10      | Port availability checking needed         | Open   |
 
 **Note:** Phase 19 (commit `804e332`) added `hx-on::after-swap` to the Edit button, but the issue may persist - verification required.
@@ -266,7 +266,7 @@ make build
 
 ---
 
-### [ ] Task 5: Fix Add Server Button Modal Trigger (Issue #1)
+### [x] Task 5: Fix Add Server Button Modal Trigger (Issue #1)
 
 **File:** `src/templates/pages/servers.templ`
 **Difficulty:** Easy
