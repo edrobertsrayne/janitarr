@@ -347,7 +347,7 @@ make build
 
 ---
 
-### [ ] Task 6: Fix Edit Server Button (Issue #7)
+### [x] Task 6: Fix Edit Server Button (Issue #7)
 
 **File:** `src/templates/components/server_card.templ`
 **Difficulty:** Investigation + Fix

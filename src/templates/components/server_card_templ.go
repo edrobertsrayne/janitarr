@@ -99,7 +99,7 @@ func ServerCard(server services.ServerInfo) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" hx-target=\"#modal-container\" hx-swap=\"innerHTML\" hx-on::after-swap=\"document.getElementById('server-modal').showModal()\" class=\"btn btn-ghost btn-sm\">Edit</button> <button hx-delete=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" hx-target=\"#modal-container\" hx-swap=\"innerHTML\" hx-on::after-swap=\"setTimeout(() => document.getElementById('server-modal')?.showModal(), 10)\" class=\"btn btn-ghost btn-sm\">Edit</button> <button hx-delete=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
