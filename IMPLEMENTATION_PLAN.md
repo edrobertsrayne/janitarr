@@ -52,7 +52,7 @@ Issues are numbered 1-10 based on their line order in `ISSUES.md`:
 | Issue # | Description                               | Status |
 | ------- | ----------------------------------------- | ------ |
 | 1       | Add Server button doesn't open modal      | Fixed  |
-| 2       | Web logs don't match CLI logs             | Open   |
+| 2       | Web logs don't match CLI logs             | Fixed  |
 | 3       | Run Now button missing icon               | Fixed  |
 | 4       | Theme chooser still on Settings page      | Fixed  |
 | 5       | Dashboard URL field empty                 | Fixed  |
