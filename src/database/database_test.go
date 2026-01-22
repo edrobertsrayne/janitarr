@@ -464,8 +464,10 @@ func TestLogsPurge(t *testing.T) {
 
 	// Add recent log
 	entry := logger.LogEntry{
-		Type:    logger.LogTypeSearch,
-		Message: "Recent log",
+		ID:        "recent-1",
+		Timestamp: time.Now(),
+		Type:      logger.LogTypeSearch,
+		Message:   "Recent log",
 	}
 	db.AddLog(entry)
 
@@ -475,9 +477,20 @@ func TestLogsPurge(t *testing.T) {
 		t.Errorf("expected 3 logs before purge, got %d", len(logs))
 	}
 
-	// Note: If PurgeOldLogs exists, test it. Otherwise skip this test
-	// For now, skip purge functionality test as it may not be implemented
-	t.Skip("PurgeOldLogs not implemented in current database")
+	// Purge logs older than 30 days
+	deleted, err := db.PurgeOldLogs(ctx, 30)
+	if err != nil {
+		t.Fatalf("PurgeOldLogs failed: %v", err)
+	}
+	if deleted != 2 {
+		t.Errorf("expected 2 deleted logs, got %d", deleted)
+	}
+
+	// Verify only recent log remains
+	logs, _ = db.GetLogs(ctx, 100, 0, logger.LogFilters{})
+	if len(logs) != 1 {
+		t.Errorf("expected 1 log after purge, got %d", len(logs))
+	}
 }
 
 func TestLogsFilter(t *testing.T) {
@@ -523,11 +536,66 @@ func TestClearLogs(t *testing.T) {
 }
 
 func TestServerStats(t *testing.T) {
-	t.Skip("GetServerStats not implemented in current database")
+	db := testDB(t)
+
+	// Add a test server
+	server, err := db.AddServer("test-server", "http://localhost:7878", "testapikey123", ServerTypeRadarr)
+	if err != nil {
+		t.Fatalf("Failed to add server: %v", err)
+	}
+
+	// Add logs for the server
+	db.AddLog(logger.LogEntry{ID: "search1", Timestamp: time.Now(), Type: logger.LogTypeSearch, ServerName: "test-server", Message: "Search 1", Count: 5})
+	db.AddLog(logger.LogEntry{ID: "search2", Timestamp: time.Now(), Type: logger.LogTypeSearch, ServerName: "test-server", Message: "Search 2", Count: 3})
+	db.AddLog(logger.LogEntry{ID: "error1", Timestamp: time.Now(), Type: logger.LogTypeError, ServerName: "test-server", Message: "Error 1"})
+
+	// Get stats
+	stats := db.GetServerStats(server.ID)
+	if stats.TotalSearches != 8 {
+		t.Errorf("expected 8 total searches, got %d", stats.TotalSearches)
+	}
+	if stats.ErrorCount != 1 {
+		t.Errorf("expected 1 error, got %d", stats.ErrorCount)
+	}
+	if stats.LastCheckTime == "" {
+		t.Error("expected LastCheckTime to be set")
+	}
+
+	// Test with non-existent server
+	emptyStats := db.GetServerStats("non-existent-id")
+	if emptyStats.TotalSearches != 0 {
+		t.Errorf("expected 0 searches for non-existent server, got %d", emptyStats.TotalSearches)
+	}
 }
 
 func TestSystemStats(t *testing.T) {
-	t.Skip("GetSystemStats not implemented in current database")
+	db := testDB(t)
+
+	// Add test servers
+	db.AddServer("server1", "http://localhost:7878", "key1", ServerTypeRadarr)
+	db.AddServer("server2", "http://localhost:8989", "key2", ServerTypeSonarr)
+
+	// Add logs for testing
+	db.AddLog(logger.LogEntry{ID: "sys-search1", Timestamp: time.Now(), Type: logger.LogTypeSearch, ServerName: "server1", Message: "Search 1", Count: 5})
+	db.AddLog(logger.LogEntry{ID: "sys-search2", Timestamp: time.Now(), Type: logger.LogTypeSearch, ServerName: "server2", Message: "Search 2", Count: 3})
+	db.AddLog(logger.LogEntry{ID: "sys-error1", Timestamp: time.Now(), Type: logger.LogTypeError, ServerName: "server1", Message: "Error 1"})
+	db.AddLog(logger.LogEntry{ID: "sys-cycle1", Timestamp: time.Now(), Type: logger.LogTypeCycleEnd, Message: "Cycle complete"})
+
+	// Get system stats
+	stats := db.GetSystemStats()
+
+	if stats.TotalServers != 2 {
+		t.Errorf("expected 2 enabled servers, got %d", stats.TotalServers)
+	}
+	if stats.SearchesLast24h != 8 {
+		t.Errorf("expected 8 searches in last 24h, got %d", stats.SearchesLast24h)
+	}
+	if stats.ErrorsLast24h != 1 {
+		t.Errorf("expected 1 error in last 24h, got %d", stats.ErrorsLast24h)
+	}
+	if stats.LastCycleTime == "" {
+		t.Error("expected LastCycleTime to be set")
+	}
 }
 
 // Helper function
