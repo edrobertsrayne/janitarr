@@ -6,9 +6,13 @@
 }: {
   # Packages - equivalent to buildInputs in flake.nix
   packages = with pkgs; [
+    chromium # for Playwright E2E tests
     golangci-lint # comprehensive Go linting
     gomod2nix # for Nix packaging
   ];
+
+  # Environment variables
+  env.CHROMIUM_PATH = "${pkgs.chromium}/bin/chromium";
 
   # Enable dotenv to load from .env file
   dotenv.enable = true;

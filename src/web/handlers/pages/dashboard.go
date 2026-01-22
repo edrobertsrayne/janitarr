@@ -15,7 +15,7 @@ func (h *PageHandlers) HandleDashboard(w http.ResponseWriter, r *http.Request) {
 	schedulerStatus := h.scheduler.GetStatus()
 
 	// Get server count
-	servers, err := h.db.ListServers()
+	servers, err := h.db.GetAllServers()
 	if err != nil {
 		http.Error(w, "Failed to load servers", http.StatusInternalServerError)
 		return
@@ -27,7 +27,7 @@ func (h *PageHandlers) HandleDashboard(w http.ResponseWriter, r *http.Request) {
 		serverDisplays[i] = pages.ServerDisplay{
 			Name:    srv.Name,
 			Type:    string(srv.Type),
-			URL:     "",
+			URL:     srv.URL,
 			Enabled: srv.Enabled,
 		}
 	}
@@ -80,7 +80,7 @@ func (h *PageHandlers) HandleStatsPartial(w http.ResponseWriter, r *http.Request
 	_ = h.scheduler.GetStatus()
 
 	// Get server count
-	servers, err := h.db.ListServers()
+	servers, err := h.db.GetAllServers()
 	if err != nil {
 		http.Error(w, "Failed to load servers", http.StatusInternalServerError)
 		return
