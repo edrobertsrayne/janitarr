@@ -57,12 +57,12 @@ Issues are numbered 1-10 based on their line order in `ISSUES.md`:
 | 4       | Theme chooser still on Settings page      | Fixed  |
 | 5       | Dashboard URL field empty                 | Fixed  |
 | 6       | Test connection shows "connection failed" | Verify |
-| 7       | Edit server button does nothing           | Open   |
+| 7       | Edit server button does nothing           | Fixed  |
 | 8       | Delete uses browser modal, not DaisyUI    | Open   |
 | 9       | Dev mode should use different port        | Fixed  |
 | 10      | Port availability checking needed         | Open   |
 
-**Note:** Phase 19 (commit `804e332`) added `hx-on::after-swap` to the Edit button, but the issue may persist - verification required.
+**Note:** Phase 19 (commit `804e332`) added `hx-on::after-swap` to the Edit button. Issue #7 was fully resolved in commit `58a1a6f` by adding a setTimeout delay to ensure the modal is ready in the DOM.
 
 ---
 
