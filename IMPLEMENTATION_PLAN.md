@@ -1639,7 +1639,7 @@ direnv exec . bunx playwright test tests/e2e/settings-persistence.spec.ts --repo
 
 ---
 
-### [ ] Task 9: Add Full Integration Test
+### [x] Task 9: Add Full Integration Test
 
 **File:** `tests/e2e/full-flow.spec.ts` (new)
 **Difficulty:** Complex
