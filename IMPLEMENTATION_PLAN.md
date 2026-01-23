@@ -254,7 +254,7 @@ make build
 
 **Changes:**
 
-- [ ] Update each `NavItem` call in the `<ul class="menu">` to include an icon. Modify the nav items (around lines 45-48):
+- [x] Update each `NavItem` call in the `<ul class="menu">` to include an icon. Modify the nav items (around lines 45-48):
 
   ```html
   <!-- Dashboard icon (HomeIcon) -->
@@ -662,7 +662,7 @@ cat specs/daisyui-migration.md | grep -A 20 "Alpine.js x-data scoping"
 - [x] Task 1: Fix Alpine.js x-data scoping
 - [x] Task 2: Fix modal Cancel button
 - [x] Task 3: Add favicon
-- [ ] Task 4: Add navigation icons
+- [x] Task 4: Add navigation icons
 - [ ] Task 5: Improve empty state icons
 - [ ] Task 6: Improve stats card separation
 - [ ] Task 7: Improve light theme active nav contrast
