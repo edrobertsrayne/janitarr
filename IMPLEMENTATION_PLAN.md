@@ -41,8 +41,8 @@ This document is designed for AI coding agents. Each task:
 ## Current Status
 
 **Active Phase:** None - All planned phases complete ✓
-**Previous Phase:** Phase 24 - UI Bug Fixes & E2E Tests (Complete ✓)
-**Test Status:** All tests passing (Go unit tests + E2E tests)
+**Previous Phase:** Phase 25 - E2E Test Encryption Key Fix (Complete ✓)
+**Test Status:** Go unit tests passing, E2E tests 86% pass rate (62/72 passing)
 
 ### Implementation Completeness
 
@@ -598,9 +598,132 @@ All 10 tasks completed successfully:
 
 ---
 
+## Phase 25: E2E Test Encryption Key Fix
+
+**Status:** ✅ Complete
+**Completed:** 2026-01-23 | **Commit:** `5adb9f6`
+**Priority:** Critical (E2E tests were failing with 66% pass rate)
+
+### Problem
+
+E2E tests were failing with encryption-related errors. 21 out of 61 tests were failing with errors like "Failed to load servers". Investigation revealed the root cause:
+
+1. Tests were deleting both the database AND encryption key file between runs
+2. Playwright's `webServer` runs continuously without restarting between tests
+3. The server loaded an encryption key at startup and kept it in memory
+4. When tests deleted the key file, a new key was generated
+5. The server still had the OLD key in memory, causing decryption failures
+
+This created a mismatch: **old key in server memory vs. new key file on disk**.
+
+### Root Cause Analysis
+
+**File:** `src/database/servers.go:86-110` - `GetAllServers()` function
+
+When the dashboard loaded, it called `GetAllServers()`, which:
+
+1. Queries the `servers` table from the database
+2. For each row, calls `scanServerRow()` to parse the data
+3. `scanServerRow()` calls `decryptAPIKey()` to decrypt the stored API key
+4. Decryption fails because the server is using the wrong key
+
+**Error Flow:**
+
+```
+HTTP GET / (Dashboard)
+  → HandleDashboard()
+    → DB.GetAllServers()
+      → scanServerRow()
+        → decryptAPIKey()
+          → crypto.Decrypt() ← FAILS: auth tag verification failed
+          → Returns error
+  → http.Error("Failed to load servers", 500)
+```
+
+### Solution
+
+**Changes:**
+
+1. **Modified `tests/e2e/setup.ts`** (lines 22-46):
+   - Remove deletion of encryption key file
+   - Only delete the database file
+   - Added detailed comments explaining why the key must persist
+   - The server now uses the same key across all test runs
+
+2. **Modified `playwright.config.ts`** (lines 14-17):
+   - Disabled `fullyParallel` to prevent race conditions
+   - Tests now run sequentially to avoid database conflicts
+   - Added comments explaining the encryption key reuse requirement
+
+3. **Updated `playwright.config.ts`** (lines 61-72):
+   - Added clarifying comments about `reuseExistingServer` behavior
+   - Documented that the server keeps the same key in memory
+
+### Results
+
+**Before Fix:**
+
+- E2E test pass rate: **40/61 passing (66%)**
+- 21 tests failing with "Failed to load servers" errors
+
+**After Fix:**
+
+- E2E test pass rate: **62/72 passing (86%)**
+- Only 1 test failing (unrelated modal z-index issue)
+- 9 tests skipped (intentional)
+
+### Remaining Issue
+
+One test still fails: `servers.spec.ts:36 - create server with valid data`
+
+**Error:** Timeout clicking submit button - `<main>` element intercepts pointer events
+
+This is a separate UI issue with modal z-index/overlay, not related to the encryption key fix. The modal is visible but the submit button can't be clicked because another element is intercepting the click events.
+
+### Verification
+
+```bash
+# Clean slate and run tests
+rm -rf ./data/*.db ./data/.janitarr.key
+direnv exec . bunx playwright test --reporter=list
+
+# Expected: 62 passing, 1 failing, 9 skipped
+```
+
+### Key Learnings
+
+1. **Playwright's webServer lifecycle**: The server starts once and runs for all tests
+2. **Encryption key persistence**: Keys loaded at startup stay in memory
+3. **Test isolation**: When using shared resources (like databases), careful cleanup is required
+4. **Sequential vs. parallel**: Parallel tests with shared state require extra care
+
+### Technical Details
+
+**Encryption Flow:**
+
+- Key generation: `crypto.LoadOrCreateKey()` creates a 32-byte AES-256 key
+- Key storage: `./data/.janitarr.key` (binary file)
+- Database storage: API keys stored as `IV_BASE64:CIPHERTEXT_BASE64`
+- Decryption: Uses AES-256-GCM with authenticated encryption
+
+**Why the fix works:**
+
+- Server loads key once at startup → keeps it in memory
+- Tests delete database → server recreates schema on next query
+- Tests preserve key file → server can encrypt/decrypt with same key
+- New servers created in tests use the same key → decryption succeeds
+
+---
+
 ## Completed Phases (Recent)
 
-### Most Recent: Phase 23 - Enable Skipped Database Tests ✓
+### Phase 24 - UI Bug Fixes & E2E Tests ✓
+
+**Completed:** 2026-01-23 | **Commit:** `1b8e643`
+
+Fixed Alpine.js scoping issues, added favicon and navigation icons, improved UI contrast and visual separation, added E2E test coverage for modals and theme persistence.
+
+### Phase 23 - Enable Skipped Database Tests ✓
 
 **Completed:** 2026-01-22 | **Commit:** `956e156`
 
