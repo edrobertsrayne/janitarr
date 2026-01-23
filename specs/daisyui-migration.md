@@ -633,6 +633,28 @@ The current UI uses several patterns that differ from DaisyUI's approach. This s
 
 Open with `document.getElementById('server-modal').showModal()`. The native `<dialog>` element handles backdrop, focus trapping, and escape-to-close automatically.
 
+**Important:** When using Alpine.js with DaisyUI modals, ensure `x-data` is placed on a parent element that encompasses ALL interactive elements. If `x-data` is on the `<form>` but buttons are in a sibling `<div class="modal-action">`, those buttons won't have access to the reactive state.
+
+```html
+<!-- WRONG: buttons outside x-data scope -->
+<div class="modal-box">
+  <form x-data="{ loading: false }">...</form>
+  <div class="modal-action">
+    <button x-show="!loading">Save</button>
+    <!-- loading is undefined! -->
+  </div>
+</div>
+
+<!-- CORRECT: x-data on parent -->
+<div class="modal-box" x-data="{ loading: false }">
+  <form>...</form>
+  <div class="modal-action">
+    <button x-show="!loading">Save</button>
+    <!-- loading is accessible -->
+  </div>
+</div>
+```
+
 ---
 
 ### 2. Loading Spinners

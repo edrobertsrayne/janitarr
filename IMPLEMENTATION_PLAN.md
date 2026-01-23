@@ -481,7 +481,7 @@ make build
 
 **Changes:**
 
-- [ ] **File:** `specs/daisyui-migration.md` - Add warning about Alpine.js x-data scoping in modals section (Pattern #1):
+- [x] **File:** `specs/daisyui-migration.md` - Add warning about Alpine.js x-data scoping in modals section (Pattern #1):
 
   Add after line ~635 (after the modal resolution example):
 
@@ -513,7 +513,7 @@ make build
 
   ```
 
-- [ ] **File:** `specs/web-frontend.md` - Add note about htmx + showModal() timing in the Modal section:
+- [x] **File:** `specs/web-frontend.md` - Add note about htmx + showModal() timing in the Modal section:
 
   Add to the "Interactions" section around line 203:
 
@@ -556,7 +556,7 @@ cat specs/daisyui-migration.md | grep -A 20 "Alpine.js x-data scoping"
 - [x] Task 7: Improve light theme active nav contrast
 - [x] Task 8: Add server modal E2E tests
 - [x] Task 9: Add theme toggle E2E tests
-- [ ] Task 10: Update specifications
+- [x] Task 10: Update specifications
 
 **Final Verification:**
 

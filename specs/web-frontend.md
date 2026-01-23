@@ -204,6 +204,19 @@ Material Design 3 navigation with responsive drawer:
    - Same form as Add, pre-populated
    - Update via PUT /api/servers/:id
 
+**Modal Opening with htmx:** When using htmx to load modal content dynamically, use `hx-on::after-swap` to call `showModal()` after the content is inserted:
+
+```html
+<button
+  hx-get="/servers/new"
+  hx-target="#modal-container"
+  hx-swap="innerHTML"
+  hx-on::after-swap="document.getElementById('server-modal').showModal()"
+>
+  Add Server
+</button>
+```
+
 5. **Server Statistics Panel** (optional, expandable section)
    - Chart showing searches over time
    - Breakdown by missing vs. cutoff searches
