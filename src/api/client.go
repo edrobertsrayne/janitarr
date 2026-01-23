@@ -34,6 +34,15 @@ type Client struct {
 	serverName string // For logging context
 }
 
+// RateLimitError is returned when the server returns HTTP 429 Too Many Requests.
+type RateLimitError struct {
+	RetryAfter time.Duration
+}
+
+func (e *RateLimitError) Error() string {
+	return fmt.Sprintf("rate limited: retry after %v", e.RetryAfter)
+}
+
 // NormalizeURL ensures a URL has a protocol and removes trailing slashes.
 func NormalizeURL(url string) string {
 	normalized := strings.TrimSpace(url)
@@ -136,7 +145,7 @@ func (c *Client) request(ctx context.Context, method, endpoint string, body, res
 		c.logger.Debug("API request", logFields...)
 	}
 
-	if err := c.checkStatusCode(resp.StatusCode); err != nil {
+	if err := c.checkStatusCode(resp); err != nil {
 		return err
 	}
 
@@ -150,7 +159,8 @@ func (c *Client) request(ctx context.Context, method, endpoint string, body, res
 }
 
 // checkStatusCode returns an error for non-success status codes.
-func (c *Client) checkStatusCode(code int) error {
+func (c *Client) checkStatusCode(resp *http.Response) error {
+	code := resp.StatusCode
 	switch code {
 	case http.StatusOK, http.StatusCreated, http.StatusAccepted:
 		return nil
@@ -158,6 +168,15 @@ func (c *Client) checkStatusCode(code int) error {
 		return fmt.Errorf("unauthorized: invalid API key")
 	case http.StatusNotFound:
 		return fmt.Errorf("not found: check server URL")
+	case http.StatusTooManyRequests:
+		// Parse Retry-After header (in seconds)
+		retryAfter := 30 * time.Second // Default
+		if retryAfterStr := resp.Header.Get("Retry-After"); retryAfterStr != "" {
+			if seconds, err := time.ParseDuration(retryAfterStr + "s"); err == nil {
+				retryAfter = seconds
+			}
+		}
+		return &RateLimitError{RetryAfter: retryAfter}
 	default:
 		if code >= 400 {
 			return fmt.Errorf("server error: status %d", code)

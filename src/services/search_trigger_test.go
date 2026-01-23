@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/user/janitarr/src/api"
 	"github.com/user/janitarr/src/database"
@@ -761,5 +762,134 @@ func TestDistributeProportional(t *testing.T) {
 				t.Errorf("expected to use full limit %d, but only used %d", tt.limit, total)
 			}
 		})
+	}
+}
+
+func TestTriggerSearches_RateLimitSkipsAfter3(t *testing.T) {
+	db := testTriggerDB(t)
+
+	// Add a server
+	server1, err := db.AddServer("radarr1", "http://localhost:7878", "api1", database.ServerTypeRadarr)
+	if err != nil {
+		t.Fatalf("adding server: %v", err)
+	}
+
+	// Create mock client that always returns rate limit error
+	mockClient := &mockTriggerAPIClient{
+		serverType: "radarr",
+		triggerErr: &api.RateLimitError{RetryAfter: 30 * time.Second},
+	}
+
+	// Create SearchTrigger with mock factory
+	trigger := NewSearchTriggerWithFactory(db, func(url, apiKey, serverType string) SearchTriggerAPIClient {
+		return mockClient
+	}, &mockSearchTriggerLogger{})
+
+	// Create detection results with items
+	detectionResults := &DetectionResults{
+		Results: []DetectionResult{
+			{
+				ServerID:   server1.ID,
+				ServerName: "radarr1",
+				ServerType: "radarr",
+				Missing:    []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
+				Cutoff:     []int{},
+			},
+		},
+		TotalMissing: 10,
+		TotalCutoff:  0,
+		SuccessCount: 1,
+		FailureCount: 0,
+	}
+
+	// Set limits to trigger multiple batches
+	limits := database.SearchLimits{MissingMoviesLimit: 10, CutoffMoviesLimit: 0}
+
+	// Trigger searches - should try 3 times and then skip
+	ctx := context.Background()
+	results, err := trigger.TriggerSearches(ctx, detectionResults, limits, false)
+	if err != nil {
+		t.Fatalf("TriggerSearches failed: %v", err)
+	}
+
+	// Should have attempted at most 3 times before skipping
+	callCount := len(mockClient.getTriggerCalls())
+	if callCount > 3 {
+		t.Errorf("expected at most 3 trigger attempts before skip, got %d", callCount)
+	}
+
+	// Should have failure count
+	if results.FailureCount == 0 {
+		t.Error("expected at least one failure")
+	}
+}
+
+func TestTriggerSearches_DelayBetweenBatches(t *testing.T) {
+	db := testTriggerDB(t)
+
+	// Add two servers
+	server1, err := db.AddServer("radarr1", "http://localhost:7878", "api1", database.ServerTypeRadarr)
+	if err != nil {
+		t.Fatalf("adding server 1: %v", err)
+	}
+	server2, err := db.AddServer("radarr2", "http://localhost:7879", "api2", database.ServerTypeRadarr)
+	if err != nil {
+		t.Fatalf("adding server 2: %v", err)
+	}
+
+	mockClient1 := &mockTriggerAPIClient{serverType: "radarr"}
+	mockClient2 := &mockTriggerAPIClient{serverType: "radarr"}
+
+	mockClients := map[string]*mockTriggerAPIClient{
+		"http://localhost:7878": mockClient1,
+		"http://localhost:7879": mockClient2,
+	}
+
+	// Create SearchTrigger with mock factory
+	trigger := NewSearchTriggerWithFactory(db, func(url, apiKey, serverType string) SearchTriggerAPIClient {
+		return mockClients[url]
+	}, &mockSearchTriggerLogger{})
+
+	// Create detection results with items from both servers
+	detectionResults := &DetectionResults{
+		Results: []DetectionResult{
+			{
+				ServerID:   server1.ID,
+				ServerName: "radarr1",
+				ServerType: "radarr",
+				Missing:    []int{1, 2, 3},
+				Cutoff:     []int{},
+			},
+			{
+				ServerID:   server2.ID,
+				ServerName: "radarr2",
+				ServerType: "radarr",
+				Missing:    []int{10, 11, 12},
+				Cutoff:     []int{},
+			},
+		},
+		TotalMissing: 6,
+		TotalCutoff:  0,
+		SuccessCount: 2,
+		FailureCount: 0,
+	}
+
+	// Set limits
+	limits := database.SearchLimits{MissingMoviesLimit: 6, CutoffMoviesLimit: 0}
+
+	// Trigger searches and measure time
+	ctx := context.Background()
+	start := time.Now()
+	_, err = trigger.TriggerSearches(ctx, detectionResults, limits, false)
+	duration := time.Since(start)
+
+	if err != nil {
+		t.Fatalf("TriggerSearches failed: %v", err)
+	}
+
+	// With 2 servers and delay between batches, we expect at least 100ms total
+	// (one delay between the two batches)
+	if duration < 100*time.Millisecond {
+		t.Errorf("total duration was %v, expected >= 100ms for batch delays", duration)
 	}
 }

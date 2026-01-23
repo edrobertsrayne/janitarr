@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -279,5 +280,61 @@ func TestClientGet_ContextCancellation(t *testing.T) {
 
 	if err == nil {
 		t.Fatal("expected context cancellation error")
+	}
+}
+
+func TestClientGet_TooManyRequests(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Retry-After", "60")
+		w.WriteHeader(http.StatusTooManyRequests)
+	}))
+	defer server.Close()
+
+	client := NewClient(server.URL, "testapikey")
+	var result SystemStatus
+	err := client.Get(context.Background(), "/system/status", &result)
+
+	if err == nil {
+		t.Fatal("expected rate limit error")
+	}
+
+	// Check that it's a RateLimitError
+	var rateLimitErr *RateLimitError
+	if !errors.As(err, &rateLimitErr) {
+		t.Fatalf("expected RateLimitError, got %T: %v", err, err)
+	}
+
+	// Check that Retry-After was parsed correctly
+	expectedRetryAfter := 60 * time.Second
+	if rateLimitErr.RetryAfter != expectedRetryAfter {
+		t.Errorf("RetryAfter = %v, want %v", rateLimitErr.RetryAfter, expectedRetryAfter)
+	}
+}
+
+func TestClientGet_TooManyRequests_DefaultRetryAfter(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// No Retry-After header
+		w.WriteHeader(http.StatusTooManyRequests)
+	}))
+	defer server.Close()
+
+	client := NewClient(server.URL, "testapikey")
+	var result SystemStatus
+	err := client.Get(context.Background(), "/system/status", &result)
+
+	if err == nil {
+		t.Fatal("expected rate limit error")
+	}
+
+	// Check that it's a RateLimitError
+	var rateLimitErr *RateLimitError
+	if !errors.As(err, &rateLimitErr) {
+		t.Fatalf("expected RateLimitError, got %T: %v", err, err)
+	}
+
+	// Check that default 30s was used
+	expectedRetryAfter := 30 * time.Second
+	if rateLimitErr.RetryAfter != expectedRetryAfter {
+		t.Errorf("RetryAfter = %v, want %v (default)", rateLimitErr.RetryAfter, expectedRetryAfter)
 	}
 }

@@ -2,7 +2,9 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"time"
 
 	"github.com/user/janitarr/src/api"
 	"github.com/user/janitarr/src/database"
@@ -64,15 +66,16 @@ func NewSearchTriggerWithFactory(db *database.DB, factory SearchTriggerAPIClient
 
 // serverItemAllocation tracks items to be triggered for a server.
 type serverItemAllocation struct {
-	serverID     string
-	serverName   string
-	serverType   string
-	serverURL    string
-	apiKey       string
-	missing      []int
-	cutoff       []int
-	missingItems map[int]api.MediaItem // Metadata for missing items
-	cutoffItems  map[int]api.MediaItem // Metadata for cutoff items
+	serverID       string
+	serverName     string
+	serverType     string
+	serverURL      string
+	apiKey         string
+	missing        []int
+	cutoff         []int
+	missingItems   map[int]api.MediaItem // Metadata for missing items
+	cutoffItems    map[int]api.MediaItem // Metadata for cutoff items
+	rateLimitCount int                   // Consecutive 429 errors
 }
 
 // TriggerSearches triggers searches based on detection results and limits.
@@ -271,35 +274,88 @@ func (s *SearchTrigger) executeAllocations(ctx context.Context, allocations []se
 		Results: make([]TriggerResult, 0),
 	}
 
-	for _, alloc := range allocations {
+	// Track rate limits across allocations (use map for persistence)
+	rateLimits := make(map[string]int)
+	for i := range allocations {
+		rateLimits[allocations[i].serverID] = allocations[i].rateLimitCount
+	}
+
+	isFirstBatch := true
+	for i := range allocations {
+		alloc := &allocations[i]
+
+		// Skip servers that have hit rate limit threshold (3 strikes)
+		if rateLimits[alloc.serverID] >= 3 {
+			continue
+		}
+
+		// Add 100ms delay between batches (but not before first batch)
+		if !isFirstBatch && !dryRun {
+			time.Sleep(100 * time.Millisecond)
+		}
+		isFirstBatch = false
+
 		// Handle missing items
 		if len(alloc.missing) > 0 {
-			result := s.triggerForServer(ctx, alloc, "missing", alloc.missing, dryRun)
+			result := s.triggerForServer(ctx, *alloc, "missing", alloc.missing, dryRun)
 			results.Results = append(results.Results, result)
 
 			if result.Success {
 				results.SuccessCount++
 				results.MissingTriggered += len(result.ItemIDs)
+				// Reset rate limit counter on success
+				rateLimits[alloc.serverID] = 0
 			} else {
 				results.FailureCount++
+				// Check if it's a rate limit error
+				if result.Error != "" && (result.Error == "rate_limit" || isRateLimitError(result.Error)) {
+					rateLimits[alloc.serverID]++
+				}
 			}
 		}
 
-		// Handle cutoff items
-		if len(alloc.cutoff) > 0 {
-			result := s.triggerForServer(ctx, alloc, "cutoff", alloc.cutoff, dryRun)
+		// Handle cutoff items (only if not rate limited)
+		if len(alloc.cutoff) > 0 && rateLimits[alloc.serverID] < 3 {
+			if !isFirstBatch && !dryRun {
+				time.Sleep(100 * time.Millisecond)
+			}
+			result := s.triggerForServer(ctx, *alloc, "cutoff", alloc.cutoff, dryRun)
 			results.Results = append(results.Results, result)
 
 			if result.Success {
 				results.SuccessCount++
 				results.CutoffTriggered += len(result.ItemIDs)
+				// Reset rate limit counter on success
+				rateLimits[alloc.serverID] = 0
 			} else {
 				results.FailureCount++
+				// Check if it's a rate limit error
+				if result.Error != "" && (result.Error == "rate_limit" || isRateLimitError(result.Error)) {
+					rateLimits[alloc.serverID]++
+				}
 			}
 		}
 	}
 
 	return results, nil
+}
+
+// isRateLimitError checks if an error message indicates a rate limit error.
+func isRateLimitError(errMsg string) bool {
+	return errMsg != "" && (errMsg == "rate_limit" || contains(errMsg, "rate limited") || contains(errMsg, "retry after"))
+}
+
+func contains(s, substr string) bool {
+	return len(s) >= len(substr) && (s == substr || len(s) > len(substr) && hasSubstring(s, substr))
+}
+
+func hasSubstring(s, substr string) bool {
+	for i := 0; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return true
+		}
+	}
+	return false
 }
 
 // triggerForServer triggers a search for items on a specific server.
@@ -346,7 +402,13 @@ func (s *SearchTrigger) triggerForServer(ctx context.Context, alloc serverItemAl
 	client := s.apiFactory(alloc.serverURL, alloc.apiKey, alloc.serverType)
 	if err := client.TriggerSearch(ctx, itemIDs); err != nil {
 		result.Success = false
-		result.Error = err.Error()
+		// Check if it's a rate limit error
+		var rateLimitErr *api.RateLimitError
+		if errors.As(err, &rateLimitErr) {
+			result.Error = "rate_limit"
+		} else {
+			result.Error = err.Error()
+		}
 	}
 
 	return result

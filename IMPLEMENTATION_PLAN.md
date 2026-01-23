@@ -135,13 +135,13 @@ Add 100ms delay between batches, 429 handling with Retry-After, 3-strike skip.
 
 **Tests** (`src/api/client_test.go`):
 
-- [ ] `TestClientGet_TooManyRequests`: Returns `RateLimitError` with parsed Retry-After
-- [ ] `TestClientGet_TooManyRequests_DefaultRetryAfter`: Default 30s when header missing
+- [x] `TestClientGet_TooManyRequests`: Returns `RateLimitError` with parsed Retry-After
+- [x] `TestClientGet_TooManyRequests_DefaultRetryAfter`: Default 30s when header missing
 
 **Tests** (`src/services/search_trigger_test.go`):
 
-- [ ] `TestTriggerSearches_RateLimitSkipsAfter3`: Server skipped after 3 consecutive 429s
-- [ ] `TestTriggerSearches_DelayBetweenBatches`: 100ms delay verified
+- [x] `TestTriggerSearches_RateLimitSkipsAfter3`: Server skipped after 3 consecutive 429s
+- [x] `TestTriggerSearches_DelayBetweenBatches`: 100ms delay verified
 
 **Implementation**:
 
@@ -154,14 +154,14 @@ type RateLimitError struct {
 func (e *RateLimitError) Error() string { ... }
 ```
 
-- [ ] Add case to `checkStatusCode()` for `http.StatusTooManyRequests`
-- [ ] Parse `Retry-After` header (default 30s)
+- [x] Add case to `checkStatusCode()` for `http.StatusTooManyRequests`
+- [x] Parse `Retry-After` header (default 30s)
 
 `src/services/search_trigger.go`:
 
-- [ ] Add `rateLimitCount int` to `serverItemAllocation` struct
-- [ ] In `executeAllocations()`: skip if `rateLimitCount >= 3`, add 100ms sleep between batches
-- [ ] Increment `rateLimitCount` on 429, reset on success
+- [x] Add `rateLimitCount int` to `serverItemAllocation` struct
+- [x] In `executeAllocations()`: skip if `rateLimitCount >= 3`, add 100ms sleep between batches
+- [x] Increment `rateLimitCount` on 429, reset on success
 
 **Verification:**
 
@@ -248,8 +248,8 @@ go test ./src/services/... -v -run TestAutomation
 
 ### Completion Checklist
 
-- [ ] Task 1: Implement proportional search distribution
-- [ ] Task 2: Implement rate limiting for search triggers
+- [x] Task 1: Implement proportional search distribution
+- [x] Task 2: Implement rate limiting for search triggers
 - [ ] Task 3: Fix search limit validation range (CLI)
 - [ ] Task 4: Add warning for high search limits
 - [x] Task 5: WebSocket reconnection with backoff (already implemented via htmx-ws)
