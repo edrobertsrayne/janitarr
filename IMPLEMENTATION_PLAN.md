@@ -367,7 +367,7 @@ make build
 
 ### Task 6: Improve Dashboard Stats Card Separation
 
-**File:** `src/templates/pages/dashboard.templ`
+**File:** `src/templates/components/stats_card.templ`
 
 **Problem:** The 4 stat cards appear as one continuous bar without visual separation.
 
@@ -375,7 +375,7 @@ make build
 
 **Changes:**
 
-- [ ] Find the stats grid (around lines 58-77) and ensure each stat has proper styling:
+- [x] Updated StatsCard component to use `shadow-lg` instead of `shadow` for better visual separation
 
   ```html
   <!-- Ensure each stat div has shadow and rounded corners -->
@@ -664,7 +664,7 @@ cat specs/daisyui-migration.md | grep -A 20 "Alpine.js x-data scoping"
 - [x] Task 3: Add favicon
 - [x] Task 4: Add navigation icons
 - [x] Task 5: Improve empty state icons
-- [ ] Task 6: Improve stats card separation
+- [x] Task 6: Improve stats card separation
 - [ ] Task 7: Improve light theme active nav contrast
 - [ ] Task 8: Add server modal E2E tests
 - [ ] Task 9: Add theme toggle E2E tests
