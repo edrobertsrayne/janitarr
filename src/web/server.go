@@ -6,17 +6,17 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/edrobertsrayne/janitarr/src/database"
+	"github.com/edrobertsrayne/janitarr/src/logger"
+	"github.com/edrobertsrayne/janitarr/src/metrics"
+	"github.com/edrobertsrayne/janitarr/src/services"
+	"github.com/edrobertsrayne/janitarr/src/version"
+	"github.com/edrobertsrayne/janitarr/src/web/handlers/api"             // Import api package
+	"github.com/edrobertsrayne/janitarr/src/web/handlers/pages"           // Import pages package
+	webMiddleware "github.com/edrobertsrayne/janitarr/src/web/middleware" // Custom middleware package
+	"github.com/edrobertsrayne/janitarr/src/web/websocket"
 	"github.com/go-chi/chi/v5"
 	chiMiddleware "github.com/go-chi/chi/v5/middleware" // Renamed to avoid conflict
-	"github.com/user/janitarr/src/database"
-	"github.com/user/janitarr/src/logger"
-	"github.com/user/janitarr/src/metrics"
-	"github.com/user/janitarr/src/services"
-	"github.com/user/janitarr/src/version"
-	"github.com/user/janitarr/src/web/handlers/api"             // Import api package
-	"github.com/user/janitarr/src/web/handlers/pages"           // Import pages package
-	webMiddleware "github.com/user/janitarr/src/web/middleware" // Custom middleware package
-	"github.com/user/janitarr/src/web/websocket"
 )
 
 // ServerConfig holds configuration for the HTTP server.

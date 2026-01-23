@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/edrobertsrayne/janitarr/src/database"
+	"github.com/edrobertsrayne/janitarr/src/logger"
+	"github.com/edrobertsrayne/janitarr/src/services"
 	"github.com/spf13/cobra"
-	"github.com/user/janitarr/src/database"
-	"github.com/user/janitarr/src/logger"
-	"github.com/user/janitarr/src/services"
 )
 
 var runCmd = &cobra.Command{

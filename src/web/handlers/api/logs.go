@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/user/janitarr/src/database"
-	"github.com/user/janitarr/src/logger"
+	"github.com/edrobertsrayne/janitarr/src/database"
+	"github.com/edrobertsrayne/janitarr/src/logger"
 )
 
 // LogHandlers provides handlers for log-related API endpoints.

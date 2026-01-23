@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/user/janitarr/src/database"
+	"github.com/edrobertsrayne/janitarr/src/database"
 )
 
 // ConfigHandlers provides handlers for application configuration API endpoints.

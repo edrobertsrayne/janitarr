@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/user/janitarr/src/logger" // Import logger package for LogEntry
+	"github.com/edrobertsrayne/janitarr/src/logger" // Import logger package for LogEntry
 )
 
 // GetLogsFunc is a variable that holds the function to retrieve log entries.

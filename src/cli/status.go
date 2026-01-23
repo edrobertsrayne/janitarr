@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/edrobertsrayne/janitarr/src/database"
+	"github.com/edrobertsrayne/janitarr/src/services"
 	"github.com/spf13/cobra"
-	"github.com/user/janitarr/src/database"
-	"github.com/user/janitarr/src/services"
 )
 
 var statusCmd = &cobra.Command{

@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/user/janitarr/src/api"
-	"github.com/user/janitarr/src/database"
+	"github.com/edrobertsrayne/janitarr/src/api"
+	"github.com/edrobertsrayne/janitarr/src/database"
 )
 
 // Error constants for server operations

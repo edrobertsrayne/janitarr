@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/user/janitarr/src/logger"
-	"github.com/user/janitarr/src/templates/pages"
+	"github.com/edrobertsrayne/janitarr/src/logger"
+	"github.com/edrobertsrayne/janitarr/src/templates/pages"
 )
 
 // HandleDashboard renders the dashboard page

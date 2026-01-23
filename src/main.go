@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/user/janitarr/src/cli"
+	"github.com/edrobertsrayne/janitarr/src/cli"
 )
 
 func main() {

@@ -3,8 +3,8 @@ package api
 import (
 	"net/http"
 
+	"github.com/edrobertsrayne/janitarr/src/database"
 	"github.com/go-chi/chi/v5"
-	"github.com/user/janitarr/src/database"
 )
 
 // StatsHandlers provides handlers for statistics API endpoints.

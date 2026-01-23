@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/edrobertsrayne/janitarr/src/database"
+	"github.com/edrobertsrayne/janitarr/src/logger"
 	"github.com/gorilla/websocket"
-	"github.com/user/janitarr/src/database"
-	"github.com/user/janitarr/src/logger"
 )
 
 func TestHub_ClientConnect(t *testing.T) {

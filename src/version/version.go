@@ -3,7 +3,7 @@ package version
 import "fmt"
 
 // These variables are set at build time via ldflags.
-// Example: go build -ldflags "-X github.com/user/janitarr/src/version.Version=v1.0.0"
+// Example: go build -ldflags "-X github.com/edrobertsrayne/janitarr/src/version.Version=v1.0.0"
 var (
 	// Version is the semantic version (e.g., "v1.0.0" or "v0.4.0-137-g4046f35")
 	Version = "dev"

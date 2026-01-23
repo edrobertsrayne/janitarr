@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/user/janitarr/src/database"
-	"github.com/user/janitarr/src/services"
+	"github.com/edrobertsrayne/janitarr/src/database"
+	"github.com/edrobertsrayne/janitarr/src/services"
 )
 
 func TestNewMetrics(t *testing.T) {

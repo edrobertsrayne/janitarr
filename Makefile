@@ -7,9 +7,9 @@ BUILD_DATE ?= $(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
 
 # Build flags
 LDFLAGS = -s -w \
-	-X github.com/user/janitarr/src/version.Version=$(VERSION) \
-	-X github.com/user/janitarr/src/version.Commit=$(COMMIT) \
-	-X github.com/user/janitarr/src/version.BuildDate=$(BUILD_DATE)
+	-X github.com/edrobertsrayne/janitarr/src/version.Version=$(VERSION) \
+	-X github.com/edrobertsrayne/janitarr/src/version.Commit=$(COMMIT) \
+	-X github.com/edrobertsrayne/janitarr/src/version.BuildDate=$(BUILD_DATE)
 
 generate:
 	templ generate

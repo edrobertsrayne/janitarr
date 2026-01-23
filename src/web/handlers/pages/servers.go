@@ -3,10 +3,10 @@ package pages
 import (
 	"net/http"
 
+	"github.com/edrobertsrayne/janitarr/src/services"
+	"github.com/edrobertsrayne/janitarr/src/templates/components/forms"
+	"github.com/edrobertsrayne/janitarr/src/templates/pages"
 	"github.com/go-chi/chi/v5"
-	"github.com/user/janitarr/src/services"
-	"github.com/user/janitarr/src/templates/components/forms"
-	"github.com/user/janitarr/src/templates/pages"
 )
 
 // HandleServers renders the servers list page

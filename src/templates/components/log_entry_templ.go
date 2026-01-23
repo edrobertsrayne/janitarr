@@ -10,7 +10,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"fmt"
-	"github.com/user/janitarr/src/logger"
+	"github.com/edrobertsrayne/janitarr/src/logger"
 )
 
 func LogEntry(entry logger.LogEntry) templ.Component {

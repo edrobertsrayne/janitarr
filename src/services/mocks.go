@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/user/janitarr/src/api"
+	"github.com/edrobertsrayne/janitarr/src/api"
 )
 
 // MockDetectorAPIClient is a mock API client for testing Detector.

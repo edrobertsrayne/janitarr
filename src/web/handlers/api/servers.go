@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/edrobertsrayne/janitarr/src/database"
+	"github.com/edrobertsrayne/janitarr/src/services"
 	"github.com/go-chi/chi/v5"
-	"github.com/user/janitarr/src/database"
-	"github.com/user/janitarr/src/services"
 )
 
 // ServerHandlers provides handlers for server management API endpoints.

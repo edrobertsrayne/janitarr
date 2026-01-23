@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/edrobertsrayne/janitarr/src/logger"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/user/janitarr/src/logger"
 )
 
 // RequestLogger is a middleware that logs HTTP requests at debug level.

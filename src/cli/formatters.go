@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time" // Added for time.RFC3339 in log formatting if needed, though not for server table
 
-	"github.com/user/janitarr/src/database"
-	"github.com/user/janitarr/src/logger"
-	"github.com/user/janitarr/src/services" // Imported for ServerInfo, etc.
+	"github.com/edrobertsrayne/janitarr/src/database"
+	"github.com/edrobertsrayne/janitarr/src/logger"
+	"github.com/edrobertsrayne/janitarr/src/services" // Imported for ServerInfo, etc.
 )
 
 // Color codes

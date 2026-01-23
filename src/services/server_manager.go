@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/user/janitarr/src/api"
-	"github.com/user/janitarr/src/database"
+	"github.com/edrobertsrayne/janitarr/src/api"
+	"github.com/edrobertsrayne/janitarr/src/database"
 )
 
 // APIClient is an interface for testing server connections.

@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/user/janitarr/src/database"
-	"github.com/user/janitarr/src/services"
+	"github.com/edrobertsrayne/janitarr/src/database"
+	"github.com/edrobertsrayne/janitarr/src/services"
 )
 
 // HealthHandlers provides handlers for health check API endpoints.

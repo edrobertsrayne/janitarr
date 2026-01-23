@@ -8,7 +8,7 @@ package forms
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/user/janitarr/src/database"
+import "github.com/edrobertsrayne/janitarr/src/database"
 import "fmt"
 
 func ConfigForm(config database.AppConfig, logCount int) templ.Component {

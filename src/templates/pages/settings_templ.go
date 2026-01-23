@@ -9,9 +9,9 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/user/janitarr/src/database"
-	"github.com/user/janitarr/src/templates/components/forms"
-	"github.com/user/janitarr/src/templates/layouts"
+	"github.com/edrobertsrayne/janitarr/src/database"
+	"github.com/edrobertsrayne/janitarr/src/templates/components/forms"
+	"github.com/edrobertsrayne/janitarr/src/templates/layouts"
 )
 
 func Settings(config database.AppConfig, logCount int) templ.Component {

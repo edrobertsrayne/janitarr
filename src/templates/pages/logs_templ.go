@@ -9,9 +9,9 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/user/janitarr/src/logger"
-	"github.com/user/janitarr/src/templates/components"
-	"github.com/user/janitarr/src/templates/layouts"
+	"github.com/edrobertsrayne/janitarr/src/logger"
+	"github.com/edrobertsrayne/janitarr/src/templates/components"
+	"github.com/edrobertsrayne/janitarr/src/templates/layouts"
 )
 
 func Logs(logs []logger.LogEntry) templ.Component {

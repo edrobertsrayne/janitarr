@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/user/janitarr/src/api"
-	"github.com/user/janitarr/src/database"
-	"github.com/user/janitarr/src/logger"
+	"github.com/edrobertsrayne/janitarr/src/api"
+	"github.com/edrobertsrayne/janitarr/src/database"
+	"github.com/edrobertsrayne/janitarr/src/logger"
 )
 
 // mockSearchTriggerLogger is a mock implementation of SearchTriggerLogger for testing.

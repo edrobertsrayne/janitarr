@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/huh"
-	"github.com/user/janitarr/src/database"
+	"github.com/edrobertsrayne/janitarr/src/database"
 )
 
 // ServerFormResult holds the result of a server form

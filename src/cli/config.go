@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/edrobertsrayne/janitarr/src/cli/forms"
+	"github.com/edrobertsrayne/janitarr/src/database"
 	"github.com/spf13/cobra"
-	"github.com/user/janitarr/src/cli/forms"
-	"github.com/user/janitarr/src/database"
 )
 
 var configCmd = &cobra.Command{

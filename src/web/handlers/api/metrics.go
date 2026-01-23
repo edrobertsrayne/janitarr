@@ -3,7 +3,7 @@ package api
 import (
 	"net/http"
 
-	"github.com/user/janitarr/src/metrics"
+	"github.com/edrobertsrayne/janitarr/src/metrics"
 )
 
 // MetricsHandlers handles Prometheus metrics endpoint

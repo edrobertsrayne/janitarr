@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/user/janitarr/src/crypto"
+	"github.com/edrobertsrayne/janitarr/src/crypto"
 	_ "modernc.org/sqlite"
 )
 

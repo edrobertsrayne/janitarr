@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/user/janitarr/src/logger"
-	"github.com/user/janitarr/src/templates/components"
-	"github.com/user/janitarr/src/templates/pages"
+	"github.com/edrobertsrayne/janitarr/src/logger"
+	"github.com/edrobertsrayne/janitarr/src/templates/components"
+	"github.com/edrobertsrayne/janitarr/src/templates/pages"
 )
 
 // HandleLogs renders the logs page

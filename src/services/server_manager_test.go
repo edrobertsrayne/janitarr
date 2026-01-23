@@ -6,8 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/user/janitarr/src/api"
-	"github.com/user/janitarr/src/database"
+	"github.com/edrobertsrayne/janitarr/src/api"
+	"github.com/edrobertsrayne/janitarr/src/database"
 )
 
 // mockLogger is a test logger that implements ServerManagerLogger

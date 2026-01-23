@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/user/janitarr/src/database"
-	"github.com/user/janitarr/src/logger"
-	"github.com/user/janitarr/src/services"
+	"github.com/edrobertsrayne/janitarr/src/database"
+	"github.com/edrobertsrayne/janitarr/src/logger"
+	"github.com/edrobertsrayne/janitarr/src/services"
 )
 
 // AutomationHandlers provides handlers for automation-related API endpoints.

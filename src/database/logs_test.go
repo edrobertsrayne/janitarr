@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/user/janitarr/src/logger"
+	"github.com/edrobertsrayne/janitarr/src/logger"
 )
 
 func TestGetLogs_SearchFilter(t *testing.T) {

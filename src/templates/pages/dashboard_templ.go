@@ -10,9 +10,9 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"fmt"
-	"github.com/user/janitarr/src/services"
-	"github.com/user/janitarr/src/templates/components"
-	"github.com/user/janitarr/src/templates/layouts"
+	"github.com/edrobertsrayne/janitarr/src/services"
+	"github.com/edrobertsrayne/janitarr/src/templates/components"
+	"github.com/edrobertsrayne/janitarr/src/templates/layouts"
 )
 
 type DashboardData struct {

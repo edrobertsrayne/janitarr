@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/edrobertsrayne/janitarr/src/logger"
 	"github.com/gorilla/websocket"
-	"github.com/user/janitarr/src/logger"
 )
 
 var upgrader = websocket.Upgrader{

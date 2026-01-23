@@ -3,8 +3,8 @@ package metrics
 import (
 	"context"
 
-	"github.com/user/janitarr/src/database"
-	"github.com/user/janitarr/src/services"
+	"github.com/edrobertsrayne/janitarr/src/database"
+	"github.com/edrobertsrayne/janitarr/src/services"
 )
 
 // SchedulerStatusProvider provides scheduler status information

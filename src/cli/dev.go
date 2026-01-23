@@ -8,11 +8,11 @@ import (
 	"path/filepath"
 	"syscall"
 
+	"github.com/edrobertsrayne/janitarr/src/database"
+	"github.com/edrobertsrayne/janitarr/src/logger"
+	"github.com/edrobertsrayne/janitarr/src/services"
+	"github.com/edrobertsrayne/janitarr/src/web"
 	"github.com/spf13/cobra"
-	"github.com/user/janitarr/src/database"
-	"github.com/user/janitarr/src/logger"
-	"github.com/user/janitarr/src/services"
-	"github.com/user/janitarr/src/web"
 )
 
 var devCmd = &cobra.Command{

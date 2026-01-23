@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/edrobertsrayne/janitarr/src/database"
+	"github.com/edrobertsrayne/janitarr/src/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"github.com/user/janitarr/src/database"
-	"github.com/user/janitarr/src/logger"
 )
 
 // MockDetector for testing the Automation service

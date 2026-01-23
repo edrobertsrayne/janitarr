@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/user/janitarr/src/database"
+	"github.com/edrobertsrayne/janitarr/src/database"
 )
 
 func TestGetConfig(t *testing.T) {

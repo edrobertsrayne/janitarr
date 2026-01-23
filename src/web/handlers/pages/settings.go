@@ -3,7 +3,7 @@ package pages
 import (
 	"net/http"
 
-	"github.com/user/janitarr/src/templates/pages"
+	"github.com/edrobertsrayne/janitarr/src/templates/pages"
 )
 
 // HandleSettings renders the settings page

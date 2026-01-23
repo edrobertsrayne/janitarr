@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/edrobertsrayne/janitarr/src/logger"
+	"github.com/edrobertsrayne/janitarr/src/version"
 	"github.com/spf13/cobra"
-	"github.com/user/janitarr/src/logger"
-	"github.com/user/janitarr/src/version"
 )
 
 var (

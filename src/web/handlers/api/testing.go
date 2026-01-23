@@ -3,7 +3,7 @@ package api
 import (
 	"testing"
 
-	"github.com/user/janitarr/src/database"
+	"github.com/edrobertsrayne/janitarr/src/database"
 )
 
 // testDB creates a new in-memory database for testing.

@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/charmbracelet/huh"
-	"github.com/user/janitarr/src/database"
+	"github.com/edrobertsrayne/janitarr/src/database"
 )
 
 // ConfigForm displays an interactive form for editing application configuration

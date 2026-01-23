@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/user/janitarr/src/api"
-	"github.com/user/janitarr/src/database"
+	"github.com/edrobertsrayne/janitarr/src/api"
+	"github.com/edrobertsrayne/janitarr/src/database"
 )
 
 // DetectorAPIClient is the interface for API clients used by the Detector.

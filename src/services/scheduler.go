@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/user/janitarr/src/database"
+	"github.com/edrobertsrayne/janitarr/src/database"
 )
 
 // DebugLogger is an interface for debug logging to avoid circular dependencies.

@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/edrobertsrayne/janitarr/src/database"
+	"github.com/edrobertsrayne/janitarr/src/services"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/user/janitarr/src/database"
-	"github.com/user/janitarr/src/services"
 )
 
 // mockServerManager implements ServerManagerInterface for testing

@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/edrobertsrayne/janitarr/src/logger"
 	"github.com/gorilla/websocket"
-	"github.com/user/janitarr/src/logger"
 )
 
 const (

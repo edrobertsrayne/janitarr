@@ -3,9 +3,9 @@ package pages
 import (
 	"net/http"
 
-	"github.com/user/janitarr/src/database"
-	"github.com/user/janitarr/src/logger"
-	"github.com/user/janitarr/src/services"
+	"github.com/edrobertsrayne/janitarr/src/database"
+	"github.com/edrobertsrayne/janitarr/src/logger"
+	"github.com/edrobertsrayne/janitarr/src/services"
 )
 
 // PageHandlers holds dependencies for page rendering

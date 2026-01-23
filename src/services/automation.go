@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/user/janitarr/src/database"
-	"github.com/user/janitarr/src/logger"
+	"github.com/edrobertsrayne/janitarr/src/database"
+	"github.com/edrobertsrayne/janitarr/src/logger"
 )
 
 // AutomationDetector defines the interface for content detection.
