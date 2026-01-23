@@ -270,3 +270,8 @@ func (l *Logger) Info(msg string, keyvals ...interface{}) {
 func (l *Logger) Error(msg string, keyvals ...interface{}) {
 	l.console.Error(msg, keyvals...)
 }
+
+// Warn logs a warning message with structured key-value pairs.
+func (l *Logger) Warn(msg string, keyvals ...interface{}) {
+	l.console.Warn(msg, keyvals...)
+}

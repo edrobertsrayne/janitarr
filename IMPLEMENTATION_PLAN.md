@@ -40,7 +40,7 @@ This document is designed for AI coding agents. Each task:
 
 ## Current Status
 
-**Active Phase:** Phase 27 - Spec-Code Alignment
+**Active Phase:** Phase 27 - Spec-Code Alignment (Complete ✓)
 **Previous Phase:** Phase 26 - Modal Z-Index Fix (Complete ✓)
 **Test Status:** Go unit tests passing, E2E tests 88% pass rate (63/72 passing, 9 intentionally skipped)
 
@@ -80,10 +80,11 @@ Features from `/specs/` that ARE fully implemented:
 
 ## Phase 27: Spec-Code Alignment
 
-**Status:** Pending
+**Status:** Complete ✓
 **Priority:** Critical (core automation behavior doesn't match spec)
+**Completed:** 2026-01-23
 
-Align implementation with specs from 2026-01-23 audit. Write tests first, then implement.
+Align implementation with specs from 2026-01-23 audit. All tasks completed including proportional search distribution, rate limiting, search limit validation updates, high limit warnings, and optional cycle duration monitoring.
 
 ### Files to Modify
 
@@ -230,20 +231,14 @@ go test ./src/web/handlers/api/... -v -run TestPostConfig_HighLimitWarning
 
 **Implementation** (`src/services/automation.go`):
 
-```go
-duration := time.Since(startTime)
-if duration > 5*time.Minute {
-    s.consoleLogger.Warn("automation cycle exceeded target duration", ...)
-}
-```
-
-- [ ] Add console logger field to Automation struct
-- [ ] Add duration warning at end of RunCycle()
+- [x] Add `Warn` method to `Logger` interface and `AutomationLogger` interface
+- [x] Add duration warning at end of `RunCycle()` when duration exceeds 5 minutes
+- [x] Add tests for cycle duration monitoring (one test skipped due to 5-minute runtime)
 
 **Verification:**
 
 ```bash
-go test ./src/services/... -v -run TestAutomation
+go test ./src/services/... -v -run TestRunCycle
 ```
 
 ---
@@ -255,7 +250,7 @@ go test ./src/services/... -v -run TestAutomation
 - [x] Task 3: Fix search limit validation range (CLI)
 - [x] Task 4: Add warning for high search limits
 - [x] Task 5: WebSocket reconnection with backoff (already implemented via htmx-ws)
-- [ ] Task 6: Add cycle duration monitoring (optional)
+- [x] Task 6: Add cycle duration monitoring (optional)
 
 **Final Verification:**
 

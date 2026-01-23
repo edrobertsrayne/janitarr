@@ -67,6 +67,10 @@ func (m *MockLogger) LogSearchError(serverName, serverType, category, reason str
 	return args.Get(0).(*logger.LogEntry)
 }
 
+func (m *MockLogger) Warn(msg string, keyvals ...interface{}) {
+	m.Called(msg, keyvals)
+}
+
 // MockDB for testing the Automation service
 type MockDB struct {
 	mock.Mock
@@ -574,4 +578,143 @@ func (dr *DetectionResults) TotalFailureCount() int {
 
 func (tr *TriggerResults) TotalFailureCount() int {
 	return tr.FailureCount
+}
+
+// TestRunCycle_LongDurationWarning verifies that a warning is logged when cycle duration exceeds 5 minutes.
+// NOTE: This test takes over 5 minutes to run. Skip it in normal test runs.
+func TestRunCycle_LongDurationWarning(t *testing.T) {
+	t.Skip("Skipping long duration test - takes over 5 minutes to run")
+	assert := assert.New(t)
+	ctx := context.Background()
+
+	mockDB := new(MockDB)
+	mockDetector := new(MockDetector)
+	mockSearchTrigger := new(MockSearchTrigger)
+	mockLogger := new(MockLogger)
+
+	appConfig := defaultAppConfig()
+	mockDB.On("GetAppConfig").Return(*appConfig).Once()
+
+	// Mock Logger calls
+	mockLogger.On("LogCycleStart", false).Return(&logger.LogEntry{Type: logger.LogTypeCycleStart}).Once()
+	mockLogger.On("LogDetectionComplete", "Server1", "radarr", 1, 0).Return(&logger.LogEntry{Type: logger.LogTypeDetection}).Once()
+	mockLogger.On("LogSearches", "Server1", "radarr", "missing", 1, false).Return(&logger.LogEntry{Type: logger.LogTypeSearch}).Once()
+	mockLogger.On("LogCycleEnd", 1, 0, false).Return(&logger.LogEntry{Type: logger.LogTypeCycleEnd}).Once()
+	// Expect warning to be logged
+	mockLogger.On("Warn", "automation cycle exceeded target duration", mock.Anything).Return().Once()
+	mockLogger.On("LogServerError", mock.Anything, mock.Anything, mock.Anything).Return(&logger.LogEntry{}).Maybe()
+	mockLogger.On("LogSearchError", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&logger.LogEntry{}).Maybe()
+
+	// Mock Detector calls - add artificial delay to exceed 5 minutes
+	detectionResults := &DetectionResults{
+		Results: []DetectionResult{
+			{
+				ServerID:   "server1",
+				ServerName: "Server1",
+				ServerType: "radarr",
+				Missing:    []int{101},
+			},
+		},
+		TotalMissing: 1,
+		SuccessCount: 1,
+	}
+	mockDetector.On("DetectAll", ctx).Return(detectionResults, nil).Run(func(args mock.Arguments) {
+		// Sleep for slightly over 5 minutes to trigger warning
+		time.Sleep(5*time.Minute + 100*time.Millisecond)
+	}).Once()
+
+	// Mock SearchTrigger calls
+	triggerResults := &TriggerResults{
+		Results: []TriggerResult{
+			{
+				ServerID:   "server1",
+				ServerName: "Server1",
+				ServerType: "radarr",
+				Category:   "missing",
+				ItemIDs:    []int{101},
+				Success:    true,
+			},
+		},
+		MissingTriggered: 1,
+		SuccessCount:     1,
+	}
+	mockSearchTrigger.On("TriggerSearches", ctx, detectionResults, appConfig.SearchLimits, false).Return(triggerResults, nil).Once()
+
+	automation := NewAutomation(mockDB, mockDetector, mockSearchTrigger, mockLogger)
+	result, err := automation.RunCycle(ctx, false, false)
+
+	assert.NoError(err)
+	assert.True(result.Success)
+	assert.Greater(result.Duration, 5*time.Minute)
+
+	mockDB.AssertExpectations(t)
+	mockDetector.AssertExpectations(t)
+	mockSearchTrigger.AssertExpectations(t)
+	mockLogger.AssertExpectations(t)
+}
+
+// TestRunCycle_ShortDurationNoWarning verifies that no warning is logged when cycle duration is under 5 minutes.
+func TestRunCycle_ShortDurationNoWarning(t *testing.T) {
+	assert := assert.New(t)
+	ctx := context.Background()
+
+	mockDB := new(MockDB)
+	mockDetector := new(MockDetector)
+	mockSearchTrigger := new(MockSearchTrigger)
+	mockLogger := new(MockLogger)
+
+	appConfig := defaultAppConfig()
+	mockDB.On("GetAppConfig").Return(*appConfig).Once()
+
+	// Mock Logger calls - no Warn call expected
+	mockLogger.On("LogCycleStart", false).Return(&logger.LogEntry{Type: logger.LogTypeCycleStart}).Once()
+	mockLogger.On("LogDetectionComplete", "Server1", "radarr", 1, 0).Return(&logger.LogEntry{Type: logger.LogTypeDetection}).Once()
+	mockLogger.On("LogSearches", "Server1", "radarr", "missing", 1, false).Return(&logger.LogEntry{Type: logger.LogTypeSearch}).Once()
+	mockLogger.On("LogCycleEnd", 1, 0, false).Return(&logger.LogEntry{Type: logger.LogTypeCycleEnd}).Once()
+	mockLogger.On("LogServerError", mock.Anything, mock.Anything, mock.Anything).Return(&logger.LogEntry{}).Maybe()
+	mockLogger.On("LogSearchError", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(&logger.LogEntry{}).Maybe()
+
+	// Mock Detector calls - fast response
+	detectionResults := &DetectionResults{
+		Results: []DetectionResult{
+			{
+				ServerID:   "server1",
+				ServerName: "Server1",
+				ServerType: "radarr",
+				Missing:    []int{101},
+			},
+		},
+		TotalMissing: 1,
+		SuccessCount: 1,
+	}
+	mockDetector.On("DetectAll", ctx).Return(detectionResults, nil).Once()
+
+	// Mock SearchTrigger calls
+	triggerResults := &TriggerResults{
+		Results: []TriggerResult{
+			{
+				ServerID:   "server1",
+				ServerName: "Server1",
+				ServerType: "radarr",
+				Category:   "missing",
+				ItemIDs:    []int{101},
+				Success:    true,
+			},
+		},
+		MissingTriggered: 1,
+		SuccessCount:     1,
+	}
+	mockSearchTrigger.On("TriggerSearches", ctx, detectionResults, appConfig.SearchLimits, false).Return(triggerResults, nil).Once()
+
+	automation := NewAutomation(mockDB, mockDetector, mockSearchTrigger, mockLogger)
+	result, err := automation.RunCycle(ctx, false, false)
+
+	assert.NoError(err)
+	assert.True(result.Success)
+	assert.Less(result.Duration, 5*time.Minute)
+
+	mockDB.AssertExpectations(t)
+	mockDetector.AssertExpectations(t)
+	mockSearchTrigger.AssertExpectations(t)
+	mockLogger.AssertExpectations(t)
 }

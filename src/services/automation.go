@@ -27,6 +27,7 @@ type AutomationLogger interface {
 	LogSearches(serverName, serverType, category string, count int, isManual bool) *logger.LogEntry
 	LogServerError(serverName, serverType, reason string) *logger.LogEntry
 	LogSearchError(serverName, serverType, category, reason string) *logger.LogEntry
+	Warn(msg string, keyvals ...interface{})
 }
 
 // AutomationDB defines the interface for database operations needed by Automation.
@@ -119,6 +120,14 @@ func (a *Automation) RunCycle(ctx context.Context, isManual, dryRun bool) (*Cycl
 
 	cycleResult.Duration = time.Since(startTime)
 	a.logger.LogCycleEnd(cycleResult.TotalSearches, cycleResult.TotalFailures, isManual)
+
+	// Warn if cycle duration exceeds 5 minutes target
+	if cycleResult.Duration > 5*time.Minute {
+		a.logger.Warn("automation cycle exceeded target duration",
+			"duration", cycleResult.Duration.String(),
+			"target", "5m0s",
+		)
+	}
 
 	if len(cycleResult.Errors) > 0 {
 		return cycleResult, fmt.Errorf("automation cycle completed with %d errors", len(cycleResult.Errors))
