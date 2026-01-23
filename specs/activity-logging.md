@@ -134,15 +134,12 @@ WARN Rate limited server=radarr-main retry_after=30s
 
 #### Acceptance Criteria
 
-- [ ] Activity log is displayed in reverse chronological order (newest first)
-- [ ] Log entries show date and time in readable format
-- [ ] User can see at least the most recent 100 log entries
-- [ ] Log interface clearly distinguishes between: cycle events, successful
-      searches, and failures
-- [ ] Web interface provides filtering by level, server, and operation type
-- [ ] Console output uses color coding for log levels
+Activity log viewing is handled by the unified logging system. See [logging.md](./logging.md) for:
 
-See [logging.md](./logging.md) for complete web interface and filtering requirements.
+- Web interface log viewer requirements (reverse chronological order, pagination, filtering)
+- Console output formatting and color coding
+- Real-time streaming via WebSocket
+- Dashboard log summary widget
 
 ### Story: Clear Old Logs
 
@@ -152,65 +149,32 @@ See [logging.md](./logging.md) for complete web interface and filtering requirem
 
 #### Acceptance Criteria
 
-- [ ] System retains logs for 30 days by default (configurable 7-90 days)
-- [ ] Logs older than retention period are automatically purged daily
-- [ ] User can manually clear all logs if desired (with confirmation)
-- [ ] Log count displayed in settings for user awareness
+Log retention and cleanup is handled by the unified logging system. See [logging.md](./logging.md) for:
+
+- Retention period configuration (30 days default, 7-90 day range)
+- Automatic daily cleanup of old logs
+- Manual "Clear all logs" option
+- Log count display in settings
 
 ## Edge Cases & Constraints
 
-### Log Storage
+For general logging constraints (performance, storage, sensitive data handling, time zones,
+concurrency, error handling), see [logging.md](./logging.md#edge-cases--constraints).
 
-- Log entries should be lightweight (< 1KB per entry typical)
-- Don't log sensitive information (no API keys, no full URLs if they contain
-  credentials)
-- Server names logged, but not full connection URLs
+### Activity-Specific Constraints
 
-### Performance
+**Log Detail Level:**
 
-- Logging should not significantly impact automation performance
-- Database writes are asynchronous to prevent blocking
-- Log display should be fast even with thousands of entries
-- Web UI uses pagination and virtual scrolling for large log sets
-
-### Log Detail Level
-
-- Log should be detailed enough to troubleshoot issues and provide full
-  visibility into what content is being searched
 - Log meaningful events: cycle start/end, detection results, individual searches triggered
   (with titles and IDs), and failures
 - Individual log entries per search provide granular audit trail
-- Use efficient storage and display techniques (virtualization, pagination) to
-  handle potentially large log volumes
+- Content titles and IDs allow cross-referencing with Radarr/Sonarr UIs
 
-### Time Representation
-
-- All timestamps stored in UTC in database
-- Console output displays local time
-- Web interface displays in browser's local time
-- Timestamps include date and time, not just time
-
-### Data Integrity
-
-- Log should survive application crashes when possible
-- Write log entries immediately, don't buffer them in memory
-- If database write fails, log to console only (don't lose the log)
-
-### User Experience
-
-- Failed operations should be easy to spot (color coding, icons, or clear
-  labels)
-- Recent activity summary visible on dashboard
-- Summary view: "Last cycle: 12 searches triggered, 2 failures" with
-  option to expand details
-- Real-time streaming in web UI keeps users informed without refreshing
-
-### Known Limitations
+**Known Limitations:**
 
 - The system logs what searches were triggered, not whether searches found
   content (that's Radarr/Sonarr's responsibility)
 - Individual log entries mean higher log volumes compared to grouped entries
-- Very old logs are purged automatically to prevent unbounded growth
 
 ## Related Specifications
 

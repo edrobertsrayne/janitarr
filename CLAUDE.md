@@ -41,6 +41,7 @@ Run these after implementing to get immediate feedback:
 go test ./...           # All tests
 go test -race ./...     # Race detection
 templ generate          # After .templ changes
+bunx playwright test    # Run E2E tests
 ```
 
 ## Operational Notes

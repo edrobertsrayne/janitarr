@@ -312,17 +312,29 @@ Material Card with form inputs:
 
 Material Card with form inputs:
 
-1. **Missing Content Limit**
+1. **Missing Movies Limit**
    - Number input with stepper
    - Min: 0, Max: 1000
-   - Suffix: "items per cycle"
-   - Description: "Maximum missing items to search per automation cycle"
+   - Suffix: "movies per cycle"
+   - Description: "Maximum missing movies to search per automation cycle (Radarr)"
 
-2. **Quality Cutoff Limit**
+2. **Missing Episodes Limit**
    - Number input with stepper
    - Min: 0, Max: 1000
-   - Suffix: "items per cycle"
-   - Description: "Maximum quality upgrade items to search per cycle"
+   - Suffix: "episodes per cycle"
+   - Description: "Maximum missing episodes to search per automation cycle (Sonarr)"
+
+3. **Cutoff Movies Limit**
+   - Number input with stepper
+   - Min: 0, Max: 1000
+   - Suffix: "movies per cycle"
+   - Description: "Maximum movies below quality cutoff to search per cycle (Radarr)"
+
+4. **Cutoff Episodes Limit**
+   - Number input with stepper
+   - Min: 0, Max: 1000
+   - Suffix: "episodes per cycle"
+   - Description: "Maximum episodes below quality cutoff to search per cycle (Sonarr)"
 
 #### Section 3: Web Interface Settings
 
@@ -342,7 +354,7 @@ Material Card with form inputs:
 
 3. **Log Retention Days**
    - Number input
-   - Min: 1, Max: 365
+   - Min: 7, Max: 90
    - Description: "Days to keep logs before auto-deletion"
 
 #### Section 4: Advanced
@@ -375,13 +387,13 @@ Material Expansion Panel (collapsed by default):
 
 ### REST API Endpoints
 
-Base URL: `http://localhost:3000/api`
+Base URL: `http://localhost:3434/api`
 
 #### Configuration
 
 ```
 GET    /api/config
-  Response: { schedule: { intervalHours, enabled }, searchLimits: { missingLimit, cutoffLimit } }
+  Response: { schedule: { intervalHours, enabled }, searchLimits: { missingMoviesLimit, missingEpisodesLimit, cutoffMoviesLimit, cutoffEpisodesLimit } }
 
 PATCH  /api/config
   Body: Partial<AppConfig>
@@ -481,7 +493,7 @@ GET    /api/stats/servers/:id
 
 ### WebSocket API
 
-**Endpoint**: `ws://localhost:3000/ws/logs`
+**Endpoint**: `ws://localhost:3434/ws/logs`
 
 **Protocol**: JSON messages
 
@@ -543,9 +555,97 @@ GET    /api/stats/servers/:id
 
 **Connection Management**:
 
-- Auto-reconnect on disconnect (exponential backoff: 1s, 2s, 4s, 8s, max 30s)
+- Auto-reconnect on disconnect (exponential backoff: 1s, 2s, 4s, 8s, 16s, 30s; after reaching 30s, continue attempting every 30 seconds indefinitely until connection succeeds or page is closed)
 - Ping/pong every 30s to keep connection alive
 - Close connection on page unload
+
+<!-- AUTO-RESOLVED (2026-01-23): The htmx-ws extension uses "full-jitter" exponential backoff which is functionally equivalent and superior (prevents thundering herd). Implementation using htmx-ws satisfies this requirement. -->
+
+---
+
+### API Error Responses
+
+All API endpoints return consistent error responses when requests fail.
+
+**Standard Error Format**:
+
+```json
+{
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human-readable error description",
+    "field": "fieldName"
+  }
+}
+```
+
+- `code`: Machine-readable error code (SCREAMING_SNAKE_CASE)
+- `message`: Human-friendly error message for display
+- `field`: Optional field name for validation errors
+
+**HTTP Status Codes**:
+
+| Status | Meaning               | Use Case                                       |
+| ------ | --------------------- | ---------------------------------------------- |
+| 200    | OK                    | Successful GET, PUT, PATCH                     |
+| 201    | Created               | Successful POST (resource created)             |
+| 204    | No Content            | Successful DELETE                              |
+| 400    | Bad Request           | Validation errors, malformed JSON              |
+| 404    | Not Found             | Resource does not exist                        |
+| 409    | Conflict              | Duplicate resource (e.g., server name exists)  |
+| 422    | Unprocessable Entity  | Business logic error (e.g., connection failed) |
+| 500    | Internal Server Error | Unexpected server errors                       |
+
+**Error Codes**:
+
+| Code                 | HTTP Status | Description                               |
+| -------------------- | ----------- | ----------------------------------------- |
+| `VALIDATION_ERROR`   | 400         | Field validation failed                   |
+| `INVALID_JSON`       | 400         | Request body is not valid JSON            |
+| `SERVER_NOT_FOUND`   | 404         | Server ID does not exist                  |
+| `SERVER_NAME_EXISTS` | 409         | Server name already in use                |
+| `CONNECTION_FAILED`  | 422         | Could not connect to Radarr/Sonarr server |
+| `INVALID_API_KEY`    | 422         | API key rejected by Radarr/Sonarr         |
+| `AUTOMATION_RUNNING` | 409         | Automation cycle already in progress      |
+| `QUEUE_FULL`         | 409         | Manual trigger queue is full              |
+| `INTERNAL_ERROR`     | 500         | Unexpected server error                   |
+
+**Example Error Responses**:
+
+Validation error (field-level):
+
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "URL must be a valid HTTP or HTTPS URL",
+    "field": "url"
+  }
+}
+```
+
+Conflict error:
+
+```json
+{
+  "error": {
+    "code": "SERVER_NAME_EXISTS",
+    "message": "A server with this name already exists",
+    "field": "name"
+  }
+}
+```
+
+Connection test failure:
+
+```json
+{
+  "error": {
+    "code": "CONNECTION_FAILED",
+    "message": "Connection timed out after 10 seconds"
+  }
+}
+```
 
 ---
 
@@ -851,7 +951,7 @@ GET    /api/stats/servers/:id
 
 ```bash
 # Web server configuration
-JANITARR_WEB_PORT=3000              # Port for web interface (default: 3000)
+JANITARR_WEB_PORT=3434              # Port for web interface (default: 3434)
 JANITARR_WEB_HOST=localhost         # Host to bind to (default: localhost)
 JANITARR_WEB_ENABLED=true           # Enable web server (default: true)
 
@@ -865,7 +965,7 @@ LOG_RETENTION_DAYS=30               # Log retention period
 ```json
 {
   "web": {
-    "port": 3000,
+    "port": 3434,
     "host": "localhost",
     "enabled": true,
     "openBrowser": false,
@@ -968,13 +1068,24 @@ No JavaScript build step required. Static files served directly from `static/` d
 
 ---
 
-## Open Questions
+## Design Decisions (Resolved)
 
-1. Should we support multiple instances of janitarr with a shared database?
-2. Do we need a configuration wizard on first launch?
-3. Should we include a "Get Started" tutorial/onboarding flow?
-4. Do we want to support custom themes beyond light/dark?
-5. Should logs be stored in a separate table optimized for querying?
+The following questions were raised during specification review and have been resolved:
+
+1. **Multiple instances with shared database?**
+   → **Not supported in v1.** Running multiple Janitarr instances against the same database is out of scope. Users should run a single instance per database. Concurrent access may cause locking issues or data corruption. Document this limitation in deployment documentation.
+
+2. **Configuration wizard on first launch?**
+   → **Post-v1 enhancement.** For v1, users configure servers and settings through the standard UI. A guided wizard with validation and recommendations could improve first-run experience in a future version.
+
+3. **"Get Started" tutorial/onboarding flow?**
+   → **Post-v1 enhancement.** For v1, the UI should be intuitive enough without guided tutorials. Help text and documentation links are sufficient. An interactive onboarding flow could be added in a future version if user feedback indicates need.
+
+4. **Custom themes beyond light/dark?**
+   → **Not supported.** Per `daisyui-migration.md`, only light and dark themes are supported. This reduces complexity and CSS bundle size. The custom theme definitions in `tailwind.config.cjs` allow future color adjustments without adding additional theme options.
+
+5. **Separate table for logs?**
+   → **Yes, implemented.** Per `logging.md`, activity logs are stored in a dedicated `logs` table with columns optimized for querying (timestamp, level, category, server_name, message). This is separate from application configuration tables.
 
 ---
 

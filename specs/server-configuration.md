@@ -74,8 +74,7 @@ automation can occur.
 
 ### Connection Validation
 
-- Test connections with a timeout (suggest 10-15 seconds) to avoid indefinite
-  waiting
+- Test connections with a timeout of 10 seconds to avoid indefinite waiting
 - API key validation should use a minimal API call that confirms authentication
   without retrieving large datasets
 - Handle common Radarr/Sonarr API response codes: 200 (success), 401
@@ -97,11 +96,10 @@ automation can occur.
 
 - Never display full API keys in the interface (show only first/last few
   characters or fully mask)
-- API keys MUST be encrypted at rest using AES-256 encryption
-- Encryption key is derived from machine ID (using crypto.randomUUID() or
-  similar platform-specific identifier)
-- Database is not portable across machines due to machine-specific encryption
-  key
+- API keys MUST be encrypted at rest using AES-256-GCM encryption
+- Encryption key is stored in `data/.janitarr.key` (32 bytes, base64 encoded)
+- Key is auto-generated on first startup if not present
+- Database and key file should be backed up together for portability
 - Do not log API keys in activity logs
 
 ### User Experience

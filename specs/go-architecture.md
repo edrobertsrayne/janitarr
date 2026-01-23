@@ -204,6 +204,129 @@ func (c *Client) Get(ctx context.Context, path string, result interface{}) error
 }
 ```
 
+## Architecture Flow Diagrams
+
+These diagrams illustrate the key data flows in Janitarr.
+
+### Automation Cycle Flow
+
+The core automation cycle coordinates detection and search triggering across configured servers:
+
+```mermaid
+sequenceDiagram
+    participant S as Scheduler
+    participant A as Automation Service
+    participant D as Detector
+    participant R as Radarr/Sonarr API
+    participant T as Search Trigger
+    participant L as Logger
+    participant DB as Database
+
+    S->>A: ExecuteCycle(isManual)
+    A->>L: Log "Cycle started"
+    A->>DB: Get enabled servers
+    DB-->>A: Server list
+
+    par Detection (parallel per server)
+        A->>D: DetectServer(server)
+        D->>R: GET /wanted/missing
+        R-->>D: Missing items
+        D->>R: GET /wanted/cutoff
+        R-->>D: Cutoff items
+        D-->>A: DetectionResult
+    end
+
+    A->>A: Aggregate results, calculate distribution
+    A->>L: Log detection summary
+
+    loop For each server with items
+        A->>T: TriggerSearches(server, items, limit)
+        T->>R: POST /command (MoviesSearch/SeriesSearch)
+        R-->>T: Command queued
+        T->>T: Wait 100ms (rate limit)
+        T-->>A: Search result
+    end
+
+    A->>L: Log "Cycle completed" with stats
+    A->>DB: Store activity log
+    A-->>S: CycleResult
+```
+
+### Web Request Flow
+
+HTTP requests flow through Chi router middleware to handlers and services:
+
+```mermaid
+sequenceDiagram
+    participant C as Client (Browser)
+    participant M as Middleware
+    participant H as Handler
+    participant SV as Service
+    participant DB as Database
+    participant CR as Crypto
+
+    C->>M: HTTP Request
+    M->>M: RequestID
+    M->>M: RealIP
+    M->>M: Recoverer
+
+    alt API Request (/api/*)
+        M->>H: Route to API handler
+        H->>SV: Business logic call
+
+        alt Server CRUD
+            SV->>CR: Encrypt/Decrypt API key
+            CR-->>SV: Processed key
+        end
+
+        SV->>DB: SQL query
+        DB-->>SV: Result
+        SV-->>H: Response data
+        H-->>C: JSON response
+    else Page Request
+        M->>H: Route to page handler
+        H->>DB: Fetch data
+        DB-->>H: Data
+        H->>H: Render templ template
+        H-->>C: HTML response
+    end
+```
+
+### WebSocket Log Streaming Flow
+
+Real-time log streaming uses WebSocket connections with a pub/sub pattern:
+
+```mermaid
+sequenceDiagram
+    participant C as Client (Browser)
+    participant WS as WebSocket Handler
+    participant L as Logger
+    participant S as Subscriber Channel
+
+    C->>WS: Upgrade to WebSocket
+    WS->>L: Subscribe()
+    L-->>WS: Subscriber channel
+
+    par Log Generation
+        Note over L: Automation cycle runs
+        L->>L: Log event created
+        L->>S: Broadcast to all subscribers
+    and Client Connection
+        S-->>WS: Receive log event
+        WS->>C: Send JSON message
+    end
+
+    alt Client Disconnects
+        C->>WS: Close connection
+        WS->>L: Unsubscribe()
+        L->>L: Remove subscriber
+    else Connection Lost
+        WS->>WS: Detect disconnect
+        WS->>L: Unsubscribe()
+        Note over C: Client attempts reconnect<br/>with exponential backoff
+    end
+```
+
 ## Database Layer
 
 ### SQLite with modernc.org/sqlite
@@ -502,6 +625,30 @@ func newStartCmd() *cobra.Command {
     return cmd
 }
 ```
+
+## Configuration Precedence
+
+Configuration values can come from multiple sources. When the same setting is specified in multiple places, the following precedence order applies (highest to lowest):
+
+1. **CLI flags** (`--port`, `--host`, `--db-path`, `--log-level`)
+2. **Environment variables** (`JANITARR_*`)
+3. **Database-stored configuration** (automation settings, server configs)
+4. **Hardcoded defaults**
+
+This means CLI flags always override environment variables, which override database settings. For example:
+
+```bash
+# CLI flag wins - server runs on port 8080
+JANITARR_WEB_PORT=3000 ./janitarr start --port 8080
+
+# Env var wins over database default - server runs on port 3000
+JANITARR_WEB_PORT=3000 ./janitarr start
+
+# Database or hardcoded default used - server runs on port 3434
+./janitarr start
+```
+
+Note: Not all settings are available at all levels. Automation settings (schedule interval, search limits) are typically only in the database, while runtime settings (port, host, log level) are available via CLI/environment.
 
 ## Testing
 

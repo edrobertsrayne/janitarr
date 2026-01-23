@@ -76,8 +76,9 @@ detection runs against all configured servers during each automation cycle.
 
 ### Performance
 
-- Detection should complete in reasonable time even with multiple servers and
-  large libraries
+- Detection target: < 30 seconds per server for libraries up to 10,000 items
+- Large libraries (> 10,000 items): Allow proportionally longer times (roughly
+  linear scaling)
 - Consider caching server responses briefly if detection runs very frequently
   (optional optimization)
 

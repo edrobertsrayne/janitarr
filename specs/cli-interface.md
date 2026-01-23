@@ -235,7 +235,7 @@ This specification defines interactive CLI forms using the [charmbracelet/huh](h
 - Show validation errors inline below field
 - Don't allow submit until all required fields valid
 - URL validation allows http and https schemes
-- API key validation: non-empty, reasonable length (20-100 chars)
+- API key validation: non-empty, 32 hexadecimal characters (matching Radarr/Sonarr API key format)
 - Server name: alphanumeric, dashes, underscores; 1-50 chars
 
 ### Error Recovery

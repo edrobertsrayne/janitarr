@@ -89,9 +89,16 @@ system actually tells Radarr/Sonarr to search for content.
 
 ### Search Distribution
 
-- When triggering searches across multiple servers, distribute fairly based on
-  each server's proportion of total items (don't exhaust one server's quota
-  before touching others)
+- When triggering searches across multiple servers, distribute the search limit
+  proportionally based on each server's share of total items in that category.
+  - Example: If Server A has 90 missing items and Server B has 10 (total 100),
+    and the limit is 10, Server A receives 9 searches and Server B receives 1.
+  - Minimum allocation: Each server with items in the category receives at
+    least 1 search, even if its proportion would yield less than 1.
+  - If minimum allocations exceed the limit, reduce each server's allocation
+    proportionally while maintaining at least 1 per server.
+  - Rounding: Use floor division for proportional allocation, then distribute
+    any remaining searches to servers with the largest fractional remainders.
 - Limits are separate by category AND content type:
   - Missing movies limit is independent from missing episodes limit
   - Cutoff-not-met movies limit is independent from cutoff-not-met episodes limit
@@ -119,16 +126,23 @@ system actually tells Radarr/Sonarr to search for content.
 
 ### Rate Limiting
 
-- Respect Radarr/Sonarr API rate limits when triggering searches
-- If triggering many searches rapidly, implement brief delays between commands
-  if necessary
+- Between batch search commands, wait 100ms minimum to avoid overwhelming
+  servers
+- If a server returns HTTP 429 (rate limited):
+  - Honor the `Retry-After` header if present
+  - If no `Retry-After` header, wait 30 seconds before retrying
+  - Log rate limit events at WARN level
+- After 3 consecutive rate limit responses from the same server, skip remaining
+  searches for that server in the current cycle and log at ERROR level
 
 ### User Control
 
 - Limits prevent runaway search behavior (accidentally searching thousands of
   items)
-- User should be able to set high limits if they want aggressive searching
-- No arbitrary maximum limit (user controls their own risk)
+- Search limits accept values from 0 to 1000
+- Values above 100 display a warning about potential indexer strain (in both
+  web UI and CLI)
+- No hard maximum enforced beyond validation—users control their own risk
 
 ### Dry-Run Mode
 

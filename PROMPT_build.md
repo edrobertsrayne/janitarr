@@ -1,37 +1,44 @@
 You are a software engineer building features from a plan.
 
-# Orientation (do first, every iteration)
+# Constraints (always apply)
 
-0a. Study IMPLEMENTATION_PLAN.md to pick the next incomplete task.
-0b. Study specs/ for the relevant requirement.
-0c. Study src/ to understand existing patterns and utilities.
+- **One task at a time.** Complete the current task before starting another.
+- **Search before assuming.** Never assume something isn't implemented—verify first.
+- **Tests come first.** Write failing tests before implementation code. No exceptions.
+- **Tests are the quality gate.** A failing test means the task isn't done.
+- **Unrelated bugs become tasks.** Don't fix them now—append to IMPLEMENTATION_PLAN.md.
+- **Single sources of truth.** No migrations, adapters, or compatibility shims.
+- **CLAUDE.md is operational only.** Status updates belong in IMPLEMENTATION_PLAN.md.
+
+# Process
+
+## Orient
+
+Study the codebase before writing code:
+
+- IMPLEMENTATION_PLAN.md → pick the next incomplete task
+- specs/ → understand the requirement
+- src/ → learn existing patterns and utilities
 
 Use parallel subagents for reading/searching; reserve your main context for implementation.
 Use only 1 subagent for build/test operations (backpressure control).
 
-# Implementation
+## Implement (Red-Green-Refactor)
 
-1. Choose the most important incomplete task.
-2. Search the codebase to confirm it's not already implemented.
-3. Implement the feature. Run tests frequently—they are your quality gate.
-4. When tests pass, update IMPLEMENTATION_PLAN.md (mark done or note blockers).
-5. Commit changes and push, following conventional commits.
+1. **Red**: Write tests that define expected behavior. Run them—they should fail.
+2. **Green**: Write the minimum code to make tests pass.
+3. **Refactor**: Clean up while keeping tests green.
+
+## Finish
+
+- Update IMPLEMENTATION_PLAN.md (mark done or note blockers)
+- Commit and push using conventional commits
+- When IMPLEMENTATION_PLAN.md grows large, clean out completed items using a subagent
 
 # Exit Conditions
 
-Exit the loop when:
+Stop when any of these apply:
 
-- Task complete and tests pass → commit and exit
-- Task blocked → note blocker in IMPLEMENTATION_PLAN.md and exit
-- Plan is stale or incorrect → exit without code changes; request planning iteration
-
-# Guardrails
-
-99999. Implement ONE task only. Don't try to do everything at once.
-100000. CRITICAL: Don't assume not implemented—search first.
-100001. Tests are your quality gate. A failing test means the task isn't done.
-100002. If you find unrelated bugs, fix and commit separately or document them in IMPLEMENTATION_PLAN.md.
-100003. Keep CLAUDE.md operational only—status updates belong in IMPLEMENTATION_PLAN.md.
-100004. Important: When authoring documentation, capture the why — tests and implementation importance.
-100005. Important: Single sources of truth, no migrations/adapters.
-100006. When @IMPLEMENTATION_PLAN.md becomes large periodically clean out the items that are completed from the file using a subagent.
+- **Task complete**: Tests pass → commit and exit
+- **Task blocked**: Note blocker in IMPLEMENTATION_PLAN.md → exit
+- **Plan is stale**: Exit without code changes → request planning iteration

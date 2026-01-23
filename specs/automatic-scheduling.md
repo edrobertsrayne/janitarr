@@ -55,8 +55,9 @@ This is the timing control for the entire automation system.
 - [ ] Manual trigger executes the same complete cycle as scheduled automation
 - [ ] Manual trigger does not affect the regular schedule (next scheduled run
       occurs at the original time)
-- [ ] If a cycle is already running, manual triggers are queued and execute
-      after the current cycle completes
+- [ ] If a cycle is already running, one manual trigger may be queued; additional
+      manual triggers while one is queued are rejected with an appropriate message
+- [ ] The queued trigger executes immediately after the current cycle completes
 - [ ] User receives feedback when manual cycle completes
 
 ### Story: Preview Mode (Dry-Run)
@@ -67,19 +68,17 @@ This is the timing control for the entire automation system.
 - **So that** I can validate my configuration and limits before running actual
   automation
 
+> **Note:** Dry-run functionality is fully specified in
+> [`search-triggering.md`](./search-triggering.md#dry-run-mode). This story
+> enables dry-run mode to be triggered as part of the automation cycle via the
+> `--dry-run` CLI flag.
+
 #### Acceptance Criteria
 
 - [ ] User can run automation in dry-run/preview mode via CLI flag (e.g.,
       `--dry-run`)
-- [ ] Dry-run mode performs full detection across all configured servers
-- [ ] Dry-run mode applies configured limits and distribution logic
-- [ ] Dry-run mode displays or logs what _would_ be searched without triggering
-      actual searches
-- [ ] Dry-run mode clearly indicates in output that no searches were triggered
-- [ ] Dry-run mode does not create log entries for searches (since none
-      occurred)
-- [ ] Dry-run is useful for testing configuration changes, validating limits,
-      and understanding automation behavior
+- [ ] Dry-run mode executes the full automation cycle with dry-run behavior as
+      defined in `search-triggering.md`
 
 ### Story: View Schedule Status
 
@@ -125,8 +124,9 @@ This is the timing control for the entire automation system.
 
 ### Performance
 
-- Detection and search should complete within a reasonable timeframe (suggest <
-  5 minutes for typical libraries)
+- Complete automation cycle target: < 5 minutes total for typical libraries (up
+  to 10,000 items per server)
+- Large libraries (> 10,000 items): Allow proportionally longer cycle times
 - If cycle duration approaches interval duration, consider warning user to
   increase interval
 
