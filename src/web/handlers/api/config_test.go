@@ -175,3 +175,71 @@ func TestResetConfig_Success(t *testing.T) {
 		t.Errorf("expected default interval %d, got %d", expected.Schedule.IntervalHours, config.Schedule.IntervalHours)
 	}
 }
+
+func TestPostConfig_HighLimitWarning(t *testing.T) {
+	db := testDB(t)
+	handlers := NewConfigHandlers(db)
+
+	tests := []struct {
+		name        string
+		formData    string
+		wantWarning bool
+	}{
+		{
+			name:        "limit 100 - no warning",
+			formData:    "limits.missing.movies=100",
+			wantWarning: false,
+		},
+		{
+			name:        "limit 101 - warning",
+			formData:    "limits.missing.movies=101",
+			wantWarning: true,
+		},
+		{
+			name:        "limit 500 - warning",
+			formData:    "limits.cutoff.episodes=500",
+			wantWarning: true,
+		},
+		{
+			name:        "all limits <= 100 - no warning",
+			formData:    "limits.missing.movies=50&limits.missing.episodes=75&limits.cutoff.movies=100&limits.cutoff.episodes=25",
+			wantWarning: false,
+		},
+		{
+			name:        "one limit > 100 - warning",
+			formData:    "limits.missing.movies=50&limits.missing.episodes=150&limits.cutoff.movies=100&limits.cutoff.episodes=25",
+			wantWarning: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest("POST", "/api/config", strings.NewReader(tt.formData))
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			rr := httptest.NewRecorder()
+
+			handlers.PostConfig(rr, req)
+
+			if rr.Code != http.StatusOK {
+				t.Fatalf("expected status 200, got %d: %s", rr.Code, rr.Body.String())
+			}
+
+			var resp SuccessResponse
+			if err := json.Unmarshal(rr.Body.Bytes(), &resp); err != nil {
+				t.Fatalf("failed to unmarshal response: %v\nBody: %s", err, rr.Body.String())
+			}
+
+			// Check if warning is present in Data field
+			hasWarning := false
+			if data, ok := resp.Data.(map[string]any); ok {
+				if warning, exists := data["warning"]; exists && warning != "" {
+					hasWarning = true
+				}
+			}
+
+			if hasWarning != tt.wantWarning {
+				t.Errorf("expected warning=%v, got warning=%v\nResponse: %+v", tt.wantWarning, hasWarning, resp)
+			}
+		})
+	}
+}

@@ -6,6 +6,7 @@ You are a software engineer building features from a plan.
 - **Search before assuming.** Never assume something isn't implemented—verify first.
 - **Tests come first.** Write failing tests before implementation code. No exceptions.
 - **Tests are the quality gate.** A failing test means the task isn't done.
+- **Both unit and E2E tests.** Unit tests verify internal behavior; E2E tests verify user-facing behavior. Both are required where applicable.
 - **Unrelated bugs become tasks.** Don't fix them now—append to IMPLEMENTATION_PLAN.md.
 - **Single sources of truth.** No migrations, adapters, or compatibility shims.
 - **CLAUDE.md is operational only.** Status updates belong in IMPLEMENTATION_PLAN.md.
@@ -26,6 +27,8 @@ Use only 1 subagent for build/test operations (backpressure control).
 ## Implement (Red-Green-Refactor)
 
 1. **Red**: Write tests that define expected behavior. Run them—they should fail.
+   - Unit tests (`go test`) for internal logic and edge cases
+   - E2E tests (`bunx playwright test`) for user-facing workflows
 2. **Green**: Write the minimum code to make tests pass.
 3. **Refactor**: Clean up while keeping tests green.
 

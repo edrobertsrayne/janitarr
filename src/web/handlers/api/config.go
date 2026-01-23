@@ -166,5 +166,25 @@ func (h *ConfigHandlers) PostConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check if any search limit exceeds 100
+	warning := ""
+	if newConfig.SearchLimits.MissingMoviesLimit > 100 ||
+		newConfig.SearchLimits.MissingEpisodesLimit > 100 ||
+		newConfig.SearchLimits.CutoffMoviesLimit > 100 ||
+		newConfig.SearchLimits.CutoffEpisodesLimit > 100 {
+		warning = "One or more search limits exceed 100. High limits may impact performance and trigger rate limiting on your media servers."
+	}
+
+	// Include warning in response if present
+	if warning != "" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(SuccessResponse{
+			Message: "Configuration updated successfully",
+			Data:    map[string]string{"warning": warning},
+		})
+		return
+	}
+
 	jsonMessage(w, "Configuration updated successfully", http.StatusOK)
 }

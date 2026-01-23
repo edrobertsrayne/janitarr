@@ -32,14 +32,14 @@ func ConfigForm(config database.AppConfig, logCount int) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<form hx-post=\"/api/config\" hx-swap=\"none\" x-data=\"{ loading: false, success: false }\" @htmx:before-request=\"loading = true\" @htmx:after-request=\"loading = false; success = true; setTimeout(() => success = false, 3000)\" class=\"space-y-6\"><!-- Schedule Settings --><div class=\"card bg-base-100 shadow-xl\"><div class=\"card-body\"><h2 class=\"card-title\">Schedule</h2><div class=\"space-y-4\"><div class=\"form-control w-full\"><label class=\"label\"><span class=\"label-text\">Interval (hours)</span></label> <input type=\"number\" id=\"interval\" name=\"schedule.interval\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<form hx-post=\"/api/config\" hx-swap=\"none\" x-data=\"{\n\t\t\tloading: false,\n\t\t\tsuccess: false,\n\t\t\twarning: '',\n\t\t\tmissingMovies: parseInt(document.getElementById('missing-movies')?.value || '0'),\n\t\t\tmissingEpisodes: parseInt(document.getElementById('missing-episodes')?.value || '0'),\n\t\t\tcutoffMovies: parseInt(document.getElementById('cutoff-movies')?.value || '0'),\n\t\t\tcutoffEpisodes: parseInt(document.getElementById('cutoff-episodes')?.value || '0'),\n\t\t\thasHighLimit() {\n\t\t\t\treturn this.missingMovies > 100 || this.missingEpisodes > 100 || this.cutoffMovies > 100 || this.cutoffEpisodes > 100;\n\t\t\t}\n\t\t}\" @htmx:before-request=\"loading = true\" @htmx:after-request=\"loading = false; success = true; warning = $event.detail.xhr.response ? JSON.parse($event.detail.xhr.response).data?.warning || '' : ''; setTimeout(() => { success = false; warning = ''; }, 5000)\" class=\"space-y-6\"><!-- Schedule Settings --><div class=\"card bg-base-100 shadow-xl\"><div class=\"card-body\"><h2 class=\"card-title\">Schedule</h2><div class=\"space-y-4\"><div class=\"form-control w-full\"><label class=\"label\"><span class=\"label-text\">Interval (hours)</span></label> <input type=\"number\" id=\"interval\" name=\"schedule.interval\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", config.Schedule.IntervalHours))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/forms/config_form.templ`, Line: 27, Col: 63}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/forms/config_form.templ`, Line: 38, Col: 63}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -62,52 +62,52 @@ func ConfigForm(config database.AppConfig, logCount int) templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", config.SearchLimits.MissingMoviesLimit))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/forms/config_form.templ`, Line: 65, Col: 73}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/forms/config_form.templ`, Line: 76, Col: 73}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" min=\"0\" max=\"1000\" required class=\"input input-bordered w-full\"></div><div class=\"form-control w-full\"><label class=\"label\"><span class=\"label-text\">Missing Episodes</span></label> <input type=\"number\" id=\"missing-episodes\" name=\"limits.missing.episodes\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\" min=\"0\" max=\"1000\" required class=\"input input-bordered w-full\" x-model.number=\"missingMovies\"></div><div class=\"form-control w-full\"><label class=\"label\"><span class=\"label-text\">Missing Episodes</span></label> <input type=\"number\" id=\"missing-episodes\" name=\"limits.missing.episodes\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", config.SearchLimits.MissingEpisodesLimit))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/forms/config_form.templ`, Line: 79, Col: 75}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/forms/config_form.templ`, Line: 91, Col: 75}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" min=\"0\" max=\"1000\" required class=\"input input-bordered w-full\"></div></div><div class=\"grid grid-cols-1 md:grid-cols-2 gap-4\"><div class=\"form-control w-full\"><label class=\"label\"><span class=\"label-text\">Cutoff Movies</span></label> <input type=\"number\" id=\"cutoff-movies\" name=\"limits.cutoff.movies\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" min=\"0\" max=\"1000\" required class=\"input input-bordered w-full\" x-model.number=\"missingEpisodes\"></div></div><div class=\"grid grid-cols-1 md:grid-cols-2 gap-4\"><div class=\"form-control w-full\"><label class=\"label\"><span class=\"label-text\">Cutoff Movies</span></label> <input type=\"number\" id=\"cutoff-movies\" name=\"limits.cutoff.movies\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", config.SearchLimits.CutoffMoviesLimit))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/forms/config_form.templ`, Line: 95, Col: 72}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/forms/config_form.templ`, Line: 108, Col: 72}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" min=\"0\" max=\"1000\" required class=\"input input-bordered w-full\"></div><div class=\"form-control w-full\"><label class=\"label\"><span class=\"label-text\">Cutoff Episodes</span></label> <input type=\"number\" id=\"cutoff-episodes\" name=\"limits.cutoff.episodes\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" min=\"0\" max=\"1000\" required class=\"input input-bordered w-full\" x-model.number=\"cutoffMovies\"></div><div class=\"form-control w-full\"><label class=\"label\"><span class=\"label-text\">Cutoff Episodes</span></label> <input type=\"number\" id=\"cutoff-episodes\" name=\"limits.cutoff.episodes\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", config.SearchLimits.CutoffEpisodesLimit))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/forms/config_form.templ`, Line: 109, Col: 74}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/forms/config_form.templ`, Line: 123, Col: 74}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" min=\"0\" max=\"1000\" required class=\"input input-bordered w-full\"></div></div><p class=\"text-sm text-base-content/70\">Maximum number of searches to trigger per category per cycle</p></div></div></div><!-- Logs Settings --><div class=\"card bg-base-100 shadow-xl\"><div class=\"card-body\"><h2 class=\"card-title\">Log Retention</h2><div class=\"space-y-4\"><div class=\"form-control w-full\"><label class=\"label\"><span class=\"label-text\">Retention Period (days)</span></label> <select id=\"retention-days\" name=\"logs.retention_days\" class=\"select select-bordered w-full\"><option value=\"7\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\" min=\"0\" max=\"1000\" required class=\"input input-bordered w-full\" x-model.number=\"cutoffEpisodes\"></div></div><div x-show=\"hasHighLimit()\" x-transition class=\"alert alert-warning\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"stroke-current shrink-0 h-6 w-6\" fill=\"none\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z\"></path></svg> <span class=\"text-sm\">High limits may impact performance and trigger rate limiting on your media servers.</span></div><p class=\"text-sm text-base-content/70\">Maximum number of searches to trigger per category per cycle</p></div></div></div><!-- Logs Settings --><div class=\"card bg-base-100 shadow-xl\"><div class=\"card-body\"><h2 class=\"card-title\">Log Retention</h2><div class=\"space-y-4\"><div class=\"form-control w-full\"><label class=\"label\"><span class=\"label-text\">Retention Period (days)</span></label> <select id=\"retention-days\" name=\"logs.retention_days\" class=\"select select-bordered w-full\"><option value=\"7\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -164,13 +164,13 @@ func ConfigForm(config database.AppConfig, logCount int) templ.Component {
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", logCount))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/forms/config_form.templ`, Line: 146, Col: 80}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/forms/config_form.templ`, Line: 167, Col: 80}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</span> entries</div></div></div></div><!-- Save Button --><div class=\"flex items-center gap-3\"><button type=\"submit\" x-bind:disabled=\"loading\" class=\"btn btn-primary\"><span x-show=\"!loading\">Save Settings</span> <span x-show=\"loading\" class=\"flex items-center gap-2\"><span class=\"loading loading-spinner loading-sm\"></span> Saving...</span></button><div x-show=\"success\" x-transition class=\"text-sm text-success\">Settings saved successfully!</div></div></form>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "</span> entries</div></div></div></div><!-- Save Button --><div class=\"space-y-3\"><div class=\"flex items-center gap-3\"><button type=\"submit\" x-bind:disabled=\"loading\" class=\"btn btn-primary\"><span x-show=\"!loading\">Save Settings</span> <span x-show=\"loading\" class=\"flex items-center gap-2\"><span class=\"loading loading-spinner loading-sm\"></span> Saving...</span></button><div x-show=\"success\" x-transition class=\"text-sm text-success\">Settings saved successfully!</div></div><div x-show=\"warning\" x-transition class=\"alert alert-warning\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"stroke-current shrink-0 h-6 w-6\" fill=\"none\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z\"></path></svg> <span class=\"text-sm\" x-text=\"warning\"></span></div></div></form>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
