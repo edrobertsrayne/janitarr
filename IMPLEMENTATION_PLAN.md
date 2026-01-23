@@ -216,16 +216,16 @@ make build
 
 **Changes:**
 
-- [ ] Create `static/favicon.ico` - A simple 32x32 or 16x16 icon. Can use an SVG favicon for simplicity:
+- [x] Create `static/favicon.ico` - A simple 32x32 or 16x16 icon. Can use an SVG favicon for simplicity:
 
-- [ ] **File:** `src/templates/layouts/base.templ` - Add favicon link in `<head>`:
+- [x] **File:** `src/templates/layouts/base.templ` - Add favicon link in `<head>`:
 
   ```html
   <!-- Add after <title> tag, around line 10 -->
   <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
   ```
 
-- [ ] **Create file:** `static/favicon.svg`:
+- [x] **Create file:** `static/favicon.svg`:
   ```svg
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
     <rect width="32" height="32" rx="6" fill="#661ae6"/>
@@ -659,9 +659,9 @@ cat specs/daisyui-migration.md | grep -A 20 "Alpine.js x-data scoping"
 
 ### Completion Checklist
 
-- [ ] Task 1: Fix Alpine.js x-data scoping
-- [ ] Task 2: Fix modal Cancel button
-- [ ] Task 3: Add favicon
+- [x] Task 1: Fix Alpine.js x-data scoping
+- [x] Task 2: Fix modal Cancel button
+- [x] Task 3: Add favicon
 - [ ] Task 4: Add navigation icons
 - [ ] Task 5: Improve empty state icons
 - [ ] Task 6: Improve stats card separation
