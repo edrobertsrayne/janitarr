@@ -601,7 +601,7 @@ All 10 tasks completed successfully:
 ## Phase 26: Modal Z-Index Fix
 
 **Status:** ✅ Complete
-**Completed:** 2026-01-23 | **Commit:** (pending)
+**Completed:** 2026-01-23 | **Commit:** `f1206a2`
 **Priority:** High (E2E test failure blocking validation)
 
 ### Problem
@@ -838,7 +838,7 @@ direnv exec . bunx playwright test --reporter=list
 
 ### Phase 26 - Modal Z-Index Fix ✓
 
-**Completed:** 2026-01-23 | **Commit:** (pending)
+**Completed:** 2026-01-23 | **Commit:** `f1206a2`
 
 Fixed modal z-index issue by moving modal-container outside `<main>` element. Improved E2E test pass rate from 86% to 88% (63/72 passing). All server management modal interactions now work correctly in automated tests.
 
