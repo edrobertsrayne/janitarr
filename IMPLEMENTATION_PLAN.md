@@ -414,14 +414,14 @@ make build
 
 **Changes:**
 
-- [ ] In `nav.templ`, the active class should be visible. DaisyUI's `menu` component should handle this, but if not, add explicit styling:
+- [x] In `nav.templ`, added explicit active state styling with better contrast for light theme:
 
   ```html
-  <!-- Ensure the 'active' class is applied correctly -->
-  <a href="/" class={ "flex items-center gap-2", templ.KV("active bg-primary/10 text-primary", currentPath == "/") }>
+  <!-- Active class now includes background color, primary text color, and font weight -->
+  <a href="/" class={ "flex items-center gap-2", templ.KV("active bg-primary/10 text-primary font-semibold", currentPath == "/") }>
   ```
 
-  Or use DaisyUI's built-in active styling by ensuring the `<a>` tags have proper structure inside `<li>` elements in a `<ul class="menu">`.
+  Applied to all four navigation items (Dashboard, Servers, Activity Logs, Settings). The `bg-primary/10` adds a light background tint, `text-primary` colors the text with the primary theme color (purple), and `font-semibold` makes the text bolder for better visibility.
 
 **Verification:**
 
@@ -665,7 +665,7 @@ cat specs/daisyui-migration.md | grep -A 20 "Alpine.js x-data scoping"
 - [x] Task 4: Add navigation icons
 - [x] Task 5: Improve empty state icons
 - [x] Task 6: Improve stats card separation
-- [ ] Task 7: Improve light theme active nav contrast
+- [x] Task 7: Improve light theme active nav contrast
 - [ ] Task 8: Add server modal E2E tests
 - [ ] Task 9: Add theme toggle E2E tests
 - [ ] Task 10: Update specifications
