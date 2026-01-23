@@ -37,7 +37,7 @@ func Nav(currentPath string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</main><!-- Modal container - placed outside main for proper z-index layering --><div id=\"modal-container\"></div></div><div class=\"drawer-side\"><label for=\"nav-drawer\" aria-label=\"close sidebar\" class=\"drawer-overlay\"></label><aside class=\"bg-base-200 w-64 min-h-full flex flex-col\"><div class=\"p-4 text-xl font-bold\">Janitarr</div><ul class=\"menu p-4 gap-2 flex-1\"><!-- Dashboard icon (HomeIcon) --><li>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</main></div><div class=\"drawer-side\"><label for=\"nav-drawer\" aria-label=\"close sidebar\" class=\"drawer-overlay\"></label><aside class=\"bg-base-200 w-64 min-h-full flex flex-col\"><div class=\"p-4 text-xl font-bold\">Janitarr</div><ul class=\"menu p-4 gap-2 flex-1\"><!-- Dashboard icon (HomeIcon) --><li>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -133,7 +133,7 @@ func Nav(currentPath string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</aside></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</aside></div></div><!-- Modal container - placed outside drawer for proper z-index layering --><div id=\"modal-container\"></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
