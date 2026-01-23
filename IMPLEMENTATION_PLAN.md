@@ -40,7 +40,7 @@ This document is designed for AI coding agents. Each task:
 
 ## Current Status
 
-**Active Phase:** None - All core features implemented
+**Active Phase:** Phase 24 - UI Bug Fixes & E2E Tests
 **Previous Phase:** Phase 23 - Enable Skipped Database Tests (Complete ✓)
 **Test Status:** All tests passing (Go unit tests + E2E tests)
 
@@ -87,6 +87,621 @@ Issues are numbered 1-10 based on their line order in `ISSUES.md`:
 | 10      | Port availability checking needed         | Fixed  |
 
 **Note:** Phase 19 (commit `804e332`) added `hx-on::after-swap` to the Edit button. Issue #7 was fully resolved in commit `58a1a6f` by adding a setTimeout delay to ensure the modal is ready in the DOM.
+
+---
+
+## Phase 24: UI Bug Fixes & E2E Tests
+
+**Status:** Not Started
+**Priority:** Critical (modal bugs block core functionality)
+
+This phase addresses critical UI bugs discovered during Playwright testing, adds missing UI polish, and implements E2E tests for server management workflows.
+
+### Background
+
+UI analysis revealed that the "Add Server" modal has Alpine.js scoping issues that prevent the Save button from displaying text and cause Cancel/Escape to not close the modal. The root cause is that `x-data="{ loading: false }"` is defined on the `<form>` element, but the Save button is in a sibling `<div class="modal-action">` outside the form's scope.
+
+### Task 1: Fix Alpine.js x-data Scoping in Server Form Modal
+
+**File:** `src/templates/components/forms/server_form.templ`
+
+**Problem:** The `loading` variable is defined in `x-data` on the `<form>` element (line 23), but the Save button (lines 188-204) is outside the form in `<div class="modal-action">`. This causes:
+
+- `x-show="!loading"` to fail silently (button text hidden)
+- `x-bind:disabled="loading"` to not work
+- Alpine.js console errors: `loading is not defined`
+
+**Solution:** Move `x-data` from the `<form>` to the `<div class="modal-box">` wrapper so both the form and modal-action buttons share the same scope.
+
+**Changes:**
+
+- [x] **Line 7:** Add `x-data` to modal-box div:
+
+  ```html
+  <!-- BEFORE -->
+  <div class="modal-box">
+    <!-- AFTER -->
+    <div class="modal-box" x-data="{ loading: false }"></div>
+  </div>
+  ```
+
+- [x] **Lines 15-25:** Remove `x-data` and move htmx event handlers to form (keep only htmx attributes):
+
+  ```html
+  <!-- BEFORE -->
+  <form
+    id="server-form"
+    ...
+    x-data="{ loading: false }"
+    @htmx:before-request="loading = true"
+    @htmx:after-request="loading = false; if (event.detail.successful) { ... }"
+    class="space-y-4 mt-4"
+  >
+    <!-- AFTER -->
+    <form
+      id="server-form"
+      ...
+      @htmx:before-request="loading = true"
+      @htmx:after-request="loading = false; if (event.detail.successful) { document.getElementById('server-modal')?.close(); window.location.reload(); } else { try { const resp = JSON.parse(event.detail.xhr.responseText); alert(resp.error || 'Failed to save server'); } catch(e) { alert('Failed to save server'); } }"
+      class="space-y-4 mt-4"
+    ></form>
+  </form>
+  ```
+
+**Verification:**
+
+```bash
+templ generate
+make build
+./janitarr dev --host 0.0.0.0
+# Test: Click "Add Server", verify Save button shows "Create" text
+# Test: Fill form and submit, verify loading state appears
+```
+
+---
+
+### Task 2: Fix Modal Cancel Button
+
+**File:** `src/templates/components/forms/server_form.templ`
+
+**Problem:** The Cancel button (lines 182-186) uses `onclick` but the dialog may not close properly.
+
+**Solution:** Use Alpine.js `@click` for consistency and add the close method to the modal-box x-data.
+
+**Changes:**
+
+- [x] **Line 7:** Extend x-data to include a close helper (already added in Task 1, update to):
+
+  ```html
+  <div
+    class="modal-box"
+    x-data="{ loading: false, closeModal() { document.getElementById('server-modal').close() } }"
+  ></div>
+  ```
+
+- [x] **Lines 182-186:** Update Cancel button to use Alpine.js:
+
+  ```html
+  <!-- BEFORE -->
+  <button
+    type="button"
+    onclick="document.getElementById('server-modal').close()"
+    class="btn btn-ghost"
+  >
+    Cancel
+  </button>
+
+  <!-- AFTER -->
+  <button type="button" @click="closeModal()" class="btn btn-ghost">
+    Cancel
+  </button>
+  ```
+
+**Verification:**
+
+```bash
+templ generate
+make build
+# Test: Open Add Server modal, click Cancel, verify modal closes
+# Test: Open modal, press Escape, verify modal closes (native dialog behavior)
+```
+
+---
+
+### Task 3: Add Favicon
+
+**Problem:** Every page load logs a 404 error for `/favicon.ico`.
+
+**Solution:** Add a simple favicon to static assets.
+
+**Changes:**
+
+- [ ] Create `static/favicon.ico` - A simple 32x32 or 16x16 icon. Can use an SVG favicon for simplicity:
+
+- [ ] **File:** `src/templates/layouts/base.templ` - Add favicon link in `<head>`:
+
+  ```html
+  <!-- Add after <title> tag, around line 10 -->
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
+  ```
+
+- [ ] **Create file:** `static/favicon.svg`:
+  ```svg
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+    <rect width="32" height="32" rx="6" fill="#661ae6"/>
+    <text x="16" y="23" text-anchor="middle" font-family="system-ui" font-weight="bold" font-size="18" fill="white">J</text>
+  </svg>
+  ```
+
+**Verification:**
+
+```bash
+make build
+./janitarr dev
+# Check browser console - no 404 for favicon
+# Check browser tab shows favicon
+```
+
+---
+
+### Task 4: Add Navigation Icons
+
+**File:** `src/templates/components/nav.templ`
+
+**Problem:** Navigation items are text-only. The spec (web-frontend.md) mentions icons should be present.
+
+**Solution:** Add Heroicons SVG icons next to each navigation item.
+
+**Changes:**
+
+- [ ] Update each `NavItem` call in the `<ul class="menu">` to include an icon. Modify the nav items (around lines 45-48):
+
+  ```html
+  <!-- Dashboard icon (HomeIcon) -->
+  <li>
+      <a href="/" class={ templ.KV("active", currentPath == "/") }>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+          </svg>
+          Dashboard
+      </a>
+  </li>
+
+  <!-- Servers icon (ServerIcon) -->
+  <li>
+      <a href="/servers" class={ templ.KV("active", currentPath == "/servers") }>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M2 5a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm14 1a1 1 0 11-2 0 1 1 0 012 0zM2 13a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 01-2 2H4a2 2 0 01-2-2v-2zm14 1a1 1 0 11-2 0 1 1 0 012 0z" clip-rule="evenodd"/>
+          </svg>
+          Servers
+      </a>
+  </li>
+
+  <!-- Activity Logs icon (ClockIcon) -->
+  <li>
+      <a href="/logs" class={ templ.KV("active", currentPath == "/logs") }>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+          </svg>
+          Activity Logs
+      </a>
+  </li>
+
+  <!-- Settings icon (CogIcon) -->
+  <li>
+      <a href="/settings" class={ templ.KV("active", currentPath == "/settings") }>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
+          </svg>
+          Settings
+      </a>
+  </li>
+  ```
+
+**Verification:**
+
+```bash
+templ generate
+make build
+./janitarr dev
+# Verify icons appear next to each navigation item
+```
+
+---
+
+### Task 5: Improve Empty State Icons
+
+**Files:** `src/templates/pages/servers.templ`, `src/templates/pages/dashboard.templ`
+
+**Problem:** Arrow icon (`→`) used for empty states is semantically unclear.
+
+**Solution:** Replace with contextual server/plus icons.
+
+**Changes:**
+
+- [ ] **File:** `src/templates/pages/servers.templ` (lines 32-34) - Replace arrow with server + plus icon:
+
+  ```html
+  <!-- BEFORE -->
+  <svg
+    class="mx-auto h-12 w-12 text-base-content/30"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+  >
+    <path
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M5 12h14M12 5l7 7-7 7"
+    ></path>
+  </svg>
+
+  <!-- AFTER - Server stack icon -->
+  <svg
+    class="mx-auto h-12 w-12 text-base-content/30"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+  >
+    <path
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"
+    />
+  </svg>
+  ```
+
+- [ ] **File:** `src/templates/pages/dashboard.templ` - Find the "No servers configured" empty state (around line 74) and apply the same icon change.
+
+**Verification:**
+
+```bash
+templ generate
+make build
+# Visual check: Empty states show server icon instead of arrow
+```
+
+---
+
+### Task 6: Improve Dashboard Stats Card Separation
+
+**File:** `src/templates/pages/dashboard.templ`
+
+**Problem:** The 4 stat cards appear as one continuous bar without visual separation.
+
+**Solution:** Add shadow and ensure proper card styling to each stat.
+
+**Changes:**
+
+- [ ] Find the stats grid (around lines 58-77) and ensure each stat has proper styling:
+
+  ```html
+  <!-- Ensure each stat div has shadow and rounded corners -->
+  <div class="stat bg-base-100 rounded-box shadow-lg"></div>
+  ```
+
+  If the stats are using a shared `<div class="stats">` wrapper, consider switching to individual cards:
+
+  ```html
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="stat bg-base-100 rounded-box shadow-lg">
+      <div class="stat-title">Servers</div>
+      <div class="stat-value">{ stats.ServerCount }</div>
+    </div>
+    <!-- Repeat for each stat -->
+  </div>
+  ```
+
+**Verification:**
+
+```bash
+templ generate
+make build
+# Visual check: Each stat card has visible shadow and spacing
+```
+
+---
+
+### Task 7: Improve Light Theme Active Nav Contrast
+
+**File:** `tailwind.config.cjs` or `src/templates/components/nav.templ`
+
+**Problem:** Active navigation item background is barely visible in light theme.
+
+**Solution:** Add explicit active state styling or use DaisyUI's menu-active classes.
+
+**Changes:**
+
+- [ ] In `nav.templ`, the active class should be visible. DaisyUI's `menu` component should handle this, but if not, add explicit styling:
+
+  ```html
+  <!-- Ensure the 'active' class is applied correctly -->
+  <a href="/" class={ "flex items-center gap-2", templ.KV("active bg-primary/10 text-primary", currentPath == "/") }>
+  ```
+
+  Or use DaisyUI's built-in active styling by ensuring the `<a>` tags have proper structure inside `<li>` elements in a `<ul class="menu">`.
+
+**Verification:**
+
+```bash
+templ generate
+make build
+# Toggle to light theme, verify active nav item is clearly visible
+```
+
+---
+
+### Task 8: Add E2E Tests for Server Modal
+
+**File:** Create `e2e/server-modal.spec.ts`
+
+**Purpose:** Test that the server add/edit modal works correctly after the Alpine.js fixes.
+
+**Changes:**
+
+- [ ] Create new test file with these tests:
+
+```typescript
+import { test, expect } from "@playwright/test";
+
+test.describe("Server Modal", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/servers");
+  });
+
+  test("Add Server button opens modal", async ({ page }) => {
+    // Click the Add Server button
+    await page.getByRole("button", { name: "Add Server" }).click();
+
+    // Wait for modal to be visible
+    const modal = page.locator("#server-modal");
+    await expect(modal).toBeVisible();
+
+    // Verify form fields are present
+    await expect(page.locator("#name")).toBeVisible();
+    await expect(page.locator("#url")).toBeVisible();
+    await expect(page.locator("#apiKey")).toBeVisible();
+  });
+
+  test("Save button displays text", async ({ page }) => {
+    await page.getByRole("button", { name: "Add Server" }).click();
+
+    // Wait for modal
+    await page.waitForSelector("#server-modal[open]");
+
+    // Verify Save button has "Create" text (not empty)
+    const saveButton = page.locator('#server-modal button[type="submit"]');
+    await expect(saveButton).toContainText("Create");
+  });
+
+  test("Cancel button closes modal", async ({ page }) => {
+    await page.getByRole("button", { name: "Add Server" }).click();
+    await page.waitForSelector("#server-modal[open]");
+
+    // Click Cancel
+    await page.getByRole("button", { name: "Cancel" }).click();
+
+    // Modal should be closed
+    const modal = page.locator("#server-modal");
+    await expect(modal).not.toBeVisible();
+  });
+
+  test("Escape key closes modal", async ({ page }) => {
+    await page.getByRole("button", { name: "Add Server" }).click();
+    await page.waitForSelector("#server-modal[open]");
+
+    // Press Escape
+    await page.keyboard.press("Escape");
+
+    // Modal should be closed
+    const modal = page.locator("#server-modal");
+    await expect(modal).not.toBeVisible();
+  });
+
+  test("Test Connection shows feedback", async ({ page }) => {
+    await page.getByRole("button", { name: "Add Server" }).click();
+    await page.waitForSelector("#server-modal[open]");
+
+    // Fill minimal form data
+    await page.locator("#name").fill("Test Server");
+    await page.locator("#url").fill("http://invalid-url:7878");
+    await page.locator("#apiKey").fill("test-key");
+
+    // Click Test Connection
+    await page.getByRole("button", { name: "Test Connection" }).click();
+
+    // Should show loading then result
+    await expect(page.locator("text=Testing...")).toBeVisible();
+
+    // Wait for result (will be error since URL is invalid)
+    await expect(
+      page.locator("text=/Connection failed|Connection successful/"),
+    ).toBeVisible({ timeout: 10000 });
+  });
+});
+```
+
+**Verification:**
+
+```bash
+direnv exec . bunx playwright test e2e/server-modal.spec.ts --reporter=list
+```
+
+---
+
+### Task 9: Add E2E Tests for Theme Toggle
+
+**File:** Create `e2e/theme-toggle.spec.ts` or add to existing test file
+
+**Changes:**
+
+- [ ] Add theme toggle tests:
+
+```typescript
+import { test, expect } from "@playwright/test";
+
+test.describe("Theme Toggle", () => {
+  test("theme toggle switches between light and dark", async ({ page }) => {
+    await page.goto("/");
+
+    // Get the theme toggle
+    const toggle = page.locator('.drawer-side input[type="checkbox"]').last();
+
+    // Check initial state (should be dark by default)
+    const html = page.locator("html");
+    await expect(html).toHaveAttribute("data-theme", "dark");
+
+    // Toggle to light
+    await toggle.click();
+    await expect(html).toHaveAttribute("data-theme", "light");
+
+    // Toggle back to dark
+    await toggle.click();
+    await expect(html).toHaveAttribute("data-theme", "dark");
+  });
+
+  test("theme persists across page reload", async ({ page }) => {
+    await page.goto("/");
+
+    // Switch to light theme
+    const toggle = page.locator('.drawer-side input[type="checkbox"]').last();
+    await toggle.click();
+
+    // Reload page
+    await page.reload();
+
+    // Should still be light
+    const html = page.locator("html");
+    await expect(html).toHaveAttribute("data-theme", "light");
+  });
+});
+```
+
+**Verification:**
+
+```bash
+direnv exec . bunx playwright test e2e/theme-toggle.spec.ts --reporter=list
+```
+
+---
+
+### Task 10: Update Specifications
+
+**Files:** `specs/web-frontend.md`, `specs/daisyui-migration.md`
+
+**Changes:**
+
+- [ ] **File:** `specs/daisyui-migration.md` - Add warning about Alpine.js x-data scoping in modals section (Pattern #1):
+
+  Add after line ~635 (after the modal resolution example):
+
+  ````markdown
+  **Important:** When using Alpine.js with DaisyUI modals, ensure `x-data` is placed on a parent element that encompasses ALL interactive elements. If `x-data` is on the `<form>` but buttons are in a sibling `<div class="modal-action">`, those buttons won't have access to the reactive state.
+
+  ```html
+  <!-- WRONG: buttons outside x-data scope -->
+  <div class="modal-box">
+    <form x-data="{ loading: false }">...</form>
+    <div class="modal-action">
+      <button x-show="!loading">Save</button>
+      <!-- loading is undefined! -->
+    </div>
+  </div>
+
+  <!-- CORRECT: x-data on parent -->
+  <div class="modal-box" x-data="{ loading: false }">
+    <form>...</form>
+    <div class="modal-action">
+      <button x-show="!loading">Save</button>
+      <!-- loading is accessible -->
+    </div>
+  </div>
+  ```
+  ````
+
+  ```
+
+  ```
+
+- [ ] **File:** `specs/web-frontend.md` - Add note about htmx + showModal() timing in the Modal section:
+
+  Add to the "Interactions" section around line 203:
+
+  ````markdown
+  **Modal Opening with htmx:** When using htmx to load modal content dynamically, use `hx-on::after-swap` to call `showModal()` after the content is inserted:
+
+  ```html
+  <button
+    hx-get="/servers/new"
+    hx-target="#modal-container"
+    hx-swap="innerHTML"
+    hx-on::after-swap="document.getElementById('server-modal').showModal()"
+  >
+    Add Server
+  </button>
+  ```
+  ````
+
+  ```
+
+  ```
+
+**Verification:**
+
+```bash
+# Review the spec changes for accuracy
+cat specs/daisyui-migration.md | grep -A 20 "Alpine.js x-data scoping"
+```
+
+---
+
+### Completion Checklist
+
+- [ ] Task 1: Fix Alpine.js x-data scoping
+- [ ] Task 2: Fix modal Cancel button
+- [ ] Task 3: Add favicon
+- [ ] Task 4: Add navigation icons
+- [ ] Task 5: Improve empty state icons
+- [ ] Task 6: Improve stats card separation
+- [ ] Task 7: Improve light theme active nav contrast
+- [ ] Task 8: Add server modal E2E tests
+- [ ] Task 9: Add theme toggle E2E tests
+- [ ] Task 10: Update specifications
+
+**Final Verification:**
+
+```bash
+# Run all tests
+go test ./...
+templ generate
+make build
+direnv exec . bunx playwright test --reporter=list
+
+# Manual testing
+./janitarr dev --host 0.0.0.0
+# 1. Add Server modal opens, shows "Create" button, Cancel works
+# 2. Favicon appears in browser tab
+# 3. Navigation icons visible
+# 4. Theme toggle works and persists
+# 5. No console errors
+```
+
+**Commit Message:**
+
+```
+fix: resolve server modal Alpine.js scoping and UI improvements
+
+- Fix x-data scope so Save button displays text
+- Fix Cancel button to properly close modal
+- Add favicon.svg
+- Add navigation icons (Home, Server, Clock, Cog)
+- Improve empty state icons
+- Improve stats card visual separation
+- Add E2E tests for server modal and theme toggle
+- Update specs with Alpine.js scoping guidance
+```
 
 ---
 

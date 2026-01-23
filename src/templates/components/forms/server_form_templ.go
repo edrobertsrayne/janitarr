@@ -31,7 +31,7 @@ func ServerForm(server *services.ServerInfo, isEdit bool) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<dialog id=\"server-modal\" class=\"modal\"><div class=\"modal-box\"><h3 class=\"font-bold text-lg\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<dialog id=\"server-modal\" class=\"modal\"><div class=\"modal-box\" x-data=\"{ loading: false, closeModal() { document.getElementById('server-modal').close() } }\"><h3 class=\"font-bold text-lg\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -74,7 +74,7 @@ func ServerForm(server *services.ServerInfo, isEdit bool) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " hx-ext=\"json-enc\" x-data=\"{ loading: false }\" @htmx:before-request=\"loading = true\" @htmx:after-request=\"loading = false; if (event.detail.successful) { document.getElementById('server-modal')?.close(); window.location.reload(); } else { try { const resp = JSON.parse(event.detail.xhr.responseText); alert(resp.error || 'Failed to save server'); } catch(e) { alert('Failed to save server'); } }\" class=\"space-y-4 mt-4\"><div class=\"form-control w-full\"><label class=\"label\"><span class=\"label-text\">Name</span></label> <input type=\"text\" id=\"name\" name=\"name\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, " hx-ext=\"json-enc\" @htmx:before-request=\"loading = true\" @htmx:after-request=\"loading = false; if (event.detail.successful) { document.getElementById('server-modal')?.close(); window.location.reload(); } else { try { const resp = JSON.parse(event.detail.xhr.responseText); alert(resp.error || 'Failed to save server'); } catch(e) { alert('Failed to save server'); } }\" class=\"space-y-4 mt-4\"><div class=\"form-control w-full\"><label class=\"label\"><span class=\"label-text\">Name</span></label> <input type=\"text\" id=\"name\" name=\"name\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -86,7 +86,7 @@ func ServerForm(server *services.ServerInfo, isEdit bool) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(server.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/forms/server_form.templ`, Line: 36, Col: 26}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/forms/server_form.templ`, Line: 35, Col: 26}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -129,7 +129,7 @@ func ServerForm(server *services.ServerInfo, isEdit bool) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(server.URL)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/forms/server_form.templ`, Line: 82, Col: 25}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/forms/server_form.templ`, Line: 81, Col: 25}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -187,7 +187,7 @@ func ServerForm(server *services.ServerInfo, isEdit bool) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(server.ID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/forms/server_form.templ`, Line: 120, Col: 32}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/forms/server_form.templ`, Line: 119, Col: 32}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -203,7 +203,7 @@ func ServerForm(server *services.ServerInfo, isEdit bool) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "><button type=\"button\" id=\"test-connection-btn\" @click=\"\n\t\t\t\t\t\t\ttesting = true;\n\t\t\t\t\t\t\ttestResult = '';\n\t\t\t\t\t\t\tconst apiKeyValue = document.getElementById('apiKey').value;\n\t\t\t\t\t\t\tconst container = $el.closest('[data-is-edit]');\n\t\t\t\t\t\t\tconst isEditMode = container.dataset.isEdit === 'true';\n\t\t\t\t\t\t\tconst serverId = container.dataset.serverId;\n\n\t\t\t\t\t\t\t// If editing and no new API key provided, use existing server test endpoint\n\t\t\t\t\t\t\tif (isEditMode && !apiKeyValue && serverId) {\n\t\t\t\t\t\t\t\tfetch('/api/servers/' + serverId + '/test', { method: 'POST' })\n\t\t\t\t\t\t\t\t\t.then(r => r.json())\n\t\t\t\t\t\t\t\t\t.then(data => {\n\t\t\t\t\t\t\t\t\t\ttesting = false;\n\t\t\t\t\t\t\t\t\t\ttestResult = data.success ? 'Connection successful (' + (data.version || '') + ')' : (data.error || 'Connection failed');\n\t\t\t\t\t\t\t\t\t})\n\t\t\t\t\t\t\t\t\t.catch(err => {\n\t\t\t\t\t\t\t\t\t\ttesting = false;\n\t\t\t\t\t\t\t\t\t\ttestResult = 'Connection failed: ' + err.message;\n\t\t\t\t\t\t\t\t\t});\n\t\t\t\t\t\t\t} else {\n\t\t\t\t\t\t\t\t// New server or editing with new API key - test with provided credentials\n\t\t\t\t\t\t\t\tfetch('/api/servers/test', {\n\t\t\t\t\t\t\t\t\tmethod: 'POST',\n\t\t\t\t\t\t\t\t\theaders: { 'Content-Type': 'application/json' },\n\t\t\t\t\t\t\t\t\tbody: JSON.stringify({\n\t\t\t\t\t\t\t\t\t\tname: document.getElementById('name').value,\n\t\t\t\t\t\t\t\t\t\ttype: document.querySelector('input[name=type]:checked')?.value || 'radarr',\n\t\t\t\t\t\t\t\t\t\turl: document.getElementById('url').value,\n\t\t\t\t\t\t\t\t\t\tapiKey: apiKeyValue\n\t\t\t\t\t\t\t\t\t})\n\t\t\t\t\t\t\t\t})\n\t\t\t\t\t\t\t\t\t.then(r => r.json())\n\t\t\t\t\t\t\t\t\t.then(data => {\n\t\t\t\t\t\t\t\t\t\ttesting = false;\n\t\t\t\t\t\t\t\t\t\ttestResult = data.success ? 'Connection successful (' + (data.version || '') + ')' : (data.error || 'Connection failed');\n\t\t\t\t\t\t\t\t\t})\n\t\t\t\t\t\t\t\t\t.catch(err => {\n\t\t\t\t\t\t\t\t\t\ttesting = false;\n\t\t\t\t\t\t\t\t\t\ttestResult = 'Connection failed: ' + err.message;\n\t\t\t\t\t\t\t\t\t});\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\" :disabled=\"testing\" class=\"w-full btn btn-ghost\"><span x-show=\"!testing\">Test Connection</span> <span x-show=\"testing\" class=\"flex items-center gap-2\"><span class=\"loading loading-spinner loading-sm\"></span> Testing...</span></button><div x-show=\"testResult\" class=\"mt-2 text-sm\" :class=\"testResult.startsWith('Connection successful') ? 'text-success' : 'text-error'\" x-text=\"testResult\"></div></div></form><div class=\"modal-action\"><button type=\"button\" onclick=\"document.getElementById('server-modal').close()\" class=\"btn btn-ghost\">Cancel</button> <button type=\"submit\" form=\"server-form\" x-bind:disabled=\"loading\" class=\"btn btn-primary\"><span x-show=\"!loading\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "><button type=\"button\" id=\"test-connection-btn\" @click=\"\n\t\t\t\t\t\t\ttesting = true;\n\t\t\t\t\t\t\ttestResult = '';\n\t\t\t\t\t\t\tconst apiKeyValue = document.getElementById('apiKey').value;\n\t\t\t\t\t\t\tconst container = $el.closest('[data-is-edit]');\n\t\t\t\t\t\t\tconst isEditMode = container.dataset.isEdit === 'true';\n\t\t\t\t\t\t\tconst serverId = container.dataset.serverId;\n\n\t\t\t\t\t\t\t// If editing and no new API key provided, use existing server test endpoint\n\t\t\t\t\t\t\tif (isEditMode && !apiKeyValue && serverId) {\n\t\t\t\t\t\t\t\tfetch('/api/servers/' + serverId + '/test', { method: 'POST' })\n\t\t\t\t\t\t\t\t\t.then(r => r.json())\n\t\t\t\t\t\t\t\t\t.then(data => {\n\t\t\t\t\t\t\t\t\t\ttesting = false;\n\t\t\t\t\t\t\t\t\t\ttestResult = data.success ? 'Connection successful (' + (data.version || '') + ')' : (data.error || 'Connection failed');\n\t\t\t\t\t\t\t\t\t})\n\t\t\t\t\t\t\t\t\t.catch(err => {\n\t\t\t\t\t\t\t\t\t\ttesting = false;\n\t\t\t\t\t\t\t\t\t\ttestResult = 'Connection failed: ' + err.message;\n\t\t\t\t\t\t\t\t\t});\n\t\t\t\t\t\t\t} else {\n\t\t\t\t\t\t\t\t// New server or editing with new API key - test with provided credentials\n\t\t\t\t\t\t\t\tfetch('/api/servers/test', {\n\t\t\t\t\t\t\t\t\tmethod: 'POST',\n\t\t\t\t\t\t\t\t\theaders: { 'Content-Type': 'application/json' },\n\t\t\t\t\t\t\t\t\tbody: JSON.stringify({\n\t\t\t\t\t\t\t\t\t\tname: document.getElementById('name').value,\n\t\t\t\t\t\t\t\t\t\ttype: document.querySelector('input[name=type]:checked')?.value || 'radarr',\n\t\t\t\t\t\t\t\t\t\turl: document.getElementById('url').value,\n\t\t\t\t\t\t\t\t\t\tapiKey: apiKeyValue\n\t\t\t\t\t\t\t\t\t})\n\t\t\t\t\t\t\t\t})\n\t\t\t\t\t\t\t\t\t.then(r => r.json())\n\t\t\t\t\t\t\t\t\t.then(data => {\n\t\t\t\t\t\t\t\t\t\ttesting = false;\n\t\t\t\t\t\t\t\t\t\ttestResult = data.success ? 'Connection successful (' + (data.version || '') + ')' : (data.error || 'Connection failed');\n\t\t\t\t\t\t\t\t\t})\n\t\t\t\t\t\t\t\t\t.catch(err => {\n\t\t\t\t\t\t\t\t\t\ttesting = false;\n\t\t\t\t\t\t\t\t\t\ttestResult = 'Connection failed: ' + err.message;\n\t\t\t\t\t\t\t\t\t});\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\" :disabled=\"testing\" class=\"w-full btn btn-ghost\"><span x-show=\"!testing\">Test Connection</span> <span x-show=\"testing\" class=\"flex items-center gap-2\"><span class=\"loading loading-spinner loading-sm\"></span> Testing...</span></button><div x-show=\"testResult\" class=\"mt-2 text-sm\" :class=\"testResult.startsWith('Connection successful') ? 'text-success' : 'text-error'\" x-text=\"testResult\"></div></div></form><div class=\"modal-action\"><button type=\"button\" @click=\"closeModal()\" class=\"btn btn-ghost\">Cancel</button> <button type=\"submit\" form=\"server-form\" x-bind:disabled=\"loading\" class=\"btn btn-primary\"><span x-show=\"!loading\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

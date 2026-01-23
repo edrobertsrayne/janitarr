@@ -4,7 +4,7 @@ import "github.com/user/janitarr/src/services"
 
 templ ServerForm(server *services.ServerInfo, isEdit bool) {
 	<dialog id="server-modal" class="modal">
-		<div class="modal-box">
+		<div class="modal-box" x-data="{ loading: false, closeModal() { document.getElementById('server-modal').close() } }">
 			<h3 class="font-bold text-lg">
 				if isEdit {
 					Edit Server
@@ -20,7 +20,6 @@ templ ServerForm(server *services.ServerInfo, isEdit bool) {
 					hx-post="/api/servers"
 				}
 				hx-ext="json-enc"
-				x-data="{ loading: false }"
 				@htmx:before-request="loading = true"
 				@htmx:after-request="loading = false; if (event.detail.successful) { document.getElementById('server-modal')?.close(); window.location.reload(); } else { try { const resp = JSON.parse(event.detail.xhr.responseText); alert(resp.error || 'Failed to save server'); } catch(e) { alert('Failed to save server'); } }"
 				class="space-y-4 mt-4">
@@ -181,7 +180,7 @@ templ ServerForm(server *services.ServerInfo, isEdit bool) {
 			<div class="modal-action">
 				<button
 					type="button"
-					onclick="document.getElementById('server-modal').close()"
+					@click="closeModal()"
 					class="btn btn-ghost">
 					Cancel
 				</button>
