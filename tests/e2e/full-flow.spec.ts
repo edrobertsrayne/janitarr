@@ -64,6 +64,35 @@ test.describe("Full user flow integration", () => {
     }
   });
 
+  test("theme persists across page reload", async ({ page }) => {
+    await page.goto("/");
+
+    // Find theme toggle
+    const themeToggle = page.locator('input[type="checkbox"]').last();
+
+    if (await themeToggle.isVisible()) {
+      // Get initial theme
+      const html = page.locator("html");
+      const initialTheme = await html.getAttribute("data-theme");
+
+      // Toggle theme
+      await themeToggle.click();
+      await page.waitForTimeout(300);
+
+      // Get new theme
+      const newTheme = await html.getAttribute("data-theme");
+      expect(newTheme).not.toBe(initialTheme);
+
+      // Reload the page
+      await page.reload();
+      await page.waitForTimeout(300);
+
+      // Theme should still be the new theme (persisted in localStorage)
+      const themeAfterReload = await html.getAttribute("data-theme");
+      expect(themeAfterReload).toBe(newTheme);
+    }
+  });
+
   test("server CRUD operations", async ({ page }) => {
     await page.goto("/servers");
 

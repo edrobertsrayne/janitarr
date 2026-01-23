@@ -73,4 +73,21 @@ test.describe("Add Server flow", () => {
     // Modal should not have 'open' attribute
     await expect(page.locator("#server-modal")).not.toHaveAttribute("open");
   });
+
+  test("should close modal on Escape key", async ({ page }) => {
+    await page.goto("/servers");
+
+    // Open modal
+    await page.getByRole("button", { name: /add server/i }).click();
+    await expect(page.locator("#server-modal")).toBeVisible();
+
+    // Press Escape key
+    await page.keyboard.press("Escape");
+
+    // Wait a moment for the close animation
+    await page.waitForTimeout(100);
+
+    // Modal should not have 'open' attribute
+    await expect(page.locator("#server-modal")).not.toHaveAttribute("open");
+  });
 });

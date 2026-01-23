@@ -435,155 +435,43 @@ make build
 
 ### Task 8: Add E2E Tests for Server Modal
 
-**File:** Create `e2e/server-modal.spec.ts`
+**File:** `tests/e2e/add-server.spec.ts`
 
 **Purpose:** Test that the server add/edit modal works correctly after the Alpine.js fixes.
 
+**Status:** ✅ Complete - Most tests already existed; added missing "Escape key closes modal" test
+
 **Changes:**
 
-- [ ] Create new test file with these tests:
+- [x] Tests already existed in add-server.spec.ts, edit-server.spec.ts, and test-connection.spec.ts
+- [x] Added missing "Escape key closes modal" test to add-server.spec.ts (line 77-92)
 
-```typescript
-import { test, expect } from "@playwright/test";
+**Test Coverage:**
 
-test.describe("Server Modal", () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto("/servers");
-  });
-
-  test("Add Server button opens modal", async ({ page }) => {
-    // Click the Add Server button
-    await page.getByRole("button", { name: "Add Server" }).click();
-
-    // Wait for modal to be visible
-    const modal = page.locator("#server-modal");
-    await expect(modal).toBeVisible();
-
-    // Verify form fields are present
-    await expect(page.locator("#name")).toBeVisible();
-    await expect(page.locator("#url")).toBeVisible();
-    await expect(page.locator("#apiKey")).toBeVisible();
-  });
-
-  test("Save button displays text", async ({ page }) => {
-    await page.getByRole("button", { name: "Add Server" }).click();
-
-    // Wait for modal
-    await page.waitForSelector("#server-modal[open]");
-
-    // Verify Save button has "Create" text (not empty)
-    const saveButton = page.locator('#server-modal button[type="submit"]');
-    await expect(saveButton).toContainText("Create");
-  });
-
-  test("Cancel button closes modal", async ({ page }) => {
-    await page.getByRole("button", { name: "Add Server" }).click();
-    await page.waitForSelector("#server-modal[open]");
-
-    // Click Cancel
-    await page.getByRole("button", { name: "Cancel" }).click();
-
-    // Modal should be closed
-    const modal = page.locator("#server-modal");
-    await expect(modal).not.toBeVisible();
-  });
-
-  test("Escape key closes modal", async ({ page }) => {
-    await page.getByRole("button", { name: "Add Server" }).click();
-    await page.waitForSelector("#server-modal[open]");
-
-    // Press Escape
-    await page.keyboard.press("Escape");
-
-    // Modal should be closed
-    const modal = page.locator("#server-modal");
-    await expect(modal).not.toBeVisible();
-  });
-
-  test("Test Connection shows feedback", async ({ page }) => {
-    await page.getByRole("button", { name: "Add Server" }).click();
-    await page.waitForSelector("#server-modal[open]");
-
-    // Fill minimal form data
-    await page.locator("#name").fill("Test Server");
-    await page.locator("#url").fill("http://invalid-url:7878");
-    await page.locator("#apiKey").fill("test-key");
-
-    // Click Test Connection
-    await page.getByRole("button", { name: "Test Connection" }).click();
-
-    // Should show loading then result
-    await expect(page.locator("text=Testing...")).toBeVisible();
-
-    // Wait for result (will be error since URL is invalid)
-    await expect(
-      page.locator("text=/Connection failed|Connection successful/"),
-    ).toBeVisible({ timeout: 10000 });
-  });
-});
-```
-
-**Verification:**
-
-```bash
-direnv exec . bunx playwright test e2e/server-modal.spec.ts --reporter=list
-```
+- ✅ Add Server button opens modal - `tests/e2e/add-server.spec.ts:4`
+- ✅ Save button displays text - `tests/e2e/add-server.spec.ts:28` (uses workaround selector)
+- ✅ Cancel button closes modal - `tests/e2e/add-server.spec.ts:55`
+- ✅ Escape key closes modal - `tests/e2e/add-server.spec.ts:77` (newly added)
+- ✅ Test Connection shows feedback - `tests/e2e/test-connection.spec.ts:48`
 
 ---
 
 ### Task 9: Add E2E Tests for Theme Toggle
 
-**File:** Create `e2e/theme-toggle.spec.ts` or add to existing test file
+**File:** `tests/e2e/full-flow.spec.ts`
+
+**Status:** ✅ Complete - Theme toggle test already existed; added missing reload persistence test
 
 **Changes:**
 
-- [ ] Add theme toggle tests:
+- [x] Theme toggle test already existed in full-flow.spec.ts:38
+- [x] Added missing "theme persists across page reload" test to full-flow.spec.ts (line 67-94)
 
-```typescript
-import { test, expect } from "@playwright/test";
+**Test Coverage:**
 
-test.describe("Theme Toggle", () => {
-  test("theme toggle switches between light and dark", async ({ page }) => {
-    await page.goto("/");
-
-    // Get the theme toggle
-    const toggle = page.locator('.drawer-side input[type="checkbox"]').last();
-
-    // Check initial state (should be dark by default)
-    const html = page.locator("html");
-    await expect(html).toHaveAttribute("data-theme", "dark");
-
-    // Toggle to light
-    await toggle.click();
-    await expect(html).toHaveAttribute("data-theme", "light");
-
-    // Toggle back to dark
-    await toggle.click();
-    await expect(html).toHaveAttribute("data-theme", "dark");
-  });
-
-  test("theme persists across page reload", async ({ page }) => {
-    await page.goto("/");
-
-    // Switch to light theme
-    const toggle = page.locator('.drawer-side input[type="checkbox"]').last();
-    await toggle.click();
-
-    // Reload page
-    await page.reload();
-
-    // Should still be light
-    const html = page.locator("html");
-    await expect(html).toHaveAttribute("data-theme", "light");
-  });
-});
-```
-
-**Verification:**
-
-```bash
-direnv exec . bunx playwright test e2e/theme-toggle.spec.ts --reporter=list
-```
+- ✅ Theme toggle switches between light and dark - `tests/e2e/full-flow.spec.ts:38`
+- ✅ Theme persists across page navigation - `tests/e2e/full-flow.spec.ts:57`
+- ✅ Theme persists across page reload - `tests/e2e/full-flow.spec.ts:67` (newly added)
 
 ---
 
@@ -666,8 +554,8 @@ cat specs/daisyui-migration.md | grep -A 20 "Alpine.js x-data scoping"
 - [x] Task 5: Improve empty state icons
 - [x] Task 6: Improve stats card separation
 - [x] Task 7: Improve light theme active nav contrast
-- [ ] Task 8: Add server modal E2E tests
-- [ ] Task 9: Add theme toggle E2E tests
+- [x] Task 8: Add server modal E2E tests
+- [x] Task 9: Add theme toggle E2E tests
 - [ ] Task 10: Update specifications
 
 **Final Verification:**
