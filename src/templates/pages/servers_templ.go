@@ -57,7 +57,7 @@ func Servers(servers []services.ServerInfo) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div></div><!-- Modal container for forms --><div id=\"modal-container\"></div><!-- Servers grid -->")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</div></div><!-- Servers grid -->")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

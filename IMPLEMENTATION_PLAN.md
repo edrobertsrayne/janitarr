@@ -41,8 +41,8 @@ This document is designed for AI coding agents. Each task:
 ## Current Status
 
 **Active Phase:** None - All planned phases complete ✓
-**Previous Phase:** Phase 25 - E2E Test Encryption Key Fix (Complete ✓)
-**Test Status:** Go unit tests passing, E2E tests 86% pass rate (62/72 passing)
+**Previous Phase:** Phase 26 - Modal Z-Index Fix (Complete ✓)
+**Test Status:** Go unit tests passing, E2E tests 88% pass rate (63/72 passing)
 
 ### Implementation Completeness
 
@@ -598,6 +598,133 @@ All 10 tasks completed successfully:
 
 ---
 
+## Phase 26: Modal Z-Index Fix
+
+**Status:** ✅ Complete
+**Completed:** 2026-01-23 | **Commit:** (pending)
+**Priority:** High (E2E test failure blocking validation)
+
+### Problem
+
+One E2E test was failing after Phase 25: `servers.spec.ts:36 - create server with valid data`
+
+**Error:** Timeout clicking submit button - `<main class="flex-1 p-6 overflow-auto">` element intercepts pointer events
+
+The modal was visible and the button was clickable in manual testing, but Playwright couldn't click it because the `<main>` element was intercepting pointer events. This is a z-index layering issue.
+
+### Root Cause Analysis
+
+**File:** `src/templates/pages/servers.templ:28` - Modal container location
+
+The `#modal-container` div was placed inside the `<main>` element (within `src/templates/components/nav.templ:21`). According to DaisyUI best practices, `<dialog>` elements need to be at the root level (siblings to `<main>`, not children) for proper z-index layering and pointer event handling.
+
+**DOM Structure (Before):**
+
+```html
+<body>
+  <div class="drawer">
+    <div class="drawer-content">
+      <main>
+        <!-- Page content -->
+        <div id="modal-container"></div>
+        <!-- WRONG: Inside main -->
+      </main>
+    </div>
+  </div>
+</body>
+```
+
+When the modal dialog opened, it was technically inside `<main>`, and the `<main>` element's CSS properties (like `overflow-auto`) interfered with the modal's event handling.
+
+### Solution
+
+**Changes:**
+
+1. **Modified `src/templates/components/nav.templ`** (line 25):
+   - Moved `#modal-container` outside `<main>` element
+   - Made it a sibling to `<main>` within `drawer-content`
+   - Added comment explaining the z-index requirement
+
+2. **Modified `src/templates/pages/servers.templ`** (removed line 28):
+   - Removed duplicate `#modal-container` div
+   - Modal container now provided by nav component for all pages
+
+**DOM Structure (After):**
+
+```html
+<body>
+  <div class="drawer">
+    <div class="drawer-content">
+      <main>
+        <!-- Page content -->
+      </main>
+      <div id="modal-container"></div>
+      <!-- CORRECT: Sibling to main -->
+    </div>
+  </div>
+</body>
+```
+
+### Results
+
+**Before Fix:**
+
+- E2E test pass rate: **62/72 passing (86%)**
+- 1 test failing: `servers.spec.ts:36`
+- Error: `<main>` intercepts pointer events
+
+**After Fix:**
+
+- E2E test pass rate: **63/72 passing (88%)**
+- All server management tests passing
+- Modal interactions work correctly in automated tests
+
+### Verification
+
+```bash
+# Generate templates and rebuild
+templ generate
+make build
+
+# Run the specific failing test
+direnv exec . bunx playwright test tests/e2e/servers.spec.ts:36 --reporter=list
+# Result: ✓ PASSING
+
+# Run all E2E tests
+direnv exec . bunx playwright test --reporter=list
+# Result: 63 passing, 9 skipped (intentional)
+
+# Run Go unit tests
+go test ./...
+# Result: All tests passing
+```
+
+### Key Learnings
+
+1. **DaisyUI Modal Positioning**: Dialog elements must be at the root level, not nested in scrollable containers
+2. **Z-Index Layering**: Parent element properties (like `overflow-auto`) can interfere with child modal behavior
+3. **Playwright vs Manual Testing**: Automated tests are more sensitive to pointer event interception than manual clicks
+4. **Component Architecture**: Global UI elements (like modals) should be in layout components, not page components
+
+### Technical Details
+
+**Why This Matters:**
+
+- When a `<dialog>` element calls `.showModal()`, it creates a modal backdrop and elevates the dialog to the top layer
+- However, if the dialog is nested inside an element with certain CSS properties (`overflow`, `transform`, `filter`, etc.), the browser may not handle pointer events correctly
+- Playwright's click simulation respects the full event chain and correctly identifies when another element intercepts events
+- Moving the modal container to be a sibling of `<main>` ensures clean event handling
+
+**Best Practice:**
+
+According to DaisyUI documentation, modals should be:
+
+1. Placed at the root level of the body or as high as possible in the DOM
+2. Not nested inside scrollable containers or transformed elements
+3. Loaded via htmx into a dedicated container outside the main content area
+
+---
+
 ## Phase 25: E2E Test Encryption Key Fix
 
 **Status:** ✅ Complete
@@ -669,16 +796,8 @@ HTTP GET / (Dashboard)
 **After Fix:**
 
 - E2E test pass rate: **62/72 passing (86%)**
-- Only 1 test failing (unrelated modal z-index issue)
+- Only 1 test failing (modal z-index issue - fixed in Phase 26)
 - 9 tests skipped (intentional)
-
-### Remaining Issue
-
-One test still fails: `servers.spec.ts:36 - create server with valid data`
-
-**Error:** Timeout clicking submit button - `<main>` element intercepts pointer events
-
-This is a separate UI issue with modal z-index/overlay, not related to the encryption key fix. The modal is visible but the submit button can't be clicked because another element is intercepting the click events.
 
 ### Verification
 
@@ -716,6 +835,18 @@ direnv exec . bunx playwright test --reporter=list
 ---
 
 ## Completed Phases (Recent)
+
+### Phase 26 - Modal Z-Index Fix ✓
+
+**Completed:** 2026-01-23 | **Commit:** (pending)
+
+Fixed modal z-index issue by moving modal-container outside `<main>` element. Improved E2E test pass rate from 86% to 88% (63/72 passing). All server management modal interactions now work correctly in automated tests.
+
+### Phase 25 - E2E Test Encryption Key Fix ✓
+
+**Completed:** 2026-01-23 | **Commit:** `5adb9f6`
+
+Fixed E2E test encryption-related failures by preserving encryption key file across test runs. Server reuses same key in memory for entire test session. Improved test pass rate from 66% to 86%.
 
 ### Phase 24 - UI Bug Fixes & E2E Tests ✓
 
