@@ -186,9 +186,9 @@ Change CLI validation from 0-100 to 0-1000.
 
 **Implementation** (`src/cli/forms/config.go`):
 
-- [ ] Line 47: `val > 100` → `val > 1000`
-- [ ] Line 48: Error message → `"must be between 0 and 1000"`
-- [ ] Lines 94, 100, 106, 112: Update descriptions
+- [x] Line 47: `val > 100` → `val > 1000`
+- [x] Line 48: Error message → `"must be between 0 and 1000"`
+- [x] Lines 94, 100, 106, 112: Update descriptions
 
 **Verification:**
 
@@ -250,7 +250,7 @@ go test ./src/services/... -v -run TestAutomation
 
 - [x] Task 1: Implement proportional search distribution
 - [x] Task 2: Implement rate limiting for search triggers
-- [ ] Task 3: Fix search limit validation range (CLI)
+- [x] Task 3: Fix search limit validation range (CLI)
 - [ ] Task 4: Add warning for high search limits
 - [x] Task 5: WebSocket reconnection with backoff (already implemented via htmx-ws)
 - [ ] Task 6: Add cycle duration monitoring (optional)
