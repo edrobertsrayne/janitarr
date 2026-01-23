@@ -38,14 +38,14 @@ func ConfigForm(current database.AppConfig) (*database.AppConfig, error) {
 		return nil
 	}
 
-	// Validator for search limits (0-100)
+	// Validator for search limits (0-1000)
 	validateLimit := func(s string) error {
 		val, err := strconv.Atoi(s)
 		if err != nil {
 			return fmt.Errorf("must be a number")
 		}
-		if val < 0 || val > 100 {
-			return fmt.Errorf("must be between 0 and 100")
+		if val < 0 || val > 1000 {
+			return fmt.Errorf("must be between 0 and 1000")
 		}
 		return nil
 	}
@@ -91,25 +91,25 @@ func ConfigForm(current database.AppConfig) (*database.AppConfig, error) {
 
 			huh.NewInput().
 				Title("Missing Movies Limit").
-				Description("Maximum missing movies to search (0-100, 0=disabled)").
+				Description("Maximum missing movies to search (0-1000, 0=disabled)").
 				Value(&missingMoviesStr).
 				Validate(validateLimit),
 
 			huh.NewInput().
 				Title("Missing Episodes Limit").
-				Description("Maximum missing episodes to search (0-100, 0=disabled)").
+				Description("Maximum missing episodes to search (0-1000, 0=disabled)").
 				Value(&missingEpisodesStr).
 				Validate(validateLimit),
 
 			huh.NewInput().
 				Title("Cutoff Movies Limit").
-				Description("Maximum movies needing quality upgrade (0-100, 0=disabled)").
+				Description("Maximum movies needing quality upgrade (0-1000, 0=disabled)").
 				Value(&cutoffMoviesStr).
 				Validate(validateLimit),
 
 			huh.NewInput().
 				Title("Cutoff Episodes Limit").
-				Description("Maximum episodes needing quality upgrade (0-100, 0=disabled)").
+				Description("Maximum episodes needing quality upgrade (0-1000, 0=disabled)").
 				Value(&cutoffEpisodesStr).
 				Validate(validateLimit),
 		),
