@@ -97,7 +97,7 @@ func (s *SearchTrigger) TriggerSearches(ctx context.Context, detectionResults *D
 	return s.executeAllocations(ctx, allocations, dryRun)
 }
 
-// allocateItems distributes items across servers using round-robin, respecting limits.
+// allocateItems distributes items across servers using proportional allocation, respecting limits.
 func (s *SearchTrigger) allocateItems(detectionResults *DetectionResults, serverMap map[string]*database.Server, limits database.SearchLimits) []serverItemAllocation {
 	// Initialize allocations for each server with successful detection
 	allocations := make(map[string]*serverItemAllocation)
@@ -126,16 +126,16 @@ func (s *SearchTrigger) allocateItems(detectionResults *DetectionResults, server
 		}
 	}
 
-	// Distribute missing items with round-robin
+	// Distribute missing items with proportional allocation
 	totalMissingLimit := limits.MissingMoviesLimit + limits.MissingEpisodesLimit
 	if totalMissingLimit > 0 {
-		s.distributeRoundRobin(detectionResults, allocations, "missing", totalMissingLimit)
+		s.distributeProportional(detectionResults, allocations, "missing", totalMissingLimit)
 	}
 
-	// Distribute cutoff items with round-robin
+	// Distribute cutoff items with proportional allocation
 	totalCutoffLimit := limits.CutoffMoviesLimit + limits.CutoffEpisodesLimit
 	if totalCutoffLimit > 0 {
-		s.distributeRoundRobin(detectionResults, allocations, "cutoff", totalCutoffLimit)
+		s.distributeProportional(detectionResults, allocations, "cutoff", totalCutoffLimit)
 	}
 
 	// Convert map to slice
@@ -147,15 +147,18 @@ func (s *SearchTrigger) allocateItems(detectionResults *DetectionResults, server
 	return result
 }
 
-// distributeRoundRobin distributes items across servers in round-robin fashion.
-func (s *SearchTrigger) distributeRoundRobin(detectionResults *DetectionResults, allocations map[string]*serverItemAllocation, category string, limit int) {
-	// Collect all items with their server IDs
-	type itemWithServer struct {
+// distributeProportional distributes items across servers using largest remainder method.
+// Each server receives items proportional to its item count, with a minimum of 1 per server.
+func (s *SearchTrigger) distributeProportional(detectionResults *DetectionResults, allocations map[string]*serverItemAllocation, category string, limit int) {
+	// Build server item map
+	type serverInfo struct {
 		serverID string
-		itemID   int
+		items    []int
 	}
 
-	var allItems []itemWithServer
+	var servers []serverInfo
+	totalItems := 0
+
 	for _, result := range detectionResults.Results {
 		// Skip servers with errors or not in allocations
 		if result.Error != "" {
@@ -172,69 +175,95 @@ func (s *SearchTrigger) distributeRoundRobin(detectionResults *DetectionResults,
 			items = result.Cutoff
 		}
 
-		for _, itemID := range items {
-			allItems = append(allItems, itemWithServer{
+		if len(items) > 0 {
+			servers = append(servers, serverInfo{
 				serverID: result.ServerID,
-				itemID:   itemID,
+				items:    items,
 			})
+			totalItems += len(items)
 		}
 	}
 
-	// Get list of server IDs for round-robin
-	serverIDs := make([]string, 0, len(allocations))
-	for serverID := range allocations {
-		serverIDs = append(serverIDs, serverID)
-	}
-
-	if len(serverIDs) == 0 || len(allItems) == 0 {
+	if len(servers) == 0 || totalItems == 0 || limit == 0 {
 		return
 	}
 
-	// Round-robin distribution
-	distributed := 0
-	serverIndex := 0
-
-	for distributed < limit && len(allItems) > 0 {
-		serverID := serverIDs[serverIndex%len(serverIDs)]
-
-		// Find next available item for this server
-		found := false
-		for i, item := range allItems {
-			if item.serverID == serverID {
-				// Add to allocation
-				if category == "missing" {
-					allocations[serverID].missing = append(allocations[serverID].missing, item.itemID)
-				} else {
-					allocations[serverID].cutoff = append(allocations[serverID].cutoff, item.itemID)
-				}
-
-				// Remove from available items
-				allItems = append(allItems[:i], allItems[i+1:]...)
-				distributed++
-				found = true
-				break
-			}
-		}
-
-		// If no item found for this server, remove it from rotation
-		if !found {
-			// Find and remove this server from serverIDs
-			for i, id := range serverIDs {
-				if id == serverID {
-					serverIDs = append(serverIDs[:i], serverIDs[i+1:]...)
-					break
-				}
-			}
-			// Don't increment serverIndex since we removed a server
-			if len(serverIDs) == 0 {
-				break
-			}
-			continue
-		}
-
-		serverIndex++
+	// Calculate allocations using largest remainder method
+	type allocation struct {
+		serverID  string
+		quota     float64
+		floor     int
+		remainder float64
+		allocated int
 	}
-} // Correct closing brace for distributeRoundRobin
+
+	allocatedCounts := make([]allocation, len(servers))
+	totalFloor := 0
+
+	for i, srv := range servers {
+		// Calculate proportional quota
+		quota := float64(limit) * float64(len(srv.items)) / float64(totalItems)
+		floor := int(quota)
+
+		// Ensure minimum of 1 per server (unless limit is very small)
+		if floor == 0 && limit >= len(servers) {
+			floor = 1
+		}
+
+		allocatedCounts[i] = allocation{
+			serverID:  srv.serverID,
+			quota:     quota,
+			floor:     floor,
+			remainder: quota - float64(floor),
+		}
+		totalFloor += floor
+	}
+
+	// Distribute remainders to servers with largest fractional parts
+	remainingSlots := limit - totalFloor
+	if remainingSlots > 0 {
+		// Sort by remainder (descending)
+		for i := 0; i < len(allocatedCounts)-1; i++ {
+			for j := i + 1; j < len(allocatedCounts); j++ {
+				if allocatedCounts[j].remainder > allocatedCounts[i].remainder {
+					allocatedCounts[i], allocatedCounts[j] = allocatedCounts[j], allocatedCounts[i]
+				}
+			}
+		}
+
+		// Give remainder slots to servers with largest fractions
+		for i := 0; i < remainingSlots && i < len(allocatedCounts); i++ {
+			allocatedCounts[i].floor++
+		}
+	}
+
+	// Assign actual items to each server based on calculated allocation
+	for _, srv := range servers {
+		// Find this server's allocation
+		var targetCount int
+		for _, alloc := range allocatedCounts {
+			if alloc.serverID == srv.serverID {
+				targetCount = alloc.floor
+				break
+			}
+		}
+
+		// Don't allocate more items than the server has
+		if targetCount > len(srv.items) {
+			targetCount = len(srv.items)
+		}
+
+		// Take the first N items from this server
+		itemsToAllocate := srv.items[:targetCount]
+
+		// Add to allocations
+		if category == "missing" {
+			allocations[srv.serverID].missing = append(allocations[srv.serverID].missing, itemsToAllocate...)
+		} else {
+			allocations[srv.serverID].cutoff = append(allocations[srv.serverID].cutoff, itemsToAllocate...)
+		}
+	}
+}
 
 // executeAllocations executes the trigger allocations.
 func (s *SearchTrigger) executeAllocations(ctx context.Context, allocations []serverItemAllocation, dryRun bool) (*TriggerResults, error) {

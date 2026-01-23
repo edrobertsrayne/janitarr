@@ -117,9 +117,9 @@ Replace `distributeRoundRobin()` with largest remainder method.
 
 **Implementation** (`src/services/search_trigger.go:150-237`):
 
-- [ ] Replace `distributeRoundRobin()` with `distributeProportional()`
-- [ ] Algorithm: floor(limit \* serverItems/totalItems), minimum 1, remainders to largest fractions
-- [ ] Update call site in `allocateItems()` (line 129)
+- [x] Replace `distributeRoundRobin()` with `distributeProportional()`
+- [x] Algorithm: floor(limit \* serverItems/totalItems), minimum 1, remainders to largest fractions
+- [x] Update call site in `allocateItems()` (line 129)
 
 **Verification:**
 

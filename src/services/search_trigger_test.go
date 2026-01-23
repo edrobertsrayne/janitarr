@@ -592,3 +592,174 @@ func TestTriggerSearches_SkipsFailedDetectionServers(t *testing.T) {
 		t.Errorf("expected no API calls for failed detection, got %d", len(calls))
 	}
 }
+
+func TestDistributeProportional(t *testing.T) {
+	tests := []struct {
+		name               string
+		serverItems        map[string]int // serverID -> item count
+		limit              int
+		expectedAllocation map[string]int // serverID -> expected allocation
+	}{
+		{
+			name: "90/10 split",
+			serverItems: map[string]int{
+				"srv1": 90,
+				"srv2": 10,
+			},
+			limit: 10,
+			expectedAllocation: map[string]int{
+				"srv1": 9,
+				"srv2": 1,
+			},
+		},
+		{
+			name: "minimum 1 per server",
+			serverItems: map[string]int{
+				"srv1": 100,
+				"srv2": 1,
+			},
+			limit: 10,
+			expectedAllocation: map[string]int{
+				"srv1": 9,
+				"srv2": 1,
+			},
+		},
+		{
+			name: "limit exceeds items",
+			serverItems: map[string]int{
+				"srv1": 3,
+				"srv2": 2,
+			},
+			limit: 100,
+			expectedAllocation: map[string]int{
+				"srv1": 3,
+				"srv2": 2,
+			},
+		},
+		{
+			name: "single server",
+			serverItems: map[string]int{
+				"srv1": 50,
+			},
+			limit: 10,
+			expectedAllocation: map[string]int{
+				"srv1": 10,
+			},
+		},
+		{
+			name: "equal split",
+			serverItems: map[string]int{
+				"srv1": 50,
+				"srv2": 50,
+			},
+			limit: 10,
+			expectedAllocation: map[string]int{
+				"srv1": 5,
+				"srv2": 5,
+			},
+		},
+		{
+			name: "remainder to largest fraction",
+			serverItems: map[string]int{
+				"srv1": 60,
+				"srv2": 40,
+			},
+			limit: 9,
+			expectedAllocation: map[string]int{
+				"srv1": 5,
+				"srv2": 4,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			db := testTriggerDB(t)
+
+			// Create servers and detection results based on test case
+			mockClients := make(map[string]*mockTriggerAPIClient)
+			detectionResults := &DetectionResults{
+				Results: []DetectionResult{},
+			}
+
+			serverIDToName := make(map[string]string)
+			for serverName, itemCount := range tt.serverItems {
+				// Add server to database
+				server, err := db.AddServer(serverName, "http://localhost:7878", "api"+serverName, database.ServerTypeRadarr)
+				if err != nil {
+					t.Fatalf("adding server %s: %v", serverName, err)
+				}
+				serverIDToName[server.ID] = serverName
+
+				// Create mock client
+				mockClients["http://localhost:7878"] = &mockTriggerAPIClient{serverType: "radarr"}
+
+				// Create missing items for this server
+				missing := make([]int, itemCount)
+				for i := 0; i < itemCount; i++ {
+					missing[i] = i + 1
+				}
+
+				// Add to detection results
+				detectionResults.Results = append(detectionResults.Results, DetectionResult{
+					ServerID:   server.ID,
+					ServerName: serverName,
+					ServerType: "radarr",
+					Missing:    missing,
+					Cutoff:     []int{},
+				})
+				detectionResults.TotalMissing += itemCount
+			}
+
+			// Create SearchTrigger with mock factory
+			trigger := NewSearchTriggerWithFactory(db, func(url, apiKey, serverType string) SearchTriggerAPIClient {
+				return mockClients[url]
+			}, &mockSearchTriggerLogger{})
+
+			// Set limits
+			limits := database.SearchLimits{MissingMoviesLimit: tt.limit, CutoffMoviesLimit: 0}
+
+			// Trigger searches
+			ctx := context.Background()
+			results, err := trigger.TriggerSearches(ctx, detectionResults, limits, false)
+			if err != nil {
+				t.Fatalf("TriggerSearches failed: %v", err)
+			}
+
+			// Verify allocations match expectations
+			actualAllocation := make(map[string]int)
+			for _, result := range results.Results {
+				if result.Category == "missing" {
+					serverName := serverIDToName[result.ServerID]
+					actualAllocation[serverName] += len(result.ItemIDs)
+				}
+			}
+
+			// Check each server's allocation
+			for serverName, expected := range tt.expectedAllocation {
+				actual := actualAllocation[serverName]
+				if actual != expected {
+					t.Errorf("server %s: expected %d items, got %d", serverName, expected, actual)
+				}
+			}
+
+			// Verify total doesn't exceed limit
+			total := 0
+			for _, count := range actualAllocation {
+				total += count
+			}
+			if total > tt.limit {
+				t.Errorf("total allocation %d exceeds limit %d", total, tt.limit)
+			}
+
+			// When limit doesn't exceed available items, verify we used the full limit
+			totalAvailable := 0
+			for _, count := range tt.serverItems {
+				totalAvailable += count
+			}
+			if totalAvailable >= tt.limit && total != tt.limit {
+				t.Errorf("expected to use full limit %d, but only used %d", tt.limit, total)
+			}
+		})
+	}
+}
