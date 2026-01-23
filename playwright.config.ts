@@ -12,7 +12,9 @@ export default defineConfig({
   timeout: 30 * 1000,
 
   // Run tests in files in parallel
-  fullyParallel: true,
+  // DISABLED: Tests reset database between runs, which causes encryption key mismatches
+  // when running in parallel against a single shared server instance
+  fullyParallel: false,
 
   // Fail the build on CI if you accidentally left test.only in the source code
   forbidOnly: !!process.env.CI,
@@ -57,6 +59,9 @@ export default defineConfig({
   ],
 
   // Run your local dev server before starting the tests
+  // IMPORTANT: reuseExistingServer allows reusing a running server during development
+  // Tests reset only the database, NOT the encryption key, so the same server instance
+  // can decrypt data across all tests
   webServer: {
     command: "./janitarr start --port 3434 --host localhost",
     url: "http://localhost:3434",

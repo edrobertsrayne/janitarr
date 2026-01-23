@@ -17,20 +17,28 @@ const __dirname = path.dirname(__filename);
 
 // Database path for testing
 const TEST_DB_PATH = path.join(__dirname, "../../data/janitarr.db");
-const TEST_KEY_PATH = path.join(__dirname, "../../data/.janitarr.key");
 
 /**
  * Reset the database by deleting it
- * The server will recreate it on next startup
+ * The server will recreate it on next access
+ *
+ * IMPORTANT: We do NOT delete the encryption key file (.janitarr.key) because:
+ * - The server loads the key once at startup and keeps it in memory
+ * - Deleting the key would cause the server to generate a NEW key on restart
+ * - But Playwright's webServer runs continuously, so the server won't restart
+ * - This would cause encryption/decryption failures
+ *
+ * By keeping the same key file, the server can decrypt existing data correctly
  */
 export function resetDatabase() {
   try {
     if (fs.existsSync(TEST_DB_PATH)) {
       fs.unlinkSync(TEST_DB_PATH);
     }
-    if (fs.existsSync(TEST_KEY_PATH)) {
-      fs.unlinkSync(TEST_KEY_PATH);
-    }
+    // DO NOT DELETE THE KEY FILE - see comment above
+    // if (fs.existsSync(TEST_KEY_PATH)) {
+    //   fs.unlinkSync(TEST_KEY_PATH);
+    // }
   } catch (error) {
     console.warn("Could not reset database:", error);
   }
