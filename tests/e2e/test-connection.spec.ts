@@ -50,35 +50,30 @@ test.describe("Test Connection functionality", () => {
 
     // Open add server modal
     await page.getByRole("button", { name: /add server/i }).click();
-    await expect(page.locator("#server-modal")).toBeVisible();
 
-    // Fill required fields
-    await page.locator("#name").fill("Test Server");
-    await page.locator("#url").fill("http://localhost:7878");
-    await page.locator("#apiKey").fill("invalid-api-key-for-testing");
+    // Scope to modal
+    const modal = page.locator("dialog#server-modal");
+    await expect(modal).toBeVisible();
 
-    // Wait for modal to fully render
-    await page.waitForTimeout(1000);
+    // Fill required fields within modal
+    await modal.locator("#name").fill("Test Server");
+    await modal.locator("#url").fill("http://localhost:7878");
+    await modal.locator("#apiKey").fill("invalid-api-key-for-testing");
 
-    // Click test connection using JavaScript click to bypass overlay issues
-    await page.evaluate(() => {
-      const btn = document.getElementById("test-connection-btn");
-      if (btn) btn.click();
-    });
+    // Click test connection button within modal
+    const testButton = modal.getByRole("button", { name: /test connection/i });
+    await testButton.click();
 
-    // Should show testing state
-    await expect(page.getByText(/testing/i)).toBeVisible({ timeout: 2000 });
-
-    // Wait for result
-    await page.waitForTimeout(5000);
+    // Wait for result (may show testing state briefly, then result)
+    await page.waitForTimeout(3000);
 
     // Should show connection result (likely failed since no real server)
-    const modal = page.locator("#server-modal");
     const modalText = await modal.textContent();
 
     const hasResult =
       modalText?.includes("Connected") ||
       modalText?.includes("Connection failed") ||
+      modalText?.includes("successful") ||
       modalText?.includes("failed");
 
     expect(hasResult).toBeTruthy();

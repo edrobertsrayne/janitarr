@@ -3,16 +3,8 @@
 @tailwind utilities;
 
 @layer components {
-  /* Ensure modal container creates a high stacking context */
+  /* Modal container - no positioning needed, dialog handles its own */
   #modal-container {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 1000;
-  }
-
-  /* Modal dialogs inside should allow pointer events */
-  #modal-container dialog {
-    pointer-events: auto;
+    /* Container just holds the dialog, no special styling needed */
   }
 }

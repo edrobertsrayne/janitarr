@@ -99,14 +99,14 @@ func ServerCard(server services.ServerInfo) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" hx-target=\"#modal-container\" hx-swap=\"innerHTML\" hx-on::after-swap=\"setTimeout(() => document.getElementById('server-modal')?.showModal(), 10)\" class=\"btn btn-ghost btn-sm\">Edit</button> <button @click=\"showDeleteModal = true\" class=\"btn btn-ghost btn-sm text-error\">Delete</button></div><div x-show=\"testResult\" class=\"mt-1 text-xs\" :class=\"testResult.startsWith('Connected') ? 'text-success' : 'text-error'\" x-text=\"testResult\"></div><!-- Delete Confirmation Modal --><dialog class=\"modal\" :class=\"{ 'modal-open': showDeleteModal }\"><div class=\"modal-box\"><h3 class=\"font-bold text-lg\">Delete Server</h3><p class=\"py-4\">Are you sure you want to delete <strong>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\" hx-target=\"#modal-container\" hx-swap=\"innerHTML\" class=\"btn btn-ghost btn-sm\">Edit</button> <button @click=\"showDeleteModal = true\" class=\"btn btn-ghost btn-sm text-error\">Delete</button></div><div x-show=\"testResult\" class=\"mt-1 text-xs\" :class=\"testResult.startsWith('Connected') ? 'text-success' : 'text-error'\" x-text=\"testResult\"></div><!-- Delete Confirmation Modal --><dialog class=\"modal\" :class=\"{ 'modal-open': showDeleteModal }\"><div class=\"modal-box\"><h3 class=\"font-bold text-lg\">Delete Server</h3><p class=\"py-4\">Are you sure you want to delete <strong>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(server.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/server_card.templ`, Line: 52, Col: 74}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/server_card.templ`, Line: 51, Col: 74}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -119,7 +119,7 @@ func ServerCard(server services.ServerInfo) templ.Component {
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs("/api/servers/" + server.ID)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/server_card.templ`, Line: 56, Col: 46}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `src/templates/components/server_card.templ`, Line: 55, Col: 46}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {

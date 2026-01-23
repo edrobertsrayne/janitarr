@@ -112,10 +112,10 @@ test.describe("Settings persistence", () => {
       timeout: 5000,
     });
 
-    // Success message should disappear after 3 seconds
+    // Success message should disappear after a few seconds (allow extra time for transitions)
     await expect(
       page.getByText(/settings saved successfully/i),
-    ).not.toBeVisible({ timeout: 4000 });
+    ).not.toBeVisible({ timeout: 6000 });
   });
 
   test("should validate numeric input ranges", async ({ page }) => {

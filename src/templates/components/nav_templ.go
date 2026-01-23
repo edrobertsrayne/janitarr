@@ -133,7 +133,7 @@ func Nav(currentPath string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</aside></div></div><!-- Modal container - placed outside drawer for proper z-index layering --><div id=\"modal-container\"></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</aside></div></div><!-- Modal container - placed outside drawer for proper z-index layering --><div id=\"modal-container\" hx-on::after-swap=\"document.getElementById('server-modal')?.showModal()\"></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

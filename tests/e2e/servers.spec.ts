@@ -38,14 +38,18 @@ test.describe("Servers page", () => {
     await addButton.click();
     await page.waitForTimeout(500);
 
+    // Scope all interactions to the modal
+    const modal = page.locator("dialog#server-modal");
+    await expect(modal).toBeVisible();
+
     // Fill in server details
     // Note: This will fail connection test since we don't have a real server
     // but we can test the form behavior
-    await page.locator("#name").fill("Test Radarr");
-    await page.locator("#url").fill("http://localhost:7878");
+    await modal.locator("#name").fill("Test Radarr");
+    await modal.locator("#url").fill("http://localhost:7878");
 
-    // Look for type selector (radio, select, or buttons)
-    const typeSelector = page
+    // Look for type selector (radio, select, or buttons) within modal
+    const typeSelector = modal
       .locator('select, input[type="radio"], button')
       .filter({ hasText: /radarr|sonarr/i })
       .first();
@@ -54,12 +58,10 @@ test.describe("Servers page", () => {
     }
 
     // Fill API key
-    await page.locator("#apiKey").fill("1234567890abcdef1234567890abcdef");
+    await modal.locator("#apiKey").fill("1234567890abcdef1234567890abcdef");
 
-    // Find and click submit button
-    const submitButton = page
-      .getByRole("button", { name: /save|add|create|submit/i })
-      .first();
+    // Find and click submit button within modal
+    const submitButton = modal.getByRole("button", { name: /create/i });
 
     if (await submitButton.isVisible()) {
       await submitButton.click();

@@ -52,7 +52,7 @@ func Servers(servers []services.ServerInfo) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if len(servers) > 0 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<button hx-get=\"/servers/new\" hx-target=\"#modal-container\" hx-swap=\"innerHTML\" hx-on::after-swap=\"document.getElementById('server-modal').showModal()\" class=\"btn btn-primary\">Add Server</button>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<button hx-get=\"/servers/new\" hx-target=\"#modal-container\" hx-swap=\"innerHTML\" class=\"btn btn-primary\">Add Server</button>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -62,7 +62,7 @@ func Servers(servers []services.ServerInfo) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if len(servers) == 0 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"card bg-base-100 shadow-xl p-12 text-center\"><svg class=\"mx-auto h-12 w-12 text-base-content/30\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01\"></path></svg><h3 class=\"mt-2 text-lg font-semibold\">No servers</h3><p class=\"mt-1 text-base-content/60\">Get started by adding a new Radarr or Sonarr server.</p><div class=\"mt-6\"><button hx-get=\"/servers/new\" hx-target=\"#modal-container\" hx-swap=\"innerHTML\" hx-on::after-swap=\"document.getElementById('server-modal').showModal()\" class=\"btn btn-primary\"><svg class=\"w-5 h-5\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 20 20\" fill=\"currentColor\"><path fill-rule=\"evenodd\" d=\"M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z\" clip-rule=\"evenodd\"></path></svg> Add Server</button></div></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div class=\"card bg-base-100 shadow-xl p-12 text-center\"><svg class=\"mx-auto h-12 w-12 text-base-content/30\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01\"></path></svg><h3 class=\"mt-2 text-lg font-semibold\">No servers</h3><p class=\"mt-1 text-base-content/60\">Get started by adding a new Radarr or Sonarr server.</p><div class=\"mt-6\"><button hx-get=\"/servers/new\" hx-target=\"#modal-container\" hx-swap=\"innerHTML\" class=\"btn btn-primary\"><svg class=\"w-5 h-5\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 20 20\" fill=\"currentColor\"><path fill-rule=\"evenodd\" d=\"M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z\" clip-rule=\"evenodd\"></path></svg> Add Server</button></div></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

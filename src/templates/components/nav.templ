@@ -69,7 +69,8 @@ templ Nav(currentPath string) {
 		</div>
 	</div>
 	<!-- Modal container - placed outside drawer for proper z-index layering -->
-	<div id="modal-container"></div>
+	<div id="modal-container"
+	     hx-on::after-swap="document.getElementById('server-modal')?.showModal()"></div>
 }
 
 templ ThemeToggle() {
