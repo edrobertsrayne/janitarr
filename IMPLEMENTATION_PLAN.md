@@ -319,7 +319,7 @@ make build
 
 **Changes:**
 
-- [ ] **File:** `src/templates/pages/servers.templ` (lines 32-34) - Replace arrow with server + plus icon:
+- [x] **File:** `src/templates/pages/servers.templ` (lines 32-34) - Replace arrow with server + plus icon:
 
   ```html
   <!-- BEFORE -->
@@ -353,7 +353,7 @@ make build
   </svg>
   ```
 
-- [ ] **File:** `src/templates/pages/dashboard.templ` - Find the "No servers configured" empty state (around line 74) and apply the same icon change.
+- [x] **File:** `src/templates/pages/dashboard.templ` - Find the "No servers configured" empty state (around line 74) and apply the same icon change.
 
 **Verification:**
 
@@ -663,7 +663,7 @@ cat specs/daisyui-migration.md | grep -A 20 "Alpine.js x-data scoping"
 - [x] Task 2: Fix modal Cancel button
 - [x] Task 3: Add favicon
 - [x] Task 4: Add navigation icons
-- [ ] Task 5: Improve empty state icons
+- [x] Task 5: Improve empty state icons
 - [ ] Task 6: Improve stats card separation
 - [ ] Task 7: Improve light theme active nav contrast
 - [ ] Task 8: Add server modal E2E tests

@@ -110,7 +110,7 @@ func Dashboard(data DashboardData) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if len(data.Servers) == 0 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"p-12 text-center\"><svg class=\"mx-auto h-12 w-12 text-base-content/30\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M5 12h14M12 5l7 7-7 7\"></path></svg><h3 class=\"mt-2 text-lg font-semibold\">No servers configured</h3><p class=\"text-base-content/60 mt-1\"><a href=\"/servers\" class=\"link link-primary\">Add a server</a> to get started.</p></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"p-12 text-center\"><svg class=\"mx-auto h-12 w-12 text-base-content/30\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01\"></path></svg><h3 class=\"mt-2 text-lg font-semibold\">No servers configured</h3><p class=\"text-base-content/60 mt-1\"><a href=\"/servers\" class=\"link link-primary\">Add a server</a> to get started.</p></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
