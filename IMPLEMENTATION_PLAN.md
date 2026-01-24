@@ -709,9 +709,9 @@ jobs:
 - [x] Task 2: Add /health route alias
 - [x] Task 3: Create Dockerfile
 - [x] Task 4: Create docker-entrypoint.sh
-- [ ] Task 5: Create flake.nix
-- [ ] Task 6: Create nix/package.nix
-- [ ] Task 7: Create nix/module.nix
+- [x] Task 5: Create flake.nix
+- [x] Task 6: Create nix/package.nix
+- [x] Task 7: Create nix/module.nix
 - [ ] Task 8: Create docker.yml workflow
 - [ ] Task 9: Create nix.yml workflow
 
