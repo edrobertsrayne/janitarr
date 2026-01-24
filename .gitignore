@@ -29,3 +29,4 @@ static/css/app.css
 
 # Nix build outputs
 result/
+result

@@ -61,3 +61,9 @@ Automation tool for managing Radarr and Sonarr media servers. Written in Go.
 | Spec                                   | Code                           | Purpose                                        | Status |
 | -------------------------------------- | ------------------------------ | ---------------------------------------------- | ------ |
 | [cli-interface.md](./cli-interface.md) | `src/cli/`<br>`src/cli/forms/` | Interactive terminal forms (charmbracelet/huh) | Active |
+
+## Deployment
+
+| Spec                             | Code                                                          | Purpose                                    | Status |
+| -------------------------------- | ------------------------------------------------------------- | ------------------------------------------ | ------ |
+| [deployment.md](./deployment.md) | `Dockerfile`<br>`flake.nix`<br>`nix/`<br>`.github/workflows/` | Docker image, NixOS module, CI/CD pipeline | Active |
