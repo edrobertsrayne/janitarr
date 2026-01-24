@@ -22,6 +22,10 @@ build: generate
 dev: build
   ./janitarr dev --host 0.0.0.0
 
+# Build and run the production server
+dev: build
+  ./janitarr start
+
 # Run both unit tests (Go) and E2E tests (Playwright)
 test:
   @echo "Running Go unit tests with race detection..."
