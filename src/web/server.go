@@ -120,6 +120,9 @@ func (s *Server) setupRoutes() {
 	// Page handlers
 	pageHandlers := pages.NewPageHandlers(s.config.DB, s.config.Scheduler, s.config.Logger)
 
+	// Health check alias for Docker health checks
+	r.Get("/health", healthHandlers.GetHealth)
+
 	// API routes
 	r.Route("/api", func(r chi.Router) {
 		r.Get("/health", healthHandlers.GetHealth) // Register Health endpoint

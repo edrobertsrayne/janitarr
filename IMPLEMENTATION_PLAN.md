@@ -706,7 +706,7 @@ jobs:
 ### Completion Checklist
 
 - [x] Task 1: Add search limit upper bound validation
-- [ ] Task 2: Add /health route alias
+- [x] Task 2: Add /health route alias
 - [ ] Task 3: Create Dockerfile
 - [ ] Task 4: Create docker-entrypoint.sh
 - [ ] Task 5: Create flake.nix
