@@ -712,8 +712,8 @@ jobs:
 - [x] Task 5: Create flake.nix
 - [x] Task 6: Create nix/package.nix
 - [x] Task 7: Create nix/module.nix
-- [ ] Task 8: Create docker.yml workflow
-- [ ] Task 9: Create nix.yml workflow
+- [x] Task 8: Create docker.yml workflow
+- [x] Task 9: Create nix.yml workflow
 
 **Final Verification:**
 
