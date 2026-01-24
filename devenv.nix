@@ -94,7 +94,7 @@
 
         while [ "$current_iteration" -lt "$iterations" ]; do
           echo "Running plan iteration $((current_iteration + 1)) of $iterations"
-          cat PROMPT_plan.md | claude -p --model opus --dangerously-skip-permissions
+          cat promts/plan.md | claude -p --model opus --dangerously-skip-permissions
           current_iteration=$((current_iteration + 1))
         done
       '';
@@ -107,7 +107,7 @@
 
         while [ "$current_iteration" -lt "$iterations" ]; do
           echo "Running build iteration $((current_iteration + 1)) of $iterations"
-          cat PROMPT_build.md | claude -p --model sonnet --dangerously-skip-permissions
+          cat prompts/build.md | claude -p --model sonnet --dangerously-skip-permissions
           current_iteration=$((current_iteration + 1))
         done
       '';
