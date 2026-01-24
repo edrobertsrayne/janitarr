@@ -131,25 +131,25 @@ func (h *ConfigHandlers) PostConfig(w http.ResponseWriter, r *http.Request) {
 
 	// Parse search limits
 	if val := r.FormValue("limits.missing.movies"); val != "" {
-		if i, err := strconv.Atoi(val); err == nil && i >= 0 {
+		if i, err := strconv.Atoi(val); err == nil && i >= 0 && i <= 1000 {
 			newConfig.SearchLimits.MissingMoviesLimit = i
 		}
 	}
 
 	if val := r.FormValue("limits.missing.episodes"); val != "" {
-		if i, err := strconv.Atoi(val); err == nil && i >= 0 {
+		if i, err := strconv.Atoi(val); err == nil && i >= 0 && i <= 1000 {
 			newConfig.SearchLimits.MissingEpisodesLimit = i
 		}
 	}
 
 	if val := r.FormValue("limits.cutoff.movies"); val != "" {
-		if i, err := strconv.Atoi(val); err == nil && i >= 0 {
+		if i, err := strconv.Atoi(val); err == nil && i >= 0 && i <= 1000 {
 			newConfig.SearchLimits.CutoffMoviesLimit = i
 		}
 	}
 
 	if val := r.FormValue("limits.cutoff.episodes"); val != "" {
-		if i, err := strconv.Atoi(val); err == nil && i >= 0 {
+		if i, err := strconv.Atoi(val); err == nil && i >= 0 && i <= 1000 {
 			newConfig.SearchLimits.CutoffEpisodesLimit = i
 		}
 	}

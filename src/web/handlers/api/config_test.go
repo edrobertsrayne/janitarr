@@ -243,3 +243,98 @@ func TestPostConfig_HighLimitWarning(t *testing.T) {
 		})
 	}
 }
+
+func TestPostConfig_SearchLimitUpperBound(t *testing.T) {
+	db := testDB(t)
+	handlers := NewConfigHandlers(db)
+
+	// Set initial known values
+	initialConfig := db.GetAppConfig()
+	initialConfig.SearchLimits.MissingMoviesLimit = 50
+	initialConfig.SearchLimits.MissingEpisodesLimit = 75
+	initialConfig.SearchLimits.CutoffMoviesLimit = 100
+	initialConfig.SearchLimits.CutoffEpisodesLimit = 25
+	db.SetAppConfig(initialConfig)
+
+	tests := []struct {
+		name           string
+		formData       string
+		expectedMovies int
+		expectedEps    int
+		expectedCutoff int
+		expectedCutEps int
+	}{
+		{
+			name:           "limit 1000 - accepted",
+			formData:       "limits.missing.movies=1000",
+			expectedMovies: 1000,
+			expectedEps:    75,
+			expectedCutoff: 100,
+			expectedCutEps: 25,
+		},
+		{
+			name:           "limit 1001 - rejected (keeps old value)",
+			formData:       "limits.missing.movies=1001",
+			expectedMovies: 50,
+			expectedEps:    75,
+			expectedCutoff: 100,
+			expectedCutEps: 25,
+		},
+		{
+			name:           "limit 5000 - rejected (keeps old value)",
+			formData:       "limits.cutoff.episodes=5000",
+			expectedMovies: 50,
+			expectedEps:    75,
+			expectedCutoff: 100,
+			expectedCutEps: 25,
+		},
+		{
+			name:           "limit 0 - accepted (minimum valid)",
+			formData:       "limits.missing.episodes=0",
+			expectedMovies: 50,
+			expectedEps:    0,
+			expectedCutoff: 100,
+			expectedCutEps: 25,
+		},
+		{
+			name:           "negative limit - rejected (keeps old value)",
+			formData:       "limits.cutoff.movies=-10",
+			expectedMovies: 50,
+			expectedEps:    75,
+			expectedCutoff: 100,
+			expectedCutEps: 25,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Reset to initial values before each test
+			db.SetAppConfig(initialConfig)
+
+			req := httptest.NewRequest("POST", "/api/config", strings.NewReader(tt.formData))
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			rr := httptest.NewRecorder()
+
+			handlers.PostConfig(rr, req)
+
+			if rr.Code != http.StatusOK {
+				t.Fatalf("expected status 200, got %d: %s", rr.Code, rr.Body.String())
+			}
+
+			// Verify the limits were applied or rejected correctly
+			config := db.GetAppConfig()
+			if config.SearchLimits.MissingMoviesLimit != tt.expectedMovies {
+				t.Errorf("expected MissingMoviesLimit=%d, got %d", tt.expectedMovies, config.SearchLimits.MissingMoviesLimit)
+			}
+			if config.SearchLimits.MissingEpisodesLimit != tt.expectedEps {
+				t.Errorf("expected MissingEpisodesLimit=%d, got %d", tt.expectedEps, config.SearchLimits.MissingEpisodesLimit)
+			}
+			if config.SearchLimits.CutoffMoviesLimit != tt.expectedCutoff {
+				t.Errorf("expected CutoffMoviesLimit=%d, got %d", tt.expectedCutoff, config.SearchLimits.CutoffMoviesLimit)
+			}
+			if config.SearchLimits.CutoffEpisodesLimit != tt.expectedCutEps {
+				t.Errorf("expected CutoffEpisodesLimit=%d, got %d", tt.expectedCutEps, config.SearchLimits.CutoffEpisodesLimit)
+			}
+		})
+	}
+}

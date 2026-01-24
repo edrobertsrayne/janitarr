@@ -40,225 +40,697 @@ This document is designed for AI coding agents. Each task:
 
 ## Current Status
 
-**Active Phase:** Phase 27 - Spec-Code Alignment (Complete ✓)
-**Previous Phase:** Phase 26 - Modal Z-Index Fix (Complete ✓)
+**Active Phase:** Phase 28 - Deployment Infrastructure
+**Previous Phase:** Phase 27 - Spec-Code Alignment (Complete)
 **Test Status:** Go unit tests passing, E2E tests 88% pass rate (63/72 passing, 9 intentionally skipped)
 
-### Gap Analysis Summary
+### Gap Analysis Summary (2026-01-24)
 
-The specifications in `specs/` were audited and clarified on 2026-01-23 (see `specs/AUDIT_REPORT.md`). Comparing the updated specs against the current implementation reveals the following gaps:
+All critical spec-code alignment issues from Phase 27 have been resolved. The remaining work is deployment infrastructure plus one minor validation fix.
 
-| Gap                                                    | Spec File               | Severity | Status                |
-| ------------------------------------------------------ | ----------------------- | -------- | --------------------- |
-| Round-robin distribution instead of proportional       | search-triggering.md    | Critical | Pending               |
-| No rate limiting (100ms delay, 429 handling)           | search-triggering.md    | Critical | Pending               |
-| No 3-strike skip rule for rate limits                  | search-triggering.md    | High     | Pending               |
-| CLI search limit validation is 0-100, spec says 0-1000 | search-triggering.md    | High     | Pending               |
-| No warning for limits > 100                            | search-triggering.md    | Medium   | Pending               |
-| WebSocket uses full-jitter instead of fixed delays     | web-frontend.md         | Low      | Acceptable (see note) |
-| No performance monitoring for cycle duration           | automatic-scheduling.md | Low      | Pending               |
+| Gap                                         | Spec File            | Severity | Status      |
+| ------------------------------------------- | -------------------- | -------- | ----------- |
+| Search limit upper bound validation missing | search-triggering.md | Low      | Not Started |
+| /health route alias missing (Docker health) | deployment.md        | Low      | Not Started |
+| Dockerfile not created                      | deployment.md        | High     | Not Started |
+| docker-entrypoint.sh not created            | deployment.md        | High     | Not Started |
+| flake.nix with package/module not created   | deployment.md        | High     | Not Started |
+| nix/package.nix not created                 | deployment.md        | Medium   | Not Started |
+| nix/module.nix not created                  | deployment.md        | Medium   | Not Started |
+| .github/workflows/docker.yml not created    | deployment.md        | Medium   | Not Started |
+| .github/workflows/nix.yml not created       | deployment.md        | Low      | Not Started |
 
-**Note on WebSocket reconnection:** The htmx-ws extension uses "full-jitter" exponential backoff (`1000 * 2^retryCount * random()`), which is functionally equivalent and actually superior to the spec's fixed sequence (avoids thundering herd problem). No code change required.
+**Note on /health:** The `/api/health` endpoint exists at `src/web/server.go:125`. Docker health checks expect `/health` at root level. Task 2 adds a route alias.
+
+**Note on search limits:** HTML form enforces 0-1000 range via `min`/`max` attributes, but server-side validation in `src/web/handlers/api/config.go:134-152` only checks `>= 0`. API bypass possible.
 
 ### Implementation Completeness
 
 Features from `/specs/` that ARE fully implemented:
 
-- ✅ CLI Interface with interactive forms (cli-interface.md)
-- ✅ Logging system with web viewer (logging.md)
-- ✅ Web frontend with templ + htmx + Alpine.js (web-frontend.md)
-- ✅ DaisyUI v4 integration (archived: daisyui-migration.md)
-- ✅ Unified service startup (unified-service-startup.md)
-- ✅ Server configuration management (server-configuration.md)
-- ✅ Activity logging (activity-logging.md)
-- ✅ Missing content & quality cutoff detection (missing-content-detection.md, quality-cutoff-detection.md)
-- ✅ Automatic scheduling with manual triggers (automatic-scheduling.md)
-- ✅ 4 separate search limits (search-triggering.md)
-- ✅ Dry-run mode (search-triggering.md)
+- CLI Interface with interactive forms (cli-interface.md)
+- Logging system with web viewer (logging.md)
+- Web frontend with templ + htmx + Alpine.js (web-frontend.md)
+- DaisyUI v4 integration (archived: daisyui-migration.md)
+- Unified service startup (unified-service-startup.md)
+- Server configuration management (server-configuration.md)
+- Activity logging (activity-logging.md)
+- Missing content & quality cutoff detection (missing-content-detection.md, quality-cutoff-detection.md)
+- Automatic scheduling with manual triggers (automatic-scheduling.md)
+- Search triggering with 4 limits, rate limiting, proportional distribution (search-triggering.md)
+- Dry-run mode (search-triggering.md)
+- Cycle duration monitoring (automatic-scheduling.md)
+- 100ms inter-batch delay (search-triggering.md)
+- 429 rate limit handling with Retry-After (search-triggering.md)
+- 3-strike server skip on rate limits (search-triggering.md)
+- High limit warnings (>100) (search-triggering.md)
+
+Features NOT yet implemented:
+
+- Docker deployment (deployment.md)
+- NixOS module (deployment.md)
+- CI/CD workflows (deployment.md)
+- Search limit upper bound validation (search-triggering.md) - minor fix
 
 ---
 
-## Phase 27: Spec-Code Alignment
+## Phase 28: Deployment Infrastructure
 
-**Status:** Complete ✓
-**Priority:** Critical (core automation behavior doesn't match spec)
-**Completed:** 2026-01-23
+**Status:** Not Started
+**Priority:** High (required for release)
+**Spec:** `specs/deployment.md`
 
-Align implementation with specs from 2026-01-23 audit. All tasks completed including proportional search distribution, rate limiting, search limit validation updates, high limit warnings, and optional cycle duration monitoring.
+### Task Summary
 
-### Files to Modify
-
-| File                                               | Changes                                                  |
-| -------------------------------------------------- | -------------------------------------------------------- |
-| `src/services/search_trigger_test.go`              | Distribution + rate limit tests                          |
-| `src/services/search_trigger.go`                   | Replace round-robin with proportional, add rate limiting |
-| `src/api/client_test.go`                           | 429 handling tests                                       |
-| `src/api/client.go`                                | RateLimitError type                                      |
-| `src/cli/forms/config.go`                          | Validation 0-1000, high limit warning                    |
-| `src/cli/forms/config_test.go`                     | Validation tests                                         |
-| `src/templates/components/forms/config_form.templ` | Client-side warning for >100                             |
-| `src/web/handlers/api/config.go`                   | Warning in API response                                  |
-
----
-
-### Task 1: Proportional Search Distribution
-
-Replace `distributeRoundRobin()` with largest remainder method.
-
-**Tests** (`src/services/search_trigger_test.go`):
-
-| Test Case                     | Input (serverID → items) | Limit | Expected Allocation |
-| ----------------------------- | ------------------------ | ----- | ------------------- |
-| 90/10 split                   | srv1:90, srv2:10         | 10    | srv1:9, srv2:1      |
-| Minimum 1 per server          | srv1:100, srv2:1         | 10    | srv1:9, srv2:1      |
-| Limit exceeds items           | srv1:3, srv2:2           | 100   | srv1:3, srv2:2      |
-| Single server                 | srv1:50                  | 10    | srv1:10             |
-| Equal split                   | srv1:50, srv2:50         | 10    | srv1:5, srv2:5      |
-| Remainder to largest fraction | srv1:60, srv2:40         | 9     | srv1:5, srv2:4      |
-
-**Implementation** (`src/services/search_trigger.go:150-237`):
-
-- [x] Replace `distributeRoundRobin()` with `distributeProportional()`
-- [x] Algorithm: floor(limit \* serverItems/totalItems), minimum 1, remainders to largest fractions
-- [x] Update call site in `allocateItems()` (line 129)
-
-**Verification:**
-
-```bash
-go test ./src/services/... -v -run TestDistributeProportional
-```
+| #   | Task                         | Dependency | Effort | Priority |
+| --- | ---------------------------- | ---------- | ------ | -------- |
+| 1   | Add search limit upper bound | None       | Low    | Low      |
+| 2   | Add /health route alias      | None       | Low    | Low      |
+| 3   | Create Dockerfile            | None       | Medium | High     |
+| 4   | Create docker-entrypoint.sh  | Task 3     | Low    | High     |
+| 5   | Create flake.nix             | None       | Medium | High     |
+| 6   | Create nix/package.nix       | Task 5     | Low    | Medium   |
+| 7   | Create nix/module.nix        | Task 6     | Medium | Medium   |
+| 8   | Create docker.yml workflow   | Task 3     | Low    | Medium   |
+| 9   | Create nix.yml workflow      | Task 5     | Low    | Low      |
 
 ---
 
-### Task 2: Rate Limiting
+### Task 1: Add Search Limit Upper Bound Validation
 
-Add 100ms delay between batches, 429 handling with Retry-After, 3-strike skip.
+Add server-side validation to enforce the 0-1000 range specified in search-triggering.md.
 
-**Tests** (`src/api/client_test.go`):
+**Files to Modify:**
 
-- [x] `TestClientGet_TooManyRequests`: Returns `RateLimitError` with parsed Retry-After
-- [x] `TestClientGet_TooManyRequests_DefaultRetryAfter`: Default 30s when header missing
+- `src/web/handlers/api/config.go`
 
-**Tests** (`src/services/search_trigger_test.go`):
+**Implementation:**
 
-- [x] `TestTriggerSearches_RateLimitSkipsAfter3`: Server skipped after 3 consecutive 429s
-- [x] `TestTriggerSearches_DelayBetweenBatches`: 100ms delay verified
-
-**Implementation**:
-
-`src/api/client.go`:
+In `PostConfig()`, update the search limit validation (lines 134, 140, 146, 152) to include upper bound:
 
 ```go
-type RateLimitError struct {
-    RetryAfter time.Duration
+// Line 134: Change
+if i, err := strconv.Atoi(val); err == nil && i >= 0 {
+// To
+if i, err := strconv.Atoi(val); err == nil && i >= 0 && i <= 1000 {
+
+// Apply same change to lines 140, 146, 152
+```
+
+**Tests:**
+
+- **Unit:** Add test case in `src/web/handlers/api/config_test.go` for limits > 1000 being rejected (silently ignored, keeping old value)
+- **E2E:** N/A (form already prevents via HTML attributes)
+
+**Verification:**
+
+```bash
+go test ./src/web/handlers/api/... -v -run TestConfig
+```
+
+---
+
+### Task 2: Add /health Route Alias
+
+Add `/health` route that mirrors `/api/health` for Docker health checks.
+
+**Files to Modify:**
+
+- `src/web/server.go`
+
+**Implementation:**
+
+Add route outside the `/api` group. Around line 121, before the `r.Route("/api", ...)` block:
+
+```go
+// Health check alias for Docker health checks
+r.Get("/health", apiHandlers.Health.GetHealth)
+```
+
+**Tests:**
+
+- **Unit:** Add test in `src/web/server_test.go` verifying `/health` returns 200 with JSON body containing `"status"`
+- **E2E:** `curl http://localhost:3434/health` returns JSON with status
+
+**Verification:**
+
+```bash
+go test ./src/web/... -v
+# Manual verification after starting server:
+curl -s http://localhost:3434/health | jq .status
+# Should output: "ok"
+```
+
+---
+
+### Task 3: Create Dockerfile
+
+Create multi-stage Dockerfile with Alpine base per specs/deployment.md.
+
+**Files to Create:**
+
+- `Dockerfile`
+
+**Implementation:**
+
+```dockerfile
+# Build stage
+FROM golang:1.22-alpine AS builder
+
+# Install build dependencies
+RUN apk add --no-cache git
+
+# Install templ
+RUN go install github.com/a-h/templ/cmd/templ@latest
+
+WORKDIR /build
+
+# Download dependencies first (better caching)
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy source and generate templates
+COPY . .
+RUN templ generate
+RUN go build -ldflags="-s -w" -o janitarr .
+
+# Runtime stage
+FROM alpine:latest
+
+RUN apk add --no-cache su-exec shadow wget
+
+COPY --from=builder /build/janitarr /usr/local/bin/janitarr
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+
+RUN chmod +x /docker-entrypoint.sh
+
+ENV PUID=1000 \
+    PGID=1000 \
+    JANITARR_PORT=3434 \
+    JANITARR_DB_PATH=/data/janitarr.db
+
+EXPOSE 3434
+
+VOLUME ["/data"]
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD wget --quiet --tries=1 --spider http://localhost:${JANITARR_PORT:-3434}/health || exit 1
+
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["janitarr", "start", "--host", "0.0.0.0"]
+```
+
+**Reference:** See specs/deployment.md lines 100-137 for exact Dockerfile structure.
+
+**Tests:**
+
+- **Unit:** N/A (Dockerfile not testable with Go)
+- **E2E:** Manual `docker build` verification
+
+**Verification:**
+
+```bash
+docker build -t janitarr:test .
+docker run --rm janitarr:test janitarr --version
+```
+
+---
+
+### Task 4: Create docker-entrypoint.sh
+
+Create entrypoint script for PUID/PGID user management per specs/deployment.md.
+
+**Files to Create:**
+
+- `docker-entrypoint.sh`
+
+**Implementation:**
+
+```bash
+#!/bin/sh
+set -e
+
+PUID=${PUID:-1000}
+PGID=${PGID:-1000}
+
+# Create group if it doesn't exist
+if ! getent group janitarr > /dev/null 2>&1; then
+    addgroup -g "${PGID}" janitarr
+fi
+
+# Create user if it doesn't exist
+if ! getent passwd janitarr > /dev/null 2>&1; then
+    adduser -D -u "${PUID}" -G janitarr -h /data -s /sbin/nologin janitarr
+fi
+
+# Ensure correct ownership
+chown -R janitarr:janitarr /data
+
+# Drop privileges and execute
+exec su-exec janitarr:janitarr "$@"
+```
+
+**Reference:** See specs/deployment.md lines 139-163 for exact script.
+
+**Tests:**
+
+- **Unit:** N/A (shell script)
+- **E2E:** Verify container runs as expected user
+
+**Verification:**
+
+```bash
+docker run --rm -e PUID=1001 -e PGID=1001 janitarr:test id
+# Should show uid=1001 gid=1001
+```
+
+---
+
+### Task 5: Create flake.nix
+
+Create Nix flake with package and module outputs per specs/deployment.md.
+
+**Files to Create:**
+
+- `flake.nix`
+
+**Implementation:**
+
+```nix
+{
+  description = "Janitarr - Automation tool for Radarr and Sonarr";
+
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
+  };
+
+  outputs = { self, nixpkgs, flake-utils }:
+    flake-utils.lib.eachSystem [ "x86_64-linux" "aarch64-linux" ] (system:
+      let
+        pkgs = nixpkgs.legacyPackages.${system};
+        janitarr = pkgs.callPackage ./nix/package.nix { };
+      in
+      {
+        packages = {
+          janitarr = janitarr;
+          default = janitarr;
+        };
+      }
+    ) // {
+      nixosModules = {
+        janitarr = import ./nix/module.nix;
+        default = self.nixosModules.janitarr;
+      };
+    };
 }
-func (e *RateLimitError) Error() string { ... }
 ```
 
-- [x] Add case to `checkStatusCode()` for `http.StatusTooManyRequests`
-- [x] Parse `Retry-After` header (default 30s)
+**Tests:**
 
-`src/services/search_trigger.go`:
-
-- [x] Add `rateLimitCount int` to `serverItemAllocation` struct
-- [x] In `executeAllocations()`: skip if `rateLimitCount >= 3`, add 100ms sleep between batches
-- [x] Increment `rateLimitCount` on 429, reset on success
+- **Unit:** N/A
+- **E2E:** `nix flake check` passes
 
 **Verification:**
 
 ```bash
-go test ./src/api/... -v -run TestClientGet_TooManyRequests
-go test ./src/services/... -v -run TestTriggerSearches_RateLimit
+nix flake check
+nix build .#janitarr --dry-run
 ```
 
 ---
 
-### Task 3: Search Limit Validation Range
+### Task 6: Create nix/package.nix
 
-Change CLI validation from 0-100 to 0-1000.
+Create Nix derivation for the janitarr package.
 
-**Tests** (`src/cli/forms/config_test.go`):
+**Files to Create:**
 
-| Input  | Valid |
-| ------ | ----- |
-| "500"  | true  |
-| "1000" | true  |
-| "1001" | false |
+- `nix/package.nix`
 
-**Implementation** (`src/cli/forms/config.go`):
+**Implementation:**
 
-- [x] Line 47: `val > 100` → `val > 1000`
-- [x] Line 48: Error message → `"must be between 0 and 1000"`
-- [x] Lines 94, 100, 106, 112: Update descriptions
+```nix
+{ lib
+, buildGoModule
+, templ
+, fetchFromGitHub
+}:
+
+buildGoModule rec {
+  pname = "janitarr";
+  version = "0.1.0";
+
+  src = ./..;
+
+  vendorHash = lib.fakeHash; # Update after first build attempt
+
+  nativeBuildInputs = [ templ ];
+
+  preBuild = ''
+    templ generate
+  '';
+
+  ldflags = [
+    "-s"
+    "-w"
+  ];
+
+  meta = with lib; {
+    description = "Automation tool for Radarr and Sonarr media servers";
+    homepage = "https://github.com/edrobertsrayne/janitarr";
+    license = licenses.mit;
+    maintainers = [ ];
+    mainProgram = "janitarr";
+  };
+}
+```
+
+**Note:** The `vendorHash` will need to be updated after the first build attempt. Nix will report the correct hash.
+
+**Tests:**
+
+- **Unit:** N/A
+- **E2E:** `nix build` produces working binary
 
 **Verification:**
 
 ```bash
-go test ./src/cli/forms/... -v -run TestValidateLimit
+nix build .#janitarr
+./result/bin/janitarr --version
 ```
 
 ---
 
-### Task 4: High Limit Warning
+### Task 7: Create nix/module.nix
 
-Warn when any search limit > 100.
+Create NixOS module with systemd service and security hardening per specs/deployment.md.
 
-**Implementation**:
+**Files to Create:**
 
-- [x] `src/web/handlers/api/config.go`: Include `"warning"` in response JSON
-- [x] `src/templates/components/forms/config_form.templ`: Alpine.js warning on input and server response
-- [x] `src/web/handlers/api/config_test.go`: Added comprehensive test coverage for warning behavior
+- `nix/module.nix`
 
-**Note**: CLI warning deferred - the CLI uses `huh` library which doesn't support post-submission message display. The web interface is the primary user interface and provides real-time warnings both on input (Alpine.js) and after saving (server response).
+**Implementation:**
+
+```nix
+{ config, lib, pkgs, ... }:
+
+with lib;
+
+let
+  cfg = config.services.janitarr;
+in
+{
+  options.services.janitarr = {
+    enable = mkEnableOption "Janitarr media server automation";
+
+    port = mkOption {
+      type = types.port;
+      default = 3434;
+      description = "Port for the web interface.";
+    };
+
+    openFirewall = mkOption {
+      type = types.bool;
+      default = false;
+      description = "Whether to open the firewall for the web interface.";
+    };
+
+    dataDir = mkOption {
+      type = types.path;
+      default = "/var/lib/janitarr";
+      description = "Directory for database and application data.";
+    };
+
+    logLevel = mkOption {
+      type = types.enum [ "debug" "info" "warn" "error" ];
+      default = "info";
+      description = "Log verbosity level.";
+    };
+
+    user = mkOption {
+      type = types.str;
+      default = "janitarr";
+      description = "User account under which janitarr runs.";
+    };
+
+    group = mkOption {
+      type = types.str;
+      default = "janitarr";
+      description = "Group under which janitarr runs.";
+    };
+
+    package = mkOption {
+      type = types.package;
+      default = pkgs.janitarr or (pkgs.callPackage ./package.nix { });
+      description = "The janitarr package to use.";
+    };
+  };
+
+  config = mkIf cfg.enable {
+    users.users.janitarr = mkIf (cfg.user == "janitarr") {
+      isSystemUser = true;
+      group = cfg.group;
+      home = cfg.dataDir;
+      description = "Janitarr service user";
+    };
+
+    users.groups.janitarr = mkIf (cfg.group == "janitarr") { };
+
+    networking.firewall.allowedTCPPorts = mkIf cfg.openFirewall [ cfg.port ];
+
+    systemd.services.janitarr = {
+      description = "Janitarr media server automation";
+      wantedBy = [ "multi-user.target" ];
+      after = [ "network.target" ];
+
+      serviceConfig = {
+        Type = "simple";
+        User = cfg.user;
+        Group = cfg.group;
+        ExecStart = "${cfg.package}/bin/janitarr start --host 0.0.0.0 --port ${toString cfg.port}";
+        Restart = "on-failure";
+        RestartSec = 5;
+
+        # State management
+        StateDirectory = "janitarr";
+        StateDirectoryMode = "0750";
+        WorkingDirectory = cfg.dataDir;
+
+        # Security hardening
+        NoNewPrivileges = true;
+        PrivateTmp = true;
+        ProtectSystem = "strict";
+        ProtectHome = true;
+        ProtectKernelTunables = true;
+        ProtectKernelModules = true;
+        ProtectControlGroups = true;
+        RestrictAddressFamilies = [ "AF_INET" "AF_INET6" "AF_UNIX" ];
+        RestrictNamespaces = true;
+        RestrictRealtime = true;
+        RestrictSUIDSGID = true;
+        MemoryDenyWriteExecute = true;
+        LockPersonality = true;
+        SystemCallFilter = [ "@system-service" "~@privileged" "~@resources" ];
+        SystemCallArchitectures = "native";
+        CapabilityBoundingSet = "";
+        AmbientCapabilities = "";
+      };
+
+      environment = {
+        JANITARR_DB_PATH = "${cfg.dataDir}/janitarr.db";
+        JANITARR_LOG_LEVEL = cfg.logLevel;
+      };
+    };
+  };
+}
+```
+
+**Reference:** See specs/deployment.md lines 231-279 for exact service config.
+
+**Tests:**
+
+- **Unit:** N/A
+- **E2E:** `nix flake check` type-checks the module
 
 **Verification:**
 
 ```bash
-templ generate
-make build
-go test ./src/web/handlers/api/... -v -run TestPostConfig_HighLimitWarning
+nix flake check
 ```
 
 ---
 
-### Task 5: WebSocket Reconnection
+### Task 8: Create docker.yml Workflow
 
-**Status:** ✅ Already implemented via htmx-ws full-jitter. No changes needed.
+Create GitHub Actions workflow for Docker builds per specs/deployment.md.
 
----
+**Files to Create:**
 
-### Task 6: Cycle Duration Monitoring (Optional)
+- `.github/workflows/docker.yml`
 
-**Implementation** (`src/services/automation.go`):
+**Implementation:**
 
-- [x] Add `Warn` method to `Logger` interface and `AutomationLogger` interface
-- [x] Add duration warning at end of `RunCycle()` when duration exceeds 5 minutes
-- [x] Add tests for cycle duration monitoring (one test skipped due to 5-minute runtime)
+```yaml
+name: Docker
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            # For v1.2.3: creates v1.2.3, v1.2, v1, latest
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: ${{ startsWith(github.ref, 'refs/tags/v') }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+```
+
+**Reference:** See specs/deployment.md lines 375-436 for exact workflow.
+
+**Tests:**
+
+- **Unit:** N/A
+- **E2E:** Workflow runs successfully on push
 
 **Verification:**
 
 ```bash
-go test ./src/services/... -v -run TestRunCycle
+# After pushing, check GitHub Actions tab for successful build
+```
+
+---
+
+### Task 9: Create nix.yml Workflow
+
+Create GitHub Actions workflow for Nix flake checks per specs/deployment.md.
+
+**Files to Create:**
+
+- `.github/workflows/nix.yml`
+
+**Implementation:**
+
+```yaml
+name: Nix
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v9
+
+      - name: Setup Nix cache
+        uses: DeterminateSystems/magic-nix-cache-action@v2
+
+      - name: Check flake
+        run: nix flake check
+
+      - name: Build package
+        run: nix build .#janitarr
+```
+
+**Reference:** See specs/deployment.md lines 438-469 for exact workflow.
+
+**Tests:**
+
+- **Unit:** N/A
+- **E2E:** Workflow runs successfully on push
+
+**Verification:**
+
+```bash
+# After pushing, check GitHub Actions tab for successful build
 ```
 
 ---
 
 ### Completion Checklist
 
-- [x] Task 1: Implement proportional search distribution
-- [x] Task 2: Implement rate limiting for search triggers
-- [x] Task 3: Fix search limit validation range (CLI)
-- [x] Task 4: Add warning for high search limits
-- [x] Task 5: WebSocket reconnection with backoff (already implemented via htmx-ws)
-- [x] Task 6: Add cycle duration monitoring (optional)
+- [x] Task 1: Add search limit upper bound validation
+- [ ] Task 2: Add /health route alias
+- [ ] Task 3: Create Dockerfile
+- [ ] Task 4: Create docker-entrypoint.sh
+- [ ] Task 5: Create flake.nix
+- [ ] Task 6: Create nix/package.nix
+- [ ] Task 7: Create nix/module.nix
+- [ ] Task 8: Create docker.yml workflow
+- [ ] Task 9: Create nix.yml workflow
 
 **Final Verification:**
 
 ```bash
-go test ./... -race
-templ generate
-make build
-direnv exec . bunx playwright test --reporter=list
+# Go tests
+go test ./...
+
+# Docker
+docker build -t janitarr:test .
+docker run --rm -d --name janitarr-test -p 3434:3434 -v $(pwd)/data:/data janitarr:test
+curl -s http://localhost:3434/health
+docker stop janitarr-test
+
+# Nix
+nix flake check
+nix build .#janitarr
+./result/bin/janitarr --version
 ```
 
 ---
@@ -266,6 +738,19 @@ direnv exec . bunx playwright test --reporter=list
 ## Spec Revisions
 
 This section documents changes made to specification files during the planning process.
+
+### 2026-01-24: Planning Review
+
+- Verified all audit report issues from 2026-01-23 have been resolved in specs
+- Confirmed port consistency (3434 throughout web-frontend.md)
+- Confirmed 4 separate search limits defined in web-frontend.md (lines 315-337)
+- Confirmed log retention range standardized to 7-90 days (line 357)
+- Verified README.md status column updated for deployment.md
+- No new spec changes required
+
+### 2026-01-24: README Status Update
+
+- Updated `specs/README.md`: Changed deployment.md status from "Planned" to "Not Started" to accurately reflect current state (no deployment files exist in repository)
 
 ### 2026-01-23: Specification Audit Complete
 
@@ -280,45 +765,39 @@ All 21 issues identified in the spec audit have been resolved. See `specs/AUDIT_
 
 ## Completed Phases (Recent)
 
-### Phase 26 - Modal Z-Index Fix ✓
+### Phase 27 - Spec-Code Alignment
+
+**Completed:** 2026-01-23
+
+Aligned implementation with specs from 2026-01-23 audit:
+
+- Proportional search distribution (replaced round-robin)
+- Rate limiting (100ms delay, 429 handling, 3-strike skip)
+- Search limit validation (0-1000 range) - HTML form only, server-side partial
+- High limit warnings (>100)
+- Cycle duration monitoring
+
+### Phase 26 - Modal Z-Index Fix
 
 **Completed:** 2026-01-23 | **Commit:** `f1206a2`
 
-Fixed modal z-index issue by moving modal-container outside `<main>` element. Improved E2E test pass rate from 86% to 88% (63/72 passing). All server management modal interactions now work correctly in automated tests.
+Fixed modal z-index issue by moving modal-container outside `<main>` element. Improved E2E test pass rate from 86% to 88% (63/72 passing).
 
-### Phase 25 - E2E Test Encryption Key Fix ✓
+### Phase 25 - E2E Test Encryption Key Fix
 
 **Completed:** 2026-01-23 | **Commit:** `5adb9f6`
 
-Fixed E2E test encryption-related failures by preserving encryption key file across test runs. Server reuses same key in memory for entire test session. Improved test pass rate from 66% to 86%.
+Fixed E2E test encryption-related failures by preserving encryption key file across test runs. Improved test pass rate from 66% to 86%.
 
-### Phase 24 - UI Bug Fixes & E2E Tests ✓
+### Phase 24 - UI Bug Fixes & E2E Tests
 
 **Completed:** 2026-01-23 | **Commit:** `1b8e643`
 
-Fixed Alpine.js scoping issues, added favicon and navigation icons, improved UI contrast and visual separation, added E2E test coverage for modals and theme persistence.
-
-### Phase 23 - Enable Skipped Database Tests ✓
-
-**Completed:** 2026-01-22 | **Commit:** `956e156`
-
-Enabled three previously skipped database tests (`TestLogsPurge`, `TestServerStats`, `TestSystemStats`) that validate critical log retention and statistics functionality.
-
-### Phase 22 - E2E Test Suite Improvements ✓
-
-**Completed:** 2026-01-22 | **Final:** `65552a8`
-
-Comprehensive E2E test suite overhaul. Added 9 new test files covering all critical workflows. 61 tests passing, validates complete user journey from server addition to automation.
-
-### Phase 21 - ISSUES.md Fixes ✓
-
-**Completed:** 2026-01-21 | **9 commits**
-
-Fixed all 10 reported issues including dashboard URL population, DaisyUI modal integration, port configuration, and UI enhancements.
+Fixed Alpine.js scoping issues, added favicon and navigation icons, improved UI contrast and visual separation.
 
 ---
 
-**For complete implementation history:** See [IMPLEMENTATION_HISTORY.md](./IMPLEMENTATION_HISTORY.md) for detailed summaries of Phases 17-23 and earlier phases.
+**For complete implementation history:** See [IMPLEMENTATION_HISTORY.md](./IMPLEMENTATION_HISTORY.md)
 
 ---
 
@@ -338,7 +817,7 @@ Fixed all 10 reported issues including dashboard URL population, DaisyUI modal i
 direnv allow                # Load Go, templ, Tailwind, Playwright
 
 # Build and run
-make build                  # Generate templates + build binary
+just build                  # Generate templates + build binary
 ./janitarr start            # Production mode
 ./janitarr dev              # Development mode (verbose logging)
 
