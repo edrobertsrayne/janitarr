@@ -30,7 +30,7 @@ git clone <repository-url>
 cd janitarr
 
 # Build
-make build
+just build
 
 # Run in production mode
 ./janitarr start
@@ -85,7 +85,7 @@ make build
 For development with hot-reloading:
 
 ```bash
-make dev  # Runs Air for auto-rebuild on file changes
+just dev  # Runs Air for auto-rebuild on file changes
 ```
 
 ## Web Interface
@@ -116,7 +116,7 @@ Janitarr includes a modern, responsive web interface for easy management.
 **Development mode** (with hot-reloading):
 
 ```bash
-make dev  # Runs Air for auto-rebuild
+just dev  # Runs Air for auto-rebuild
 ```
 
 Access the app at `http://localhost:3434`.
@@ -303,13 +303,13 @@ This provides Go, templ, Air, Tailwind CSS, and Playwright. The environment load
 
 ```bash
 # Generate templates and build
-make build
+just build
 
 # Run the application
 ./janitarr --help
 
 # Development with hot reload
-make dev                  # Runs Air for auto-rebuild on file changes
+just dev                  # Runs Air for auto-rebuild on file changes
 
 # Generate templates only
 templ generate

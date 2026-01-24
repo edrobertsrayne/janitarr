@@ -9,6 +9,7 @@
     chromium # for Playwright E2E tests
     golangci-lint # comprehensive Go linting
     gomod2nix # for Nix packaging
+    just # command runner
   ];
 
   # Environment variables
@@ -129,8 +130,8 @@
     echo "  - playwright - Browser automation for testing"
     echo ""
     echo "Quick commands:"
-    echo "  make generate  - Generate templ templates + Tailwind CSS"
-    echo "  make build     - Generate and build binary"
-    echo "  make test      - Run tests with race detection"
+    echo "  just generate  - Generate templ templates + Tailwind CSS"
+    echo "  just build     - Generate and build binary"
+    echo "  just test      - Run unit and E2E tests"
   '';
 }

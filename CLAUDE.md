@@ -11,7 +11,8 @@ direnv allow  # First-time only - loads Go, templ, Tailwind, Playwright
 ## Build & Run
 
 ```bash
-make build              # Generate templates + build binary
+just build              # Generate templates + build binary
+just dev                # Build + run dev server (binds to 0.0.0.0 for Playwright)
 ./janitarr start        # Production mode
 ./janitarr dev          # Development mode (verbose logging)
 ```
@@ -38,10 +39,9 @@ HOST_IP=$(ip a | grep -oP '(?<=inet\s)\d+\.\d+\.\d+\.\d+' | grep -v '^127' | hea
 Run these after implementing to get immediate feedback:
 
 ```bash
-go test ./...           # All tests
-go test -race ./...     # Race detection
+just test               # Unit tests (Go) + E2E tests (Playwright)
+go test ./...           # Unit tests only
 templ generate          # After .templ changes
-bunx playwright test    # Run E2E tests
 ```
 
 ## Operational Notes
