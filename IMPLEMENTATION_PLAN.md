@@ -707,8 +707,8 @@ jobs:
 
 - [x] Task 1: Add search limit upper bound validation
 - [x] Task 2: Add /health route alias
-- [ ] Task 3: Create Dockerfile
-- [ ] Task 4: Create docker-entrypoint.sh
+- [x] Task 3: Create Dockerfile
+- [x] Task 4: Create docker-entrypoint.sh
 - [ ] Task 5: Create flake.nix
 - [ ] Task 6: Create nix/package.nix
 - [ ] Task 7: Create nix/module.nix
