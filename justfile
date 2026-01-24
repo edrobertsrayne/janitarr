@@ -16,7 +16,7 @@ generate:
 
 # Build binary with version information
 build: generate
-  go build -ldflags {{LDFLAGS}} -o janitarr ./src
+  go build -ldflags "{{LDFLAGS}}" -o janitarr ./src
 
 # Build and run dev server (accessible from all interfaces for Playwright testing)
 dev: build
