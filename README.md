@@ -1,6 +1,6 @@
 # Janitarr
 
-Keeps a Sonarr and a Radarr instance tidy over their web API. One container, configured by environment variables, with a web UI for the dashboard and for tweaking anything you did not pin in the environment.
+Keeps a Sonarr and a Radarr instance tidy over their web API. One Node service, configured by environment variables, with a web UI for the dashboard and for tweaking anything you did not pin in the environment.
 
 ## What it does
 
@@ -22,10 +22,12 @@ Details worth knowing:
 ## Run
 
 ```sh
-docker compose up -d --build   # see docker-compose.yml
+npm ci
+npm run build   # without a .git directory (e.g. a Nix sandbox): GIT_SHA=<rev> npm run build
+node build
 ```
 
-UI at `http://localhost:3000`. State (settings saved from the UI, strikes, cooldowns, activity log) lives in the `/data` volume.
+UI at `http://localhost:3000` (`HOST`/`PORT` set the listen address). State (settings saved from the UI, strikes, cooldowns, activity log) lives in `JANITARR_DATA_DIR` (default `./data`).
 
 There is no authentication; run it behind a reverse proxy or on a private network. When proxied, set `ORIGIN` to the public URL (SvelteKit's CSRF protection compares it with the request's `Origin` header), or `PROTOCOL_HEADER`/`HOST_HEADER` as described in the [adapter-node docs](https://svelte.dev/docs/kit/adapter-node).
 
@@ -58,7 +60,7 @@ Resolution per setting: **environment variable → value saved from the UI → d
 | `JANITARR_FAILED_STRIKES`               | `3`                             | Failures before giving up on an item.                                                            |
 | `JANITARR_FAILED_STRIKE_DECAY_DAYS`     | `30`                            | `0` disables decay.                                                                              |
 | `JANITARR_FAILED_UNMONITOR`             | `true`                          | Unmonitor at the strike limit.                                                                   |
-| `JANITARR_DATA_DIR`                     | `/data` (image), `./data` (dev) |                                                                                                  |
+| `JANITARR_DATA_DIR`                     | `./data`                        |                                                                                                  |
 
 Booleans accept `true/false/1/0/yes/no/on/off`. An invalid value is ignored, falls back to the UI/default value, and is written to the activity log.
 

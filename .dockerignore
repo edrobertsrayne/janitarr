@@ -1,9 +1,0 @@
-node_modules
-build
-.svelte-kit
-data
-.git
-.opencode
-.vscode
-test-results
-.env*
