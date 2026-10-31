@@ -2,6 +2,8 @@ FROM node:24-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json .npmrc ./
 RUN npm ci
+ARG GIT_SHA=
+ENV GIT_SHA=$GIT_SHA
 COPY . .
 RUN npm run build
 

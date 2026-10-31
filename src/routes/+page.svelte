@@ -1,5 +1,4 @@
 <script lang="ts">
-	import ActivityLog from '#lib/components/ActivityLog.svelte';
 	import InstanceCard from '#lib/components/InstanceCard.svelte';
 	import JobsPanel from '#lib/components/JobsPanel.svelte';
 	import QueueTable from '#lib/components/QueueTable.svelte';
@@ -23,22 +22,19 @@
 				<InstanceCard {instance} />
 			</div>
 		{/each}
-		<div class="col-span-12 *:h-full lg:col-span-8">
+		<div class="col-span-12 *:h-full">
 			<QueueTable instances={s.instances} />
 		</div>
-		<div class="col-span-12 *:h-full lg:col-span-4">
+		<div class="col-span-12 *:h-full lg:col-span-6">
 			<JobsPanel jobs={s.jobs} now={s.now} onrun={status.runJob} />
 		</div>
-		<div class="col-span-12 *:h-full lg:col-span-4">
+		<div class="col-span-12 *:h-full lg:col-span-6">
 			<StrikesPanel
 				strikes={s.strikes}
 				limit={s.strikeLimit}
 				now={s.now}
 				onclear={status.clearStrikes}
 			/>
-		</div>
-		<div class="col-span-12 *:h-full lg:col-span-8">
-			<ActivityLog entries={s.activity} />
 		</div>
 	</div>
 {:else if !status.error}

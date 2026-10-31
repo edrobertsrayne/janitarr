@@ -12,6 +12,7 @@
 
 	const links = [
 		{ href: '/', label: 'Dashboard' },
+		{ href: '/activity', label: 'Activity' },
 		{ href: '/settings', label: 'Settings' }
 	] as const;
 
@@ -73,4 +74,7 @@
 	<main class="mx-auto max-w-[1400px] px-6 py-5">
 		{@render children()}
 	</main>
+	<footer class="px-6 py-4 text-center text-xs text-mute">
+		{__GIT_SHA__} · built {__BUILD_DATE__.slice(0, 10)}
+	</footer>
 </div>

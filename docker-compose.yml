@@ -1,6 +1,10 @@
 services:
   janitarr:
-    build: .
+    build:
+      context: .
+      args:
+        # export GIT_SHA=$(git rev-parse --short HEAD) before `docker compose build`
+        GIT_SHA: ${GIT_SHA:-}
     container_name: janitarr
     restart: unless-stopped
     ports:

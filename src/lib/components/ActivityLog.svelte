@@ -12,7 +12,7 @@
 	{#if entries.length === 0}
 		<p class="py-2 text-sm text-mute">Nothing yet.</p>
 	{:else}
-		<ul class="max-h-96 overflow-y-auto font-mono text-xs">
+		<ul class="font-mono text-xs">
 			{#each entries as e (e.id)}
 				<li class="flex gap-3 py-[3px] {tone[e.level]}">
 					<span class="shrink-0 text-faint">{clock(e.ts)}</span>
