@@ -1,0 +1,25 @@
+services:
+  janitarr:
+    build: .
+    container_name: janitarr
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    volumes:
+      - janitarr-data:/data
+    environment:
+      # Connections
+      SONARR_URL: http://sonarr:8989
+      SONARR_API_KEY: changeme
+      RADARR_URL: http://radarr:7878
+      RADARR_API_KEY: changeme
+      # Behind a reverse proxy, set the public origin so form/API posts pass SvelteKit's CSRF check:
+      # ORIGIN: https://janitarr.example.com
+      # Anything not set here can be edited in the UI. Any variable set here is locked in the UI.
+      # JANITARR_DRY_RUN: 'true'
+      # JANITARR_SEARCH_INTERVAL_MINUTES: 60
+      # JANITARR_SEARCH_MAX_PER_CYCLE: 10
+      # JANITARR_FAILED_STRIKES: 3
+
+volumes:
+  janitarr-data:
