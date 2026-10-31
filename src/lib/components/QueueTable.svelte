@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { bytes } from '#lib/format.js';
+	import { bytes, duration } from '#lib/format.js';
 	import type { InstanceStatus } from '#lib/types.js';
 
 	let { instances }: { instances: InstanceStatus[] } = $props();
@@ -69,6 +69,11 @@
 								<div class="mt-1 text-xs text-mute">
 									{Math.round(q.progress * 100)}%{q.timeleft ? ` · ${q.timeleft}` : ''}
 								</div>
+								{#if q.idleMs !== null && q.idleMs >= 60_000}
+									<div class="text-xs {q.flag === 'stalled' ? 'text-warn' : 'text-faint'}">
+										no progress for {duration(q.idleMs)}
+									</div>
+								{/if}
 							</td>
 							<td class="px-2 py-2 whitespace-nowrap text-mute">{bytes(q.size)}</td>
 							<td class="px-2 py-2 {q.strikes > 0 ? 'text-warn' : 'text-faint'}">{q.strikes}</td>

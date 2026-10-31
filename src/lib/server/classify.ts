@@ -18,8 +18,10 @@ export function isFailed(q: QueueItem, importBlocked: boolean): boolean {
 }
 
 /**
- * A download still in progress that has either not moved for `timeoutMinutes`
- * or is flagged by the *arr as stalled. Both need to outlast the grace period.
+ * A download that has not made meaningful progress for `timeoutMinutes`, or is
+ * flagged by the *arr as stalled. Both need to outlast the grace period.
+ * A `queued` item with size 0 is treated as an active download: that is how a
+ * torrent stuck fetching metadata looks, and it will not start by itself.
  */
 export function isStalled(
 	q: QueueItem,
@@ -29,7 +31,8 @@ export function isStalled(
 	importBlocked: boolean
 ): boolean {
 	if (!progress || isFailed(q, importBlocked)) return false;
-	if (q.status !== 'downloading' && q.status !== 'warning') return false;
+	const noMetadata = q.status === 'queued' && q.size === 0;
+	if (q.status !== 'downloading' && q.status !== 'warning' && !noMetadata) return false;
 	if (q.trackedDownloadState && q.trackedDownloadState !== 'downloading') return false;
 	if (now - progress.firstSeen < cfg.graceMinutes * 60_000) return false;
 	if (now - progress.since >= cfg.timeoutMinutes * 60_000) return true;

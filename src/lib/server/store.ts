@@ -4,6 +4,8 @@ import { DatabaseSync } from 'node:sqlite';
 import type { ActivityEntry, AppName, JobName, StrikeRow } from '#lib/types.js';
 
 const ACTIVITY_KEEP = 2000;
+/** Upper bound for the minimum-progress threshold, so huge releases are not held to an unrealistic speed. */
+const MAX_MIN_PROGRESS_BYTES = 50 * 1024 * 1024;
 
 export interface Progress {
 	firstSeen: number;
@@ -234,13 +236,17 @@ export class Store {
 	// --- queue progress tracking ---
 
 	/**
-	 * Record the current queue. Items whose `sizeleft` changed since the last
-	 * call get their `since` reset; rows for items no longer queued are dropped.
+	 * Record the current queue. `since` is reset when `sizeleft` has dropped by
+	 * at least `minProgressPercent` of `size` (capped at 50 MiB) since the last
+	 * reset, or when it grew (e.g. the size became known); smaller drops
+	 * accumulate against the same baseline.
+	 * Rows for items no longer queued are dropped.
 	 */
 	syncProgress(
 		app: AppName,
-		items: { id: number; sizeleft: number }[],
-		now: number
+		items: { id: number; size: number; sizeleft: number }[],
+		now: number,
+		minProgressPercent: number
 	): Map<number, Progress> {
 		return this.tx(() => {
 			const existing = new Map(
@@ -262,9 +268,13 @@ export class Store {
 				live.add(it.id);
 				const prev = existing.get(it.id);
 				const firstSeen = prev?.first_seen ?? now;
-				const since = prev && prev.sizeleft === it.sizeleft ? prev.since : now;
-				if (!prev || prev.sizeleft !== it.sizeleft)
-					upsert.run(app, it.id, it.sizeleft, firstSeen, since);
+				const threshold = Math.min((it.size * minProgressPercent) / 100, MAX_MIN_PROGRESS_BYTES);
+				const moved =
+					prev !== undefined &&
+					it.sizeleft !== prev.sizeleft &&
+					(it.sizeleft > prev.sizeleft || prev.sizeleft - it.sizeleft >= threshold);
+				const since = prev && !moved ? prev.since : now;
+				if (!prev || moved) upsert.run(app, it.id, it.sizeleft, firstSeen, since);
 				result.set(it.id, { firstSeen, since });
 			}
 			const del = this.db.prepare('DELETE FROM queue_progress WHERE app = ? AND queue_id = ?');

@@ -10,18 +10,22 @@ export function bytes(n: number): string {
 	return `${v >= 100 || i === 0 ? v.toFixed(0) : v.toFixed(1)} ${UNITS[i]}`;
 }
 
+/** "45s" / "5m" / "3h" / "2d". */
+export function duration(ms: number): string {
+	const s = Math.round(Math.abs(ms) / 1000);
+	return s < 60
+		? `${s}s`
+		: s < 3600
+			? `${Math.round(s / 60)}m`
+			: s < 86400
+				? `${Math.round(s / 3600)}h`
+				: `${Math.round(s / 86400)}d`;
+}
+
 /** "5m ago" / "in 5m". */
 export function relative(ts: number, now: number): string {
 	const diff = ts - now;
-	const s = Math.round(Math.abs(diff) / 1000);
-	const text =
-		s < 60
-			? `${s}s`
-			: s < 3600
-				? `${Math.round(s / 60)}m`
-				: s < 86400
-					? `${Math.round(s / 3600)}h`
-					: `${Math.round(s / 86400)}d`;
+	const text = duration(diff);
 	return diff < 0 ? `${text} ago` : `in ${text}`;
 }
 

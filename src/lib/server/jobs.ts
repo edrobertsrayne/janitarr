@@ -100,7 +100,7 @@ export async function runStalled(ctx: JobContext): Promise<void> {
 
 	await forEachApp(ctx, 'stalled', async (app, client, log) => {
 		const queue = await client.queue();
-		const progress = ctx.store.syncProgress(app, queue, ctx.now());
+		const progress = ctx.store.syncProgress(app, queue, ctx.now(), stalled.minProgressPercent);
 		const hits = queue.filter((q) =>
 			isStalled(q, progress.get(q.id), ctx.now(), stalled, failed.importBlocked)
 		);

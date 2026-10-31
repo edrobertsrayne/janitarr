@@ -54,6 +54,8 @@ export interface QueueRow {
 	progress: number;
 	size: number;
 	timeleft: string | null;
+	/** Milliseconds since the download last made meaningful progress; null when not tracked yet. */
+	idleMs: number | null;
 	flag: 'stalled' | 'failed' | null;
 	message: string | null;
 	strikes: number;

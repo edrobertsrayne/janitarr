@@ -69,6 +69,7 @@ async function instanceStatus(
 			progress: q.size > 0 ? Math.min(1, Math.max(0, 1 - q.sizeleft / q.size)) : 0,
 			size: q.size,
 			timeleft: q.timeleft,
+			idleMs: progress.has(q.id) ? now - progress.get(q.id)!.since : null,
 			flag: failed ? 'failed' : stalled ? 'stalled' : null,
 			message: q.message,
 			strikes: q.itemId === null ? 0 : (strikes.get(q.itemId) ?? 0)

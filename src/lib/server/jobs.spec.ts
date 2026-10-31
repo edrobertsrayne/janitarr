@@ -211,6 +211,73 @@ describe('stalled job', () => {
 		expect(client.removed).toEqual([]);
 	});
 
+	it('ignores a trickle below the minimum-progress threshold, but lets it add up', async () => {
+		const c = ctx(env); // 1% of 1000 = 10 units
+		client.queueItems = [queueItem({ id: 1, sizeleft: 500 })];
+		await runStalled(c);
+		clock += 20 * MIN;
+		client.queueItems = [queueItem({ id: 1, sizeleft: 496 })]; // 4 < 10: clock keeps running
+		await runStalled(c);
+		clock += 11 * MIN;
+		await runStalled(c);
+		expect(client.removed).toHaveLength(1);
+
+		client.removed = [];
+		client.queueItems = [queueItem({ id: 2, sizeleft: 500 })];
+		await runStalled(c);
+		clock += 20 * MIN;
+		client.queueItems = [queueItem({ id: 2, sizeleft: 496 })];
+		await runStalled(c);
+		clock += 5 * MIN;
+		client.queueItems = [queueItem({ id: 2, sizeleft: 488 })]; // 12 total since baseline: restart
+		await runStalled(c);
+		clock += 29 * MIN;
+		await runStalled(c);
+		expect(client.removed).toEqual([]);
+	});
+
+	it('removes a queued item whose size never became known', async () => {
+		const c = ctx(env);
+		client.queueItems = [queueItem({ id: 1, status: 'queued', size: 0, sizeleft: 0 })];
+		await runStalled(c);
+		clock += 29 * MIN;
+		await runStalled(c);
+		expect(client.removed).toEqual([]);
+		clock += 2 * MIN;
+		await runStalled(c);
+		expect(client.removed).toHaveLength(1);
+	});
+
+	it('caps the minimum-progress threshold so a huge release only needs ~50 MiB per window', async () => {
+		const c = ctx(env);
+		const GB = 1024 ** 3;
+		const MB = 1024 ** 2;
+		// 1% of 100 GB is 1 GB, but the cap is 50 MiB.
+		client.queueItems = [queueItem({ id: 1, size: 100 * GB, sizeleft: 100 * GB })];
+		await runStalled(c);
+		clock += 29 * MIN;
+		client.queueItems = [queueItem({ id: 1, size: 100 * GB, sizeleft: 100 * GB - 60 * MB })];
+		await runStalled(c);
+		clock += 29 * MIN;
+		await runStalled(c);
+		expect(client.removed).toEqual([]);
+	});
+
+	it('restarts the clock when a queued item finally gets its size', async () => {
+		const c = ctx(env);
+		client.queueItems = [queueItem({ id: 1, status: 'queued', size: 0, sizeleft: 0 })];
+		await runStalled(c);
+		clock += 29 * MIN;
+		client.queueItems = [queueItem({ id: 1, status: 'downloading', size: 3000, sizeleft: 3000 })];
+		await runStalled(c);
+		clock += 5 * MIN;
+		await runStalled(c);
+		expect(client.removed).toEqual([]);
+		clock += 26 * MIN;
+		await runStalled(c);
+		expect(client.removed).toHaveLength(1);
+	});
+
 	it('acts on an *arr stalled warning only once the grace period has passed', async () => {
 		const c = ctx(env);
 		client.queueItems = [

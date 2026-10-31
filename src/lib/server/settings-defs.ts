@@ -29,6 +29,7 @@ export interface Config {
 		enabled: boolean;
 		intervalMinutes: number;
 		timeoutMinutes: number;
+		minProgressPercent: number;
 		graceMinutes: number;
 		removeFromClient: boolean;
 		blocklist: boolean;
@@ -177,10 +178,22 @@ export const DEFS: readonly SettingDef[] = [
 		env: 'JANITARR_STALLED_TIMEOUT_MINUTES',
 		group: 'Stalled downloads',
 		label: 'No-progress timeout (minutes)',
-		description: 'A download whose remaining size has not changed for this long is stalled.',
+		description:
+			'A download that has not made meaningful progress (see Minimum progress) for this long is stalled. Also applies to queued items whose size is still unknown, e.g. a torrent that never got its metadata.',
 		type: 'number',
-		default: 60,
+		default: 30,
 		min: 1
+	},
+	{
+		key: 'stalled.minProgressPercent',
+		env: 'JANITARR_STALLED_MIN_PROGRESS_PERCENT',
+		group: 'Stalled downloads',
+		label: 'Minimum progress (% of size)',
+		description:
+			'Progress only restarts the timeout once the download has moved on by at least this share of its size (at most 50 MB) since the last restart. Stops a trickle of data from keeping a dead download alive. 0 = any progress counts.',
+		type: 'number',
+		default: 1,
+		min: 0
 	},
 	{
 		key: 'stalled.graceMinutes',
