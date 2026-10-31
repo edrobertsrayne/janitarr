@@ -1,0 +1,46 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Janitarr – 5 Sidebar App</title>
+<style>
+:root{--bg:#f4f6fb;--side:#1b2140;--st:#c6cde8;--card:#fff;--b:#e4e8f2;--t:#1c2238;--m:#6f7894;--a:#5b5bf0;--ok:#16a870;--w:#e08a00;--e:#e0344f}
+*{box-sizing:border-box}body{margin:0;display:flex;min-height:100vh;background:var(--bg);color:var(--t);font:14px/1.45 system-ui,sans-serif}
+aside{width:220px;background:var(--side);color:var(--st);padding:20px 12px;display:flex;flex-direction:column;gap:2px}
+aside .logo{color:#fff;font-weight:700;font-size:17px;padding:0 10px 18px}
+aside a{padding:8px 10px;border-radius:6px;display:flex;justify-content:space-between}aside a.on{background:#2b3366;color:#fff}
+aside .n{background:var(--w);color:#fff;border-radius:99px;font-size:11px;padding:0 7px}aside .n.e{background:var(--e)}
+aside h4{margin:18px 10px 6px;font-size:11px;letter-spacing:.08em;color:#7d87b3;text-transform:uppercase}
+aside .foot{margin-top:auto;padding:10px;font-size:12px;color:#8b95c0}
+.dry{margin:10px;padding:8px 10px;border-radius:6px;background:#2f3a75;color:#fff;display:flex;justify-content:space-between;align-items:center}
+.sw{width:30px;height:16px;border-radius:99px;background:var(--a);position:relative}.sw::after{content:"";position:absolute;right:2px;top:2px;width:12px;height:12px;border-radius:50%;background:#fff}
+main{flex:1;padding:28px 32px;max-width:1100px}
+.hd{display:flex;align-items:center;gap:12px;margin-bottom:20px}.hd h1{margin:0;font-size:22px}.badge{font-size:12px;padding:2px 9px;border-radius:99px;background:#e1f6ec;color:var(--ok)}.badge.w{background:#fff1d8;color:var(--w)}
+.sp{flex:1}button{background:var(--a);color:#fff;border:0;border-radius:6px;padding:7px 14px;cursor:pointer}button.g{background:#fff;color:var(--t);border:1px solid var(--b)}
+.tabs{display:flex;gap:20px;border-bottom:1px solid var(--b);margin-bottom:20px}.tabs a{padding:8px 0;color:var(--m)}.tabs a.on{color:var(--a);border-bottom:2px solid var(--a)}
+.kp{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+.k{background:var(--card);border:1px solid var(--b);border-radius:10px;padding:14px}.k b{font-size:26px;display:block}.k small{color:var(--m)}
+.k.w b{color:var(--w)}.k.e b{color:var(--e)}
+.card{background:var(--card);border:1px solid var(--b);border-radius:10px;margin-bottom:16px}.card h2{margin:0;padding:12px 16px;font-size:14px;border-bottom:1px solid var(--b);display:flex;justify-content:space-between}
+table{width:100%;border-collapse:collapse}td,th{padding:10px 16px;text-align:left;border-top:1px solid var(--b)}th{color:var(--m);font-weight:500;font-size:12px;border:0}
+.pb{width:120px;height:6px;border-radius:3px;background:var(--b)}.pb i{display:block;height:100%;border-radius:3px;background:var(--a)}
+.tag{font-size:11px;padding:1px 8px;border-radius:99px}.tag.s{background:#fff1d8;color:var(--w)}.tag.f{background:#fde4e8;color:var(--e)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:1000px){.two,.kp{grid-template-columns:1fr 1fr}aside{display:none}}
+.tl{padding:6px 16px 12px}.tl div{padding:6px 0 6px 16px;border-left:2px solid var(--b);position:relative;font-size:13px}.tl div::before{content:"";position:absolute;left:-5px;top:12px;width:8px;height:8px;border-radius:50%;background:var(--a)}
+.tl .w::before{background:var(--w)}.tl .e::before{background:var(--e)}.tl small{color:var(--m)}
+</style></head><body>
+<aside><div class="logo">🧹 Janitarr</div>
+<a class="on">Overview</a><a>Activity</a><a>Strikes <span class="n e">2</span></a><a>Settings</a>
+<h4>Instances</h4><a>Sonarr <span class="n">1</span></a><a>Radarr</a>
+<h4>Jobs</h4><a>Search</a><a>Stalled</a><a>Failed</a>
+<div class="dry"><span>Dry run</span><span class="sw"></span></div>
+<div class="foot">Next job in 2 min<br>Polling every 10 s</div></aside>
+<main>
+<div class="hd"><h1>Sonarr</h1><span class="badge">online · v4.0.9</span><div class="sp"></div><button class="g">Run stalled</button><button>Run search now</button></div>
+<div class="tabs"><a class="on">Queue</a><a>Wanted</a><a>Health</a><a>Disks</a></div>
+<div class="kp"><div class="k"><b>128</b><small>Missing</small></div><div class="k"><b>41</b><small>Below cutoff</small></div><div class="k"><b>6</b><small>In queue</small></div><div class="k w"><b>1</b><small>Stalled</small></div><div class="k e"><b>1</b><small>Failed</small></div></div>
+<div class="card"><h2>Queue <small style="font-weight:400;color:var(--m)">updated 3s ago</small></h2><table><tr><th>Title</th><th>Status</th><th>Progress</th><th>Left</th><th></th></tr>
+<tr><td>Severance S02E04</td><td>Downloading</td><td><div class="pb"><i style="width:64%"></i></div></td><td>12m</td><td></td></tr>
+<tr><td>Shōgun S01E06</td><td>Downloading</td><td><div class="pb"><i style="width:88%"></i></div></td><td>4m</td><td></td></tr>
+<tr><td>Andor S01E09</td><td><span class="tag s">Stalled</span></td><td><div class="pb"><i style="width:41%;background:var(--w)"></i></div></td><td>—</td><td><button class="g">Remove</button></td></tr>
+<tr><td>The Bear S03E02</td><td><span class="tag f">Failed · 2/3</span></td><td><div class="pb"><i style="width:100%;background:var(--e)"></i></div></td><td>—</td><td><button class="g">Remove</button></td></tr></table></div>
+<div class="two"><div class="card"><h2>Strikes</h2><table><tr><td>The Bear S03E02</td><td>2 / 3</td><td></td></tr><tr><td>Fringe S01E07</td><td><span class="tag f">given up</span></td><td><button class="g">Clear</button></td></tr></table></div>
+<div class="card"><h2>Recent activity</h2><div class="tl"><div class="w">would remove Andor S01E09 <small>14:35 · dry run</small></div><div class="e">strike 2/3 The Bear S03E02 <small>14:21</small></div><div>searched 10 missing <small>14:02</small></div></div></div></div>
+</main></body></html>

@@ -1,0 +1,62 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Janitarr – 1 Control Room</title>
+<style>
+:root{--bg:#0b1020;--p:#131a2e;--p2:#1a2340;--b:#25305a;--t:#e6eaf7;--m:#8a95b8;--ok:#3ddc97;--w:#ffb84d;--e:#ff5d73;--a:#6ea8ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font:14px/1.45 system-ui,sans-serif}
+.top{display:flex;align-items:center;gap:16px;padding:12px 24px;border-bottom:1px solid var(--b);background:var(--p)}
+.logo{font-weight:700;font-size:16px}.logo span{color:var(--a)}
+.sp{flex:1}.pill{padding:3px 10px;border-radius:99px;font-size:12px;border:1px solid var(--b);color:var(--m)}
+.pill.on{background:#16335f;color:#9cc4ff;border-color:#2b5aa0}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-right:6px}.dot.bad{background:var(--e)}
+main{padding:20px 24px;display:grid;gap:16px;grid-template-columns:repeat(12,1fr);max-width:1400px;margin:auto}
+.card{background:var(--p);border:1px solid var(--b);border-radius:10px;padding:16px}
+.card h2{margin:0 0 12px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--m);font-weight:600}
+.c4{grid-column:span 4}.c6{grid-column:span 6}.c8{grid-column:span 8}.c12{grid-column:span 12}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:12px 0}
+.stat{background:var(--p2);border-radius:8px;padding:8px 10px}.stat b{display:block;font-size:22px}.stat small{color:var(--m)}
+.stat.w b{color:var(--w)}.stat.e b{color:var(--e)}
+.bar{height:6px;background:var(--p2);border-radius:3px;overflow:hidden}.bar i{display:block;height:100%;background:var(--a)}
+.bar.w i{background:var(--w)}.bar.e i{background:var(--e)}
+table{width:100%;border-collapse:collapse}th{text-align:left;color:var(--m);font-weight:500;font-size:12px;padding:6px 8px}
+td{padding:8px;border-top:1px solid var(--b)}td.n{width:140px}
+.tag{font-size:11px;padding:1px 7px;border-radius:4px}.tag.s{background:#4a3410;color:var(--w)}.tag.f{background:#4a1822;color:var(--e)}.tag.d{background:#17304f;color:var(--a)}
+.job{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--b)}.job:first-of-type{border-top:0}
+.job div:nth-child(2){flex:1}.job small{color:var(--m);display:block}
+button{background:var(--p2);color:var(--t);border:1px solid var(--b);border-radius:6px;padding:4px 12px;cursor:pointer}
+.log{font:12px ui-monospace,monospace;color:var(--m)}.log div{padding:3px 0}.log .e{color:var(--e)}.log .w{color:var(--w)}
+.strk{display:flex;gap:4px;margin-right:10px}.strk i{width:10px;height:10px;border-radius:2px;background:var(--b)}.strk i.x{background:var(--e)}
+@media(max-width:900px){.c4,.c6,.c8{grid-column:span 12}}
+</style></head><body>
+<div class="top"><div class="logo">jani<span>tarr</span></div><span class="pill"><span class="dot"></span>2 instances online</span><div class="sp"></div><span class="pill">Next run: stalled in 2m</span><button class="pill on" id="dry" style="cursor:pointer;font:inherit;font-size:12px">Dry run: on</button><a class="pill" href="1b-control-room-settings.html">Settings</a></div>
+<main>
+<section class="card c6"><h2>Sonarr <small style="text-transform:none;letter-spacing:0">v4.0.9 · <span class="dot"></span>online</small></h2>
+<div class="stats"><div class="stat"><b>128</b><small>missing</small></div><div class="stat"><b>41</b><small>cutoff</small></div><div class="stat"><b>6</b><small>queue</small></div><div class="stat w"><b>1</b><small>stalled</small></div><div class="stat e"><b>1</b><small>failed</small></div></div>
+<div class="bar"><i style="width:72%"></i></div><small style="color:var(--m)">Disk /tv · 1.2 TB free of 4 TB</small></section>
+<section class="card c6"><h2>Radarr <small style="text-transform:none;letter-spacing:0">v5.8.3 · <span class="dot bad"></span>health warning</small></h2>
+<div class="stats"><div class="stat"><b>37</b><small>missing</small></div><div class="stat"><b>12</b><small>cutoff</small></div><div class="stat"><b>3</b><small>queue</small></div><div class="stat w"><b>0</b><small>stalled</small></div><div class="stat e"><b>0</b><small>failed</small></div></div>
+<div class="bar w"><i style="width:91%"></i></div><small style="color:var(--w)">Disk /movies · 310 GB free of 4 TB — low</small></section>
+<section class="card c8"><h2>Queue</h2><table><tr><th>Title</th><th>App</th><th>Status</th><th class="n">Progress</th><th>Left</th></tr>
+<tr><td>Severance S02E04<br><small style="color:var(--m)">Severance.S02E04.1080p.WEB-DL</small></td><td>Sonarr</td><td>downloading</td><td><div class="bar"><i style="width:64%"></i></div></td><td>12m</td></tr>
+<tr><td>Dune: Part Two<br><small style="color:var(--m)">Dune.Part.Two.2024.2160p.REMUX</small></td><td>Radarr</td><td>downloading</td><td><div class="bar"><i style="width:23%"></i></div></td><td>1h 40m</td></tr>
+<tr><td>Andor S01E09</td><td>Sonarr</td><td><span class="tag s">stalled</span></td><td><div class="bar w"><i style="width:41%"></i></div></td><td>—</td></tr>
+<tr><td>The Bear S03E02</td><td>Sonarr</td><td><span class="tag f">failed</span> <span class="tag f">2/3 strikes</span></td><td><div class="bar e"><i style="width:100%"></i></div></td><td>—</td></tr></table></section>
+<section class="card c4"><h2>Jobs</h2>
+<div class="job"><div class="dot"></div><div><b>Search</b><small>every 60m · last 14:02 · next 15:02</small></div><button>Run</button></div>
+<div class="job"><div class="dot"></div><div><b>Stalled</b><small>every 5m · last 14:35 · next 14:40</small></div><button>Run</button></div>
+<div class="job"><div class="dot"></div><div><b>Failed</b><small>every 5m · last 14:35 · next 14:40</small></div><button>Run</button></div></section>
+<section class="card c4"><h2>Strikes</h2>
+<div class="job"><div class="strk"><i class="x"></i><i class="x"></i><i></i></div><div><b>The Bear S03E02</b><small>last 14:21</small></div></div>
+<div class="job"><div class="strk"><i class="x"></i><i class="x"></i><i class="x"></i></div><div><b>Fringe S01E07</b><small>given up · unmonitored</small></div><button>Clear</button></div></section>
+<section class="card c8"><h2>Activity</h2><div class="log">
+<div>14:35:02 stalled · sonarr · [dry-run] would remove "Andor S01E09" (no progress 62m)</div>
+<div class="w">14:21:44 failed · sonarr · strike 2/3 for The Bear S03E02</div>
+<div>14:02:10 search · radarr · searched 10 missing, 4 cutoff</div>
+<div class="e">13:58:00 system · radarr health: indexer unavailable</div></div></section>
+</main>
+<script>
+let dry=true;const log=document.querySelector('.log');
+function add(msg,cls){const d=document.createElement('div');if(cls)d.className=cls;const t=new Date().toTimeString().slice(0,8);d.textContent=t+' '+msg;log.prepend(d)}
+document.getElementById('dry').onclick=e=>{dry=!dry;e.target.textContent='Dry run: '+(dry?'on':'off');e.target.classList.toggle('on',dry);add('system · dry run turned '+(dry?'on':'off'))};
+document.querySelectorAll('.job button').forEach(b=>{if(b.textContent==='Run')b.onclick=()=>{const n=b.closest('.job').querySelector('b').textContent.toLowerCase();add(n+' · '+(dry?'[dry-run] would run ':'ran ')+n+' cycle (manual)')}
+else if(b.textContent==='Clear')b.onclick=()=>{const t=b.closest('.job').querySelector('b').textContent;b.closest('.job').remove();add('system · cleared strikes for '+t)}});
+</script></body></html>

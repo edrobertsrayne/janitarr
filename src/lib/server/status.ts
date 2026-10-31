@@ -115,6 +115,7 @@ export async function buildStatus(
 		now,
 		dryRun: cfg.general.dryRun,
 		dryRunLocked: settings.isLocked('general.dryRun'),
+		strikeLimit: cfg.failed.strikes,
 		jobs: scheduler.states(),
 		instances,
 		strikes: store.listStrikes(),

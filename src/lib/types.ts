@@ -89,6 +89,8 @@ export interface InstanceStatus {
 export interface StatusPayload {
 	now: number;
 	dryRun: boolean;
+	/** Failures before an item is given up on (failed.strikes). */
+	strikeLimit: number;
 	dryRunLocked: boolean;
 	jobs: JobState[];
 	instances: InstanceStatus[];

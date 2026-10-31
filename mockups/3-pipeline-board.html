@@ -1,0 +1,40 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Janitarr – 3 Pipeline Board</title>
+<style>
+:root{--bg:#10141a;--col:#171d26;--card:#1f2733;--b:#2c3748;--t:#e8edf5;--m:#8593a8;--ok:#4fd1a5;--w:#f6ad3c;--e:#f2637a;--a:#7aa2ff;--p:#b48cff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font:14px/1.4 Inter,system-ui,sans-serif;height:100vh;display:flex;flex-direction:column}
+header{display:flex;gap:12px;align-items:center;padding:10px 20px;border-bottom:1px solid var(--b)}header b{font-size:16px}.sp{flex:1}
+.chip{font-size:12px;padding:3px 10px;border-radius:99px;background:var(--card);color:var(--m)}.chip.on{background:#26365e;color:#b8ccff}
+.filters{display:flex;gap:6px;padding:10px 20px}.filters .chip{cursor:pointer}.filters .chip.sel{background:var(--a);color:#0b1020}
+.board{flex:1;display:grid;grid-template-columns:repeat(5,minmax(200px,1fr));gap:12px;padding:0 20px 16px;overflow:auto}
+.col{background:var(--col);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;min-height:0}
+.col h3{margin:0;font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--m);display:flex;justify-content:space-between}
+.col h3 i{font-style:normal;background:var(--card);border-radius:99px;padding:0 8px;color:var(--t)}
+.col .hint{font-size:11px;color:var(--m);margin-top:-4px}
+.c{background:var(--card);border:1px solid var(--b);border-radius:8px;padding:10px;border-top:3px solid var(--a)}
+.c small{display:block;color:var(--m);font-size:12px}.c b{font-weight:600}
+.c.s{border-top-color:var(--w)}.c.f{border-top-color:var(--e)}.c.g{border-top-color:var(--p)}.c.q{border-top-color:var(--b)}
+.pb{height:4px;background:var(--b);border-radius:2px;margin-top:8px}.pb i{display:block;height:100%;background:var(--a);border-radius:2px}
+.k{display:inline-block;font-size:10px;padding:0 5px;border-radius:3px;background:#2c3748;color:var(--m);margin-right:4px}
+button{background:transparent;color:var(--a);border:1px solid var(--b);border-radius:5px;font-size:12px;padding:2px 8px;margin-top:8px;cursor:pointer}
+footer{border-top:1px solid var(--b);padding:8px 20px;font:12px ui-monospace,monospace;color:var(--m);display:flex;gap:24px;overflow:hidden;white-space:nowrap}
+</style></head><body>
+<header><b>Janitarr</b><span class="chip">Sonarr ● · Radarr ●</span><div class="sp"></div><span class="chip">Search in 27m</span><span class="chip">Stalled in 2m</span><span class="chip on">Dry run</span><span class="chip">⚙</span></header>
+<div class="filters"><span class="chip sel">All</span><span class="chip">Sonarr</span><span class="chip">Radarr</span></div>
+<div class="board">
+<div class="col"><h3>Wanted <i>165</i></h3><div class="hint">128 missing · 41 cutoff (Sonarr) …</div>
+<div class="c q"><span class="k">S</span><b>Search batch</b><small>10 per list · cooldown 72h</small><button>Run search</button></div>
+<div class="c q"><span class="k">R</span><b>Next: 37 missing, 12 cutoff</b><small>Radarr</small></div></div>
+<div class="col"><h3>Downloading <i>7</i></h3>
+<div class="c"><span class="k">S</span><b>Severance S02E04</b><small>12m left</small><div class="pb"><i style="width:64%"></i></div></div>
+<div class="c"><span class="k">R</span><b>Dune: Part Two</b><small>1h 40m left</small><div class="pb"><i style="width:23%"></i></div></div>
+<div class="c"><span class="k">S</span><b>Shōgun S01E06</b><small>4m left</small><div class="pb"><i style="width:88%"></i></div></div></div>
+<div class="col"><h3>Stalled <i>1</i></h3><div class="hint">no progress ≥ 60m</div>
+<div class="c s"><span class="k">S</span><b>Andor S01E09</b><small>stuck at 41% for 62m</small><small>→ remove, blocklist, re-search</small><button>Act now</button></div></div>
+<div class="col"><h3>Failed <i>1</i></h3><div class="hint">strike on each failure</div>
+<div class="c f"><span class="k">S</span><b>The Bear S03E02</b><small>import blocked</small><small>●●○ 2 of 3 strikes</small></div></div>
+<div class="col"><h3>Given up <i>1</i></h3><div class="hint">skipped until cleared</div>
+<div class="c g"><span class="k">S</span><b>Fringe S01E07</b><small>●●● unmonitored 3d ago</small><button>Clear</button></div></div>
+</div>
+<footer><span>14:35 would remove Andor S01E09</span><span>14:21 strike 2/3 The Bear</span><span>14:02 searched 14 items</span><span>13:58 ⚠ radarr indexer unavailable</span></footer>
+</body></html>

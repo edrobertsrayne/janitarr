@@ -1,98 +1,46 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import ActivityLog from '#lib/components/ActivityLog.svelte';
 	import InstanceCard from '#lib/components/InstanceCard.svelte';
 	import JobsPanel from '#lib/components/JobsPanel.svelte';
 	import QueueTable from '#lib/components/QueueTable.svelte';
 	import StrikesPanel from '#lib/components/StrikesPanel.svelte';
-	import type { JobName, StatusPayload, StrikeRow } from '#lib/types.js';
-
-	const POLL_MS = 10_000;
-
-	let status = $state<StatusPayload | null>(null);
-	let error = $state<string | null>(null);
-	let busy = $state(false);
-
-	async function refresh() {
-		try {
-			const res = await fetch('/api/status');
-			if (!res.ok) throw new Error(`HTTP ${res.status}`);
-			status = await res.json();
-			error = null;
-		} catch (e) {
-			error = `Could not load status: ${(e as Error).message}`;
-		}
-	}
-
-	async function post(url: string, body: unknown = {}) {
-		// JSON content type keeps SvelteKit's CSRF check from treating this as a form post.
-		const res = await fetch(url, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(body)
-		});
-		if (!res.ok) error = (await res.json().catch(() => null))?.message ?? `HTTP ${res.status}`;
-		await refresh();
-	}
-
-	const runJob = (job: JobName) => post(`/api/run/${job}`);
-	const clearStrikes = (s: StrikeRow) =>
-		post('/api/strikes/clear', { app: s.app, itemId: s.itemId });
-
-	async function toggleDryRun() {
-		if (!status) return;
-		busy = true;
-		const res = await fetch('/api/settings', {
-			method: 'PUT',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ values: { 'general.dryRun': !status.dryRun } })
-		});
-		if (!res.ok) error = (await res.json().catch(() => null))?.message ?? `HTTP ${res.status}`;
-		busy = false;
-		await refresh();
-	}
-
-	onMount(() => {
-		refresh();
-		const timer = setInterval(refresh, POLL_MS);
-		return () => clearInterval(timer);
-	});
+	import { status } from '#lib/status.svelte.js';
 </script>
 
-<div class="mb-6 flex items-center justify-between">
-	<h1 class="text-xl font-semibold text-white">Dashboard</h1>
-	{#if status}
-		<button
-			class="rounded px-3 py-1 text-sm disabled:opacity-50 {status.dryRun
-				? 'bg-sky-900/60 text-sky-200'
-				: 'bg-slate-800 text-slate-300'}"
-			disabled={busy || status.dryRunLocked}
-			title={status.dryRunLocked ? 'Set by JANITARR_DRY_RUN' : 'Toggle dry-run mode'}
-			onclick={toggleDryRun}>Dry run: {status.dryRun ? 'on' : 'off'}</button
-		>
-	{/if}
-</div>
+<h1 class="sr-only">Dashboard</h1>
 
-{#if error}
-	<p class="mb-4 rounded border border-red-900 bg-red-950/50 px-3 py-2 text-sm text-red-300">
-		{error}
+{#if status.error}
+	<p class="mb-4 rounded-lg border border-bad/40 bg-bad/10 px-3 py-2 text-sm text-bad">
+		{status.error}
 	</p>
 {/if}
 
-{#if status}
-	<div class="space-y-6">
-		<div class="grid gap-6 md:grid-cols-2">
-			{#each status.instances as instance (instance.app)}
+{#if status.data}
+	{@const s = status.data}
+	<div class="grid grid-cols-12 gap-4">
+		{#each s.instances as instance (instance.app)}
+			<div class="col-span-12 *:h-full md:col-span-6">
 				<InstanceCard {instance} />
-			{/each}
+			</div>
+		{/each}
+		<div class="col-span-12 *:h-full lg:col-span-8">
+			<QueueTable instances={s.instances} />
 		</div>
-		<QueueTable instances={status.instances} />
-		<div class="grid gap-6 lg:grid-cols-2">
-			<JobsPanel jobs={status.jobs} now={status.now} onrun={runJob} />
-			<StrikesPanel strikes={status.strikes} now={status.now} onclear={clearStrikes} />
+		<div class="col-span-12 *:h-full lg:col-span-4">
+			<JobsPanel jobs={s.jobs} now={s.now} onrun={status.runJob} />
 		</div>
-		<ActivityLog entries={status.activity} />
+		<div class="col-span-12 *:h-full lg:col-span-4">
+			<StrikesPanel
+				strikes={s.strikes}
+				limit={s.strikeLimit}
+				now={s.now}
+				onclear={status.clearStrikes}
+			/>
+		</div>
+		<div class="col-span-12 *:h-full lg:col-span-8">
+			<ActivityLog entries={s.activity} />
+		</div>
 	</div>
-{:else if !error}
-	<p class="text-sm text-slate-400">Loading…</p>
+{:else if !status.error}
+	<p class="text-sm text-mute">Loading…</p>
 {/if}

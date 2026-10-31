@@ -9,55 +9,71 @@
 	const stats = $derived(
 		instance.counts
 			? [
-					{ label: 'Missing', value: instance.counts.missing, warn: false },
-					{ label: 'Cutoff unmet', value: instance.counts.cutoff, warn: false },
-					{ label: 'In queue', value: instance.counts.queue, warn: false },
-					{ label: 'Stalled', value: instance.counts.stalled, warn: instance.counts.stalled > 0 },
-					{ label: 'Failed', value: instance.counts.failed, warn: instance.counts.failed > 0 }
+					{ label: 'missing', value: instance.counts.missing, tone: '' },
+					{ label: 'cutoff', value: instance.counts.cutoff, tone: '' },
+					{ label: 'queue', value: instance.counts.queue, tone: '' },
+					{
+						label: 'stalled',
+						value: instance.counts.stalled,
+						tone: instance.counts.stalled > 0 ? 'text-warn' : ''
+					},
+					{
+						label: 'failed',
+						value: instance.counts.failed,
+						tone: instance.counts.failed > 0 ? 'text-bad' : ''
+					}
 				]
 			: []
 	);
 </script>
 
-<section class="rounded-lg border border-slate-800 bg-slate-900 p-4">
-	<div class="flex items-center justify-between">
-		<h2 class="text-base font-semibold text-white">{name}</h2>
+<section class="rounded-[10px] border border-line bg-panel p-4">
+	<div class="flex items-center gap-2">
+		<h2 class="text-xs font-semibold tracking-[0.08em] text-mute uppercase">{name}</h2>
 		{#if !instance.configured}
-			<span class="rounded bg-slate-800 px-2 py-0.5 text-xs text-slate-400">not configured</span>
+			<span class="text-xs text-mute">not configured</span>
 		{:else if instance.online}
-			<span class="rounded bg-emerald-900/60 px-2 py-0.5 text-xs text-emerald-300"
-				>online · v{instance.version}</span
-			>
+			<span class="text-xs text-mute">
+				v{instance.version} ·
+				<span
+					class="mr-0.5 inline-block size-2 rounded-full {instance.health.length
+						? 'bg-warn'
+						: 'bg-ok'}"
+				></span>
+				{instance.health.length ? 'health warning' : 'online'}
+			</span>
 		{:else}
-			<span class="rounded bg-red-900/60 px-2 py-0.5 text-xs text-red-300">unreachable</span>
+			<span class="text-xs text-bad"
+				><span class="mr-0.5 inline-block size-2 rounded-full bg-bad"></span> unreachable</span
+			>
 		{/if}
 	</div>
 
 	{#if !instance.configured}
-		<p class="mt-3 text-sm text-slate-400">
-			Set the URL and API key in <a href={resolve('/settings')} class="underline">Settings</a>.
+		<p class="mt-3 text-sm text-mute">
+			Set the URL and API key in <a href={resolve('/settings')} class="text-accent underline"
+				>Settings</a
+			>.
 		</p>
 	{:else if instance.error}
-		<p class="mt-3 text-sm break-words text-red-300">{instance.error}</p>
+		<p class="mt-3 text-sm break-words text-bad">{instance.error}</p>
 	{/if}
 
 	{#if stats.length}
-		<dl class="mt-4 grid grid-cols-5 gap-2 text-center">
+		<dl class="my-3 grid grid-cols-5 gap-2">
 			{#each stats as s (s.label)}
-				<div class="rounded bg-slate-800/60 px-1 py-2">
-					<dd class="text-xl font-semibold {s.warn ? 'text-amber-300' : 'text-white'}">
-						{s.value}
-					</dd>
-					<dt class="text-[11px] text-slate-400">{s.label}</dt>
+				<div class="rounded-lg bg-panel2 px-2.5 py-2">
+					<dd class="text-[22px] leading-tight font-semibold {s.tone}">{s.value}</dd>
+					<dt class="text-xs text-mute">{s.label}</dt>
 				</div>
 			{/each}
 		</dl>
 	{/if}
 
 	{#if instance.health.length}
-		<ul class="mt-4 space-y-1 text-sm">
+		<ul class="mb-3 space-y-1 text-sm">
 			{#each instance.health as h, i (i)}
-				<li class={h.type === 'error' ? 'text-red-300' : 'text-amber-300'}>
+				<li class={h.type === 'error' ? 'text-bad' : 'text-warn'}>
 					{h.type === 'error' ? '✖' : '⚠'}
 					{h.message}
 				</li>
@@ -66,19 +82,21 @@
 	{/if}
 
 	{#if instance.disks.length}
-		<ul class="mt-4 space-y-2">
+		<ul class="space-y-2">
 			{#each instance.disks as d (d.path)}
 				{@const used = d.total > 0 ? 1 - d.free / d.total : 0}
-				<li class="text-xs text-slate-400">
-					<div class="flex justify-between">
-						<span class="truncate">{d.path}</span>
-						<span>{bytes(d.free)} free of {bytes(d.total)}</span>
-					</div>
-					<div class="mt-1 h-1.5 rounded bg-slate-800">
+				<li class="text-xs {used > 0.9 ? 'text-warn' : 'text-mute'}">
+					<div class="h-1.5 overflow-hidden rounded-[3px] bg-panel2">
 						<div
-							class="h-1.5 rounded {used > 0.9 ? 'bg-red-500' : 'bg-sky-500'}"
+							class="h-full {used > 0.9 ? 'bg-warn' : 'bg-accent'}"
 							style="width: {Math.round(used * 100)}%"
 						></div>
+					</div>
+					<div class="mt-1 flex justify-between gap-2">
+						<span class="truncate">Disk {d.path}</span>
+						<span class="shrink-0"
+							>{bytes(d.free)} free of {bytes(d.total)}{used > 0.9 ? ' — low' : ''}</span
+						>
 					</div>
 				</li>
 			{/each}

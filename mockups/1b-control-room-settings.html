@@ -1,0 +1,105 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Janitarr – 1b Control Room · Settings</title>
+<style>
+:root{--bg:#0b1020;--p:#131a2e;--p2:#1a2340;--b:#25305a;--t:#e6eaf7;--m:#8a95b8;--ok:#3ddc97;--w:#ffb84d;--e:#ff5d73;--a:#6ea8ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font:14px/1.45 system-ui,sans-serif}
+a{color:inherit;text-decoration:none}
+.top{display:flex;align-items:center;gap:16px;padding:12px 24px;border-bottom:1px solid var(--b);background:var(--p);position:sticky;top:0;z-index:5}
+.logo{font-weight:700;font-size:16px}.logo span{color:var(--a)}.sp{flex:1}
+.pill{padding:3px 10px;border-radius:99px;font-size:12px;border:1px solid var(--b);color:var(--m)}.pill.cur{background:var(--p2);color:var(--t)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);margin-right:6px}
+.layout{display:grid;grid-template-columns:200px 1fr;gap:24px;max-width:1100px;margin:0 auto;padding:24px 24px 100px}
+nav.g{position:sticky;top:72px;align-self:start;display:flex;flex-direction:column;gap:2px}
+nav.g a{padding:7px 12px;border-radius:6px;color:var(--m);display:flex;justify-content:space-between}
+nav.g a:hover{background:var(--p)}nav.g a.on{background:var(--p2);color:var(--t)}
+nav.g .n{font-size:11px;background:var(--w);color:#1a1200;border-radius:99px;padding:0 7px;visibility:hidden}nav.g .n.show{visibility:visible}
+h1{margin:0 0 4px;font-size:20px}.sub{color:var(--m);margin:0 0 20px}
+.card{background:var(--p);border:1px solid var(--b);border-radius:10px;margin-bottom:16px;scroll-margin-top:72px}
+.card>h2{margin:0;padding:12px 16px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--m);font-weight:600;border-bottom:1px solid var(--b);display:flex;justify-content:space-between;align-items:center}
+.card>h2 small{text-transform:none;letter-spacing:0;font-weight:400}
+.row{display:grid;grid-template-columns:1fr 240px;gap:16px;padding:12px 16px;border-top:1px solid var(--b);align-items:center}
+.row:first-of-type{border-top:0}.row.dirty{background:#1a2748;box-shadow:inset 3px 0 var(--a)}
+.row b{font-weight:500}.row p{margin:2px 0 0;color:var(--m);font-size:12px}
+.env{font:11px ui-monospace,monospace;color:#6b76a0;margin-top:4px}
+.lock{color:var(--w)}.rst{color:var(--a);cursor:pointer;background:none;border:0;padding:0;font:inherit;text-decoration:underline}
+.ctl{justify-self:end;width:100%;display:flex;justify-content:flex-end}
+input[type=text],input[type=password],input[type=number]{width:100%;background:var(--bg);border:1px solid var(--b);color:var(--t);border-radius:6px;padding:6px 10px;font:inherit}
+input:focus{outline:2px solid var(--a);outline-offset:-1px}input:disabled{opacity:.5;cursor:not-allowed}
+.sw{appearance:none;width:38px;height:22px;border-radius:99px;background:var(--p2);border:1px solid var(--b);position:relative;cursor:pointer;margin:0;transition:.15s}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--m);transition:.15s}
+.sw:checked{background:#244a8a;border-color:var(--a)}.sw:checked::after{left:18px;background:#fff}.sw:disabled{opacity:.45;cursor:not-allowed}
+.foot{display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid var(--b)}
+button.s{background:var(--p2);color:var(--t);border:1px solid var(--b);border-radius:6px;padding:5px 12px;cursor:pointer}button.s:hover{border-color:var(--a)}
+.res.ok{color:var(--ok)}.res.bad{color:var(--e)}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--p);border-top:1px solid var(--b);padding:12px 24px;display:flex;gap:12px;align-items:center;justify-content:center;transform:translateY(100%);transition:.2s}
+.bar.show{transform:none}.bar span{color:var(--w)}
+button.p{background:var(--a);color:#06122b;border:0;border-radius:6px;padding:7px 16px;font-weight:600;cursor:pointer}
+.toast{position:fixed;top:64px;right:24px;background:#12382b;border:1px solid #1f6b4e;color:var(--ok);padding:8px 14px;border-radius:8px;opacity:0;transition:.2s;pointer-events:none}.toast.show{opacity:1}
+@media(max-width:800px){.layout{grid-template-columns:1fr}nav.g{display:none}.row{grid-template-columns:1fr}.ctl{justify-self:start}}
+</style></head><body>
+<div class="top"><a class="logo" href="1-control-room.html">jani<span>tarr</span></a><a class="pill" href="1-control-room.html">Dashboard</a><a class="pill cur">Settings</a><div class="sp"></div><span class="pill"><span class="dot"></span>2 instances online</span></div>
+<div class="layout">
+<nav class="g" id="nav"></nav>
+<div><h1>Settings</h1><p class="sub">Values set through environment variables are locked. Everything else is saved to the data volume and survives restarts. Changes apply on the next job run.</p><div id="groups"></div></div>
+</div>
+<div class="bar" id="bar"><span id="cnt"></span><button class="s" id="discard">Discard</button><button class="p" id="save">Save changes</button></div>
+<div class="toast" id="toast">Saved. Changes apply on the next job run.</div>
+<script>
+// source: 'env' = locked, 'ui' = saved from UI, 'default'
+const S=[
+['General','Dry run','boolean','Log what would be done without searching, removing, blocklisting or unmonitoring anything.','JANITARR_DRY_RUN',true,false,'ui'],
+['Sonarr','URL','text','Base URL, e.g. http://sonarr:8989','SONARR_URL','http://sonarr:8989','','env'],
+['Sonarr','API key','password','Settings → General → API key in Sonarr.','SONARR_API_KEY','••••••••••••••••••••••••••••••••','','env'],
+['Radarr','URL','text','Base URL, e.g. http://radarr:7878','RADARR_URL','http://radarr:7878','','ui'],
+['Radarr','API key','password','Settings → General → API key in Radarr.','RADARR_API_KEY','••••••••••••••••••••••••••••••••','','ui'],
+['Search','Enabled','boolean','Periodically trigger searches for missing and cutoff-unmet items.','JANITARR_SEARCH_ENABLED',true,true,'default'],
+['Search','Interval (minutes)','number','Time between search cycles.','JANITARR_SEARCH_INTERVAL_MINUTES',60,60,'default'],
+['Search','Search missing','boolean','Search monitored episodes/movies that have no file.','JANITARR_SEARCH_MISSING',true,true,'default'],
+['Search','Search cutoff unmet','boolean','Search items below the quality cutoff.','JANITARR_SEARCH_CUTOFF',true,true,'default'],
+['Search','Max per cycle','number','Per instance and per list (missing, cutoff).','JANITARR_SEARCH_MAX_PER_CYCLE',10,10,'default'],
+['Search','Cooldown (hours)','number','Minimum time before searching the same item again.','JANITARR_SEARCH_COOLDOWN_HOURS',72,72,'default'],
+['Stalled','Enabled','boolean','Remove downloads that make no progress.','JANITARR_STALLED_ENABLED',true,true,'default'],
+['Stalled','Interval (minutes)','number','Time between stalled checks.','JANITARR_STALLED_INTERVAL_MINUTES',5,5,'default'],
+['Stalled','Timeout (minutes)','number','No-progress timeout.','JANITARR_STALLED_TIMEOUT_MINUTES',60,60,'default'],
+['Stalled','Grace period (minutes)','number','Minimum age before a download can be called stalled.','JANITARR_STALLED_GRACE_MINUTES',10,10,'default'],
+['Stalled','Remove from client','boolean','Also remove the download from the download client.','JANITARR_STALLED_REMOVE_FROM_CLIENT',true,true,'default'],
+['Stalled','Blocklist release','boolean','Blocklist the stalled release.','JANITARR_STALLED_BLOCKLIST',true,true,'default'],
+['Stalled','Search again','boolean','Trigger a new search after removal.','JANITARR_STALLED_RESEARCH',false,true,'ui'],
+['Failed','Enabled','boolean','Clear failed downloads/imports from the queue.','JANITARR_FAILED_ENABLED',true,true,'default'],
+['Failed','Interval (minutes)','number','Time between failed checks.','JANITARR_FAILED_INTERVAL_MINUTES',5,5,'default'],
+['Failed','Treat import blocked as failed','boolean','Count "import blocked" as a failure.','JANITARR_FAILED_IMPORT_BLOCKED',true,true,'default'],
+['Failed','Strikes','number','Failures before giving up on an item.','JANITARR_FAILED_STRIKES',3,3,'default'],
+['Failed','Strike decay (days)','number','0 disables decay.','JANITARR_FAILED_STRIKE_DECAY_DAYS',30,30,'default'],
+['Failed','Unmonitor at limit','boolean','Unmonitor the item once it hits the strike limit.','JANITARR_FAILED_UNMONITOR',true,true,'default'],
+].map((r,i)=>({i,group:r[0],label:r[1],type:r[2],desc:r[3],env:r[4],value:r[5],def:r[6],source:r[7],orig:r[5],locked:r[7]==='env'}));
+const $=s=>document.querySelector(s), groups=[...new Set(S.map(s=>s.group))];
+const dirty=()=>S.filter(s=>s.value!==s.orig);
+function render(){
+  $('#nav').innerHTML=groups.map(g=>`<a href="#g-${g}" data-g="${g}">${g}<span class="n">${dirty().filter(s=>s.group===g).length||''}</span></a>`).join('');
+  $('#groups').innerHTML=groups.map(g=>{
+    const items=S.filter(s=>s.group===g), app=g==='Sonarr'||g==='Radarr';
+    return `<section class="card" id="g-${g}"><h2>${g}${items.some(s=>s.locked)?'<small class="lock">some values locked by environment</small>':''}</h2>`+
+    items.map(s=>{
+      const ctl=s.type==='boolean'?`<input class="sw" type="checkbox" data-i="${s.i}" ${s.value?'checked':''} ${s.locked?'disabled':''}>`:
+        `<input type="${s.type}" data-i="${s.i}" value="${s.value}" ${s.locked?'disabled':''} ${s.type==='number'?'min="0"':''} autocomplete="off">`;
+      const meta=s.locked?` · <span class="lock">🔒 locked by environment</span>`:s.source==='ui'?` · saved from UI · <button class="rst" data-r="${s.i}">reset to default</button>`:'';
+      return `<div class="row ${s.value!==s.orig?'dirty':''}"><div><b>${s.label}</b><p>${s.desc}</p><div class="env">${s.env}${meta}</div></div><div class="ctl">${ctl}</div></div>`}).join('')+
+    (app?`<div class="foot"><button class="s" data-t="${g}">Test connection</button><span class="res" id="t-${g}"></span></div>`:'')+`</section>`}).join('');
+  const n=dirty().length;$('#cnt').textContent=`${n} unsaved change${n===1?'':'s'}`;$('#bar').classList.toggle('show',n>0);
+  document.querySelectorAll('#nav .n').forEach(e=>e.classList.toggle('show',!!e.textContent));hl();
+}
+function hl(){const y=scrollY+100;let cur=groups[0];groups.forEach(g=>{if($('#g-'+g).offsetTop<=y)cur=g});document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('on',a.dataset.g===cur))}
+addEventListener('scroll',hl);
+document.addEventListener('change',e=>{const i=e.target.dataset.i;if(i==null)return;const s=S[i];s.value=s.type==='boolean'?e.target.checked:s.type==='number'?Number(e.target.value):e.target.value;
+  const y=scrollY;render();scrollTo(0,y)});
+document.addEventListener('input',e=>{const i=e.target.dataset.i;if(i==null||e.target.type==='checkbox')return;const s=S[i];s.value=s.type==='number'?Number(e.target.value):e.target.value;
+  e.target.closest('.row').classList.toggle('dirty',s.value!==s.orig);const n=dirty().length;$('#cnt').textContent=`${n} unsaved change${n===1?'':'s'}`;$('#bar').classList.toggle('show',n>0)});
+document.addEventListener('click',e=>{
+  const r=e.target.dataset.r;if(r!=null){const s=S[r];s.value=s.orig=s.def;s.source='default';toast('Reset to default.');render()}
+  const t=e.target.dataset.t;if(t){const el=$('#t-'+t);el.className='res';el.textContent='Testing…';e.target.disabled=true;
+    setTimeout(()=>{e.target.disabled=false;const ok=t==='Sonarr';el.className='res '+(ok?'ok':'bad');el.textContent=ok?'Connected · Sonarr v4.0.9':'Connection refused (http://radarr:7878)'},700)}});
+$('#save').onclick=()=>{dirty().forEach(s=>{s.orig=s.value;if(!s.locked)s.source=s.value===s.def?'default':'ui'});toast('Saved. Changes apply on the next job run.');render()};
+$('#discard').onclick=()=>{S.forEach(s=>s.value=s.orig);render()};
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
+render();
+</script></body></html>

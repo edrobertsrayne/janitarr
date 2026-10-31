@@ -1,0 +1,39 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Janitarr – 2 Status First</title>
+<style>
+:root{--bg:#f6f5f1;--t:#1d1d1b;--m:#7a776e;--b:#e3e0d7;--ok:#2e8b57;--w:#c77d0a;--e:#c0392b;--card:#fff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t);font:16px/1.5 Georgia,'Iowan Old Style',serif}
+.wrap{max-width:760px;margin:0 auto;padding:48px 20px}
+nav{display:flex;justify-content:space-between;font:13px system-ui;color:var(--m);margin-bottom:56px}
+nav b{color:var(--t);letter-spacing:.04em}
+h1{font-size:38px;line-height:1.2;margin:0 0 12px;font-weight:600}
+h1 em{font-style:normal;color:var(--w)}
+.lede{color:var(--m);font-size:18px;margin:0 0 40px}
+h2{font:600 12px system-ui;letter-spacing:.1em;text-transform:uppercase;color:var(--m);margin:40px 0 12px}
+.attn{background:var(--card);border:1px solid var(--b);border-left:4px solid var(--w);border-radius:6px;padding:14px 16px;margin-bottom:10px;display:flex;gap:16px;align-items:center}
+.attn.e{border-left-color:var(--e)}.attn div{flex:1}.attn small{display:block;color:var(--m);font:13px system-ui}
+button{font:13px system-ui;background:var(--t);color:#fff;border:0;border-radius:5px;padding:6px 12px;cursor:pointer}
+button.g{background:transparent;color:var(--t);border:1px solid var(--b)}
+.row{display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid var(--b);font:14px system-ui}
+.row span:last-child{color:var(--m)}
+.sum{display:grid;grid-template-columns:1fr 1fr;gap:12px}.sum .box{background:var(--card);border:1px solid var(--b);border-radius:6px;padding:14px;font-family:system-ui}
+.box b{font-size:26px;display:block;font-family:Georgia,serif}
+details{font:14px system-ui;border-top:1px solid var(--b);padding:12px 0}summary{cursor:pointer;color:var(--m)}
+details p{margin:8px 0;font:12px ui-monospace,monospace;color:var(--m)}
+</style></head><body><div class="wrap">
+<nav><b>JANITARR</b><span>Dry run on · <u>Settings</u></span></nav>
+<h1>Everything is tidy, except <em>two things</em>.</h1>
+<p class="lede">9 downloads in progress across Sonarr and Radarr. Last sweep 5 minutes ago. Nothing changed because dry run is on.</p>
+<h2>Needs a look</h2>
+<div class="attn"><div><b>Andor S01E09 is stalled</b><small>No progress for 62 minutes · Sonarr · would be removed and re-searched</small></div><button class="g">Details</button></div>
+<div class="attn e"><div><b>Fringe S01E07 was given up on</b><small>Failed 3 times · unmonitored · skipped until cleared</small></div><button>Clear strikes</button></div>
+<h2>Right now</h2>
+<div class="sum"><div class="box"><b>6</b>Sonarr queue · 128 missing</div><div class="box"><b>3</b>Radarr queue · 37 missing</div></div>
+<h2>Schedule</h2>
+<div class="row"><span>Search</span><span>next in 27 min · <u>run now</u></span></div>
+<div class="row"><span>Stalled</span><span>next in 2 min · <u>run now</u></span></div>
+<div class="row"><span>Failed</span><span>next in 2 min · <u>run now</u></span></div>
+<h2>History</h2>
+<details><summary>Today: 14 searches, 1 removal, 2 strikes. Show log</summary>
+<p>14:35 would remove Andor S01E09 (dry run)</p><p>14:21 strike 2/3 The Bear S03E02</p><p>14:02 searched 10 missing, 4 cutoff (radarr)</p></details>
+</div></body></html>

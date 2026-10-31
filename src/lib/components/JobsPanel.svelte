@@ -10,21 +10,23 @@
 		stalled: 'Remove stalled',
 		failed: 'Clear failed + strikes'
 	};
+
+	const dot = (job: JobState) =>
+		job.lastError ? 'bg-bad' : job.running ? 'bg-accent' : job.enabled ? 'bg-ok' : 'bg-line';
 </script>
 
-<section class="rounded-lg border border-slate-800 bg-slate-900">
-	<h2 class="border-b border-slate-800 px-4 py-3 text-base font-semibold text-white">Jobs</h2>
-	<ul class="divide-y divide-slate-800">
+<section class="rounded-[10px] border border-line bg-panel p-4">
+	<h2 class="mb-3 text-xs font-semibold tracking-[0.08em] text-mute uppercase">Jobs</h2>
+	<ul>
 		{#each jobs as job (job.name)}
-			<li class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm">
-				<div>
-					<div class="text-slate-100">
+			<li class="flex items-center gap-3 border-t border-line py-2.5 text-sm first:border-t-0">
+				<span class="size-2 shrink-0 rounded-full {dot(job)}"></span>
+				<div class="min-w-0 flex-1">
+					<div class="font-semibold">
 						{titles[job.name]}
-						{#if !job.enabled}<span class="ml-1 rounded bg-slate-800 px-1.5 text-xs text-slate-400"
-								>disabled</span
-							>{/if}
+						{#if !job.enabled}<span class="ml-1 text-xs font-normal text-mute">disabled</span>{/if}
 					</div>
-					<div class="text-xs text-slate-400">
+					<div class="text-xs text-mute">
 						every {job.intervalMinutes}m ·
 						{#if job.running}
 							running…
@@ -34,12 +36,12 @@
 								: ''}
 						{/if}
 					</div>
-					{#if job.lastError}<div class="text-xs text-red-300">{job.lastError}</div>{/if}
+					{#if job.lastError}<div class="text-xs text-bad">{job.lastError}</div>{/if}
 				</div>
 				<button
-					class="rounded bg-slate-800 px-3 py-1 text-xs text-slate-100 hover:bg-slate-700 disabled:opacity-50"
+					class="rounded-md border border-line bg-panel2 px-3 py-1 text-xs hover:border-accent disabled:opacity-50"
 					disabled={job.running}
-					onclick={() => onrun(job.name)}>Run now</button
+					onclick={() => onrun(job.name)}>Run</button
 				>
 			</li>
 		{/each}

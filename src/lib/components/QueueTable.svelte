@@ -14,64 +14,64 @@
 	);
 </script>
 
-<section class="rounded-lg border border-slate-800 bg-slate-900">
-	<h2 class="border-b border-slate-800 px-4 py-3 text-base font-semibold text-white">
-		Queue <span class="text-sm font-normal text-slate-400">({rows.length})</span>
+<section class="rounded-[10px] border border-line bg-panel p-4">
+	<h2 class="mb-3 text-xs font-semibold tracking-[0.08em] text-mute uppercase">
+		Queue <span class="font-normal tracking-normal normal-case">({rows.length})</span>
 	</h2>
 	{#if rows.length === 0}
-		<p class="px-4 py-6 text-sm text-slate-400">Nothing downloading.</p>
+		<p class="py-4 text-sm text-mute">Nothing downloading.</p>
 	{:else}
 		<div class="overflow-x-auto">
 			<table class="w-full text-left text-sm">
-				<thead class="text-xs text-slate-400 uppercase">
+				<thead class="text-xs text-mute">
 					<tr>
-						<th class="px-4 py-2">Item</th>
-						<th class="px-2 py-2">State</th>
-						<th class="w-48 px-2 py-2">Progress</th>
-						<th class="px-2 py-2">Size</th>
-						<th class="px-4 py-2">Strikes</th>
+						<th class="px-2 py-1.5 font-medium">Item</th>
+						<th class="px-2 py-1.5 font-medium">State</th>
+						<th class="w-44 px-2 py-1.5 font-medium">Progress</th>
+						<th class="px-2 py-1.5 font-medium">Size</th>
+						<th class="px-2 py-1.5 font-medium">Strikes</th>
 					</tr>
 				</thead>
 				<tbody>
 					{#each rows as q (q.app + q.id)}
-						<tr class="border-t border-slate-800 align-top">
-							<td class="max-w-md px-4 py-2">
-								<div class="text-slate-100">
-									<span class="mr-1 text-[10px] text-slate-500 uppercase">{q.app}</span>{q.title}
+						<tr class="border-t border-line align-top">
+							<td class="max-w-md px-2 py-2">
+								<div>
+									<span class="mr-1 text-[10px] text-faint uppercase">{q.app}</span>{q.title}
 								</div>
-								<div class="truncate text-xs text-slate-500" title={q.release}>{q.release}</div>
+								<div class="truncate text-xs text-mute" title={q.release}>{q.release}</div>
 								{#if q.message && q.flag}
-									<div class="mt-0.5 text-xs text-amber-300/80">{q.message}</div>
+									<div class="mt-0.5 text-xs text-warn/80">{q.message}</div>
 								{/if}
 							</td>
 							<td class="px-2 py-2 whitespace-nowrap">
 								{#if q.flag === 'failed'}
-									<span class="rounded bg-red-900/60 px-1.5 py-0.5 text-xs text-red-300"
-										>failed</span
-									>
+									<span class="rounded bg-[#4a1822] px-1.5 py-px text-[11px] text-bad">failed</span>
 								{:else if q.flag === 'stalled'}
-									<span class="rounded bg-amber-900/60 px-1.5 py-0.5 text-xs text-amber-300"
+									<span class="rounded bg-[#4a3410] px-1.5 py-px text-[11px] text-warn"
 										>stalled</span
 									>
 								{:else}
-									<span class="text-xs text-slate-400">{q.state ?? q.status}</span>
+									<span class="text-xs text-mute">{q.state ?? q.status}</span>
 								{/if}
 							</td>
 							<td class="px-2 py-2">
-								<div class="h-1.5 rounded bg-slate-800">
+								<div class="h-1.5 overflow-hidden rounded-[3px] bg-panel2">
 									<div
-										class="h-1.5 rounded bg-sky-500"
+										class="h-full {q.flag === 'failed'
+											? 'bg-bad'
+											: q.flag === 'stalled'
+												? 'bg-warn'
+												: 'bg-accent'}"
 										style="width: {Math.round(q.progress * 100)}%"
 									></div>
 								</div>
-								<div class="mt-1 text-xs text-slate-400">
+								<div class="mt-1 text-xs text-mute">
 									{Math.round(q.progress * 100)}%{q.timeleft ? ` · ${q.timeleft}` : ''}
 								</div>
 							</td>
-							<td class="px-2 py-2 whitespace-nowrap text-slate-400">{bytes(q.size)}</td>
-							<td class="px-4 py-2 {q.strikes > 0 ? 'text-amber-300' : 'text-slate-500'}"
-								>{q.strikes}</td
-							>
+							<td class="px-2 py-2 whitespace-nowrap text-mute">{bytes(q.size)}</td>
+							<td class="px-2 py-2 {q.strikes > 0 ? 'text-warn' : 'text-faint'}">{q.strikes}</td>
 						</tr>
 					{/each}
 				</tbody>
