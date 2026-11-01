@@ -61,7 +61,7 @@
 					</span>
 					{#if next}
 						<span
-							class="rounded-full border border-line px-3 py-0.5 text-sm text-mute pointer-coarse:py-1.5"
+							class="hidden rounded-full border border-line px-3 py-0.5 text-sm text-mute md:inline pointer-coarse:py-1.5"
 							>Next run: {next.name} {relative(next.nextRun, status.data.now)}</span
 						>
 					{/if}
