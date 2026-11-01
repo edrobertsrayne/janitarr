@@ -34,11 +34,13 @@
 <div class="min-h-screen">
 	<header class="z-10 border-b border-line bg-panel md:sticky md:top-0">
 		<nav class="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 md:gap-x-4 md:px-6">
-			<span class="text-base font-bold">jani<span class="text-accent">tarr</span></span>
+			<a href={resolve('/')} class="text-lg font-bold" aria-label="Janitarr dashboard"
+				>jani<span class="text-accent">tarr</span></a
+			>
 			{#each links as link (link.href)}
 				<a
 					href={resolve(link.href)}
-					class="rounded-full border border-line px-3 py-0.5 text-xs pointer-coarse:px-3.5 pointer-coarse:py-1.5 pointer-coarse:text-sm {page
+					class="rounded-full border border-line px-3 py-0.5 text-sm pointer-coarse:px-3.5 pointer-coarse:py-1.5 {page
 						.url.pathname === link.href
 						? 'bg-panel2 text-ink'
 						: 'text-mute hover:text-ink'}">{link.label}</a
@@ -48,7 +50,7 @@
 			{#if status.data}
 				<div class="flex w-full flex-wrap items-center gap-2 md:w-auto">
 					<span
-						class="rounded-full border border-line px-3 py-0.5 text-xs text-mute pointer-coarse:py-1.5"
+						class="rounded-full border border-line px-3 py-0.5 text-sm text-mute pointer-coarse:py-1.5"
 					>
 						<span
 							class="mr-1.5 inline-block size-2 rounded-full {configured.length > 0 &&
@@ -59,12 +61,12 @@
 					</span>
 					{#if next}
 						<span
-							class="rounded-full border border-line px-3 py-0.5 text-xs text-mute pointer-coarse:py-1.5"
+							class="rounded-full border border-line px-3 py-0.5 text-sm text-mute pointer-coarse:py-1.5"
 							>Next run: {next.name} {relative(next.nextRun, status.data.now)}</span
 						>
 					{/if}
 					<button
-						class="rounded-full border px-3 py-0.5 text-xs disabled:cursor-not-allowed disabled:opacity-60 pointer-coarse:py-1.5 {status
+						class="rounded-full border px-3 py-0.5 text-sm disabled:cursor-not-allowed disabled:opacity-60 pointer-coarse:py-1.5 {status
 							.data.dryRun
 							? 'border-[#2b5aa0] bg-[#16335f] text-[#9cc4ff]'
 							: 'border-line text-mute hover:text-ink'}"
