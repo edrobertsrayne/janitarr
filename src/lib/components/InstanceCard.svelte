@@ -27,7 +27,7 @@
 	);
 </script>
 
-<section class="rounded-[10px] border border-line bg-panel p-4">
+<section class="@container rounded-[10px] border border-line bg-panel p-4">
 	<div class="flex items-center gap-2">
 		<h2 class="text-xs font-semibold tracking-[0.08em] text-mute uppercase">{name}</h2>
 		{#if !instance.configured}
@@ -60,7 +60,7 @@
 	{/if}
 
 	{#if stats.length}
-		<dl class="my-3 grid grid-cols-5 gap-2">
+		<dl class="my-3 grid grid-cols-3 gap-2 @md:grid-cols-5">
 			{#each stats as s (s.label)}
 				<div class="rounded-lg bg-panel2 px-2.5 py-2">
 					<dd class="text-[22px] leading-tight font-semibold {s.tone}">{s.value}</dd>

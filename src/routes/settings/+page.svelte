@@ -132,7 +132,7 @@
 		{#each groups as group (group.slug)}
 			<section
 				id="g-{group.slug}"
-				class="mb-4 scroll-mt-20 rounded-[10px] border border-line bg-panel"
+				class="mb-4 scroll-mt-4 rounded-[10px] border border-line bg-panel md:scroll-mt-20"
 			>
 				<h2
 					class="flex items-center justify-between border-b border-line px-4 py-3 text-xs font-semibold tracking-[0.08em] text-mute uppercase"
@@ -181,7 +181,7 @@
 								<input
 									id={s.key}
 									type="number"
-									class="w-full rounded-md border border-line bg-bg px-2.5 py-1.5 text-sm focus:outline-2 focus:-outline-offset-1 focus:outline-accent disabled:cursor-not-allowed disabled:opacity-50"
+									class="w-full rounded-md border border-line bg-bg px-2.5 py-1.5 text-sm focus:outline-2 focus:-outline-offset-1 focus:outline-accent disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:py-2 pointer-coarse:text-base"
 									value={current as number}
 									disabled={s.locked}
 									oninput={(e) => edit(s, e.currentTarget.valueAsNumber)}
@@ -191,7 +191,7 @@
 									id={s.key}
 									type={s.secret ? 'password' : 'text'}
 									autocomplete="off"
-									class="w-full rounded-md border border-line bg-bg px-2.5 py-1.5 text-sm focus:outline-2 focus:-outline-offset-1 focus:outline-accent disabled:cursor-not-allowed disabled:opacity-50"
+									class="w-full rounded-md border border-line bg-bg px-2.5 py-1.5 text-sm focus:outline-2 focus:-outline-offset-1 focus:outline-accent disabled:cursor-not-allowed disabled:opacity-50 pointer-coarse:py-2 pointer-coarse:text-base"
 									value={current as string}
 									disabled={s.locked}
 									oninput={(e) => edit(s, e.currentTarget.value)}
@@ -203,9 +203,9 @@
 				{#if group.name === 'Sonarr' || group.name === 'Radarr'}
 					{@const app = group.name.toLowerCase()}
 					{@const t = tests[app]}
-					<div class="flex items-center gap-3 border-t border-line px-4 py-3">
+					<div class="flex flex-wrap items-center gap-3 border-t border-line px-4 py-3">
 						<button
-							class="rounded-md border border-line bg-panel2 px-3 py-1 text-sm hover:border-accent disabled:opacity-40"
+							class="rounded-md border border-line bg-panel2 px-3 py-1 text-sm hover:border-accent disabled:opacity-40 pointer-coarse:px-4 pointer-coarse:py-2"
 							disabled={t?.busy}
 							onclick={() => testConnection(app)}>{t?.busy ? 'Testing…' : 'Test connection'}</button
 						>
@@ -220,7 +220,7 @@
 </div>
 
 <div
-	class="fixed inset-x-0 bottom-0 z-10 flex items-center justify-center gap-3 border-t border-line bg-panel px-6 py-3 transition-transform {dirtyCount >
+	class="fixed inset-x-0 bottom-0 z-10 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 border-t border-line bg-panel px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] transition-transform md:px-6 {dirtyCount >
 	0
 		? ''
 		: 'translate-y-full'}"
@@ -228,12 +228,12 @@
 >
 	<span class="text-sm text-warn">{dirtyCount} unsaved change{dirtyCount === 1 ? '' : 's'}</span>
 	<button
-		class="rounded-md border border-line bg-panel2 px-3 py-1.5 text-sm hover:border-accent"
+		class="rounded-md border border-line bg-panel2 px-3 py-1.5 text-sm hover:border-accent pointer-coarse:px-4 pointer-coarse:py-2"
 		disabled={saving}
 		onclick={() => (edits = {})}>Discard</button
 	>
 	<button
-		class="rounded-md bg-accent px-4 py-1.5 text-sm font-semibold text-[#06122b] disabled:opacity-40"
+		class="rounded-md bg-accent px-4 py-1.5 text-sm font-semibold text-[#06122b] disabled:opacity-40 pointer-coarse:py-2"
 		disabled={saving}
 		onclick={save}>Save changes</button
 	>

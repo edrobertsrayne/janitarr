@@ -38,7 +38,7 @@
 						</div>
 					</div>
 					<button
-						class="shrink-0 rounded-md border border-line bg-panel2 px-3 py-1 text-xs hover:border-accent"
+						class="shrink-0 rounded-md border border-line bg-panel2 px-3 py-1 text-xs hover:border-accent pointer-coarse:px-4 pointer-coarse:py-2 pointer-coarse:text-sm"
 						onclick={() => onclear(s)}>Clear</button
 					>
 				</li>

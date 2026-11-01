@@ -21,9 +21,9 @@
 	{#if rows.length === 0}
 		<p class="py-4 text-sm text-mute">Nothing downloading.</p>
 	{:else}
-		<div class="overflow-x-auto">
-			<table class="w-full text-left text-sm">
-				<thead class="text-xs text-mute">
+		<div class="lg:overflow-x-auto">
+			<table class="block w-full text-left text-sm lg:table">
+				<thead class="hidden text-xs text-mute lg:table-header-group">
 					<tr>
 						<th class="px-2 py-1.5 font-medium">Item</th>
 						<th class="px-2 py-1.5 font-medium">State</th>
@@ -32,10 +32,12 @@
 						<th class="px-2 py-1.5 font-medium">Strikes</th>
 					</tr>
 				</thead>
-				<tbody>
+				<tbody class="block lg:table-row-group">
 					{#each rows as q (q.app + q.id)}
-						<tr class="border-t border-line align-top">
-							<td class="max-w-md px-2 py-2">
+						<tr
+							class="grid grid-cols-3 items-start gap-x-3 gap-y-1 border-t border-line py-3 align-top lg:table-row lg:py-0"
+						>
+							<td class="col-span-3 px-2 py-0 lg:table-cell lg:max-w-md lg:py-2">
 								<div>
 									<span class="mr-1 text-[10px] text-faint uppercase">{q.app}</span>{q.title}
 								</div>
@@ -44,7 +46,7 @@
 									<div class="mt-0.5 text-xs text-warn/80">{q.message}</div>
 								{/if}
 							</td>
-							<td class="px-2 py-2 whitespace-nowrap">
+							<td class="order-3 px-2 py-0 whitespace-nowrap lg:table-cell lg:py-2">
 								{#if q.flag === 'failed'}
 									<span class="rounded bg-[#4a1822] px-1.5 py-px text-[11px] text-bad">failed</span>
 								{:else if q.flag === 'stalled'}
@@ -55,7 +57,7 @@
 									<span class="text-xs text-mute">{q.state ?? q.status}</span>
 								{/if}
 							</td>
-							<td class="px-2 py-2">
+							<td class="order-2 col-span-3 px-2 py-1 lg:table-cell lg:py-2">
 								<div class="h-1.5 overflow-hidden rounded-[3px] bg-panel2">
 									<div
 										class="h-full {q.flag === 'failed'
@@ -75,8 +77,16 @@
 									</div>
 								{/if}
 							</td>
-							<td class="px-2 py-2 whitespace-nowrap text-mute">{bytes(q.size)}</td>
-							<td class="px-2 py-2 {q.strikes > 0 ? 'text-warn' : 'text-faint'}">{q.strikes}</td>
+							<td class="order-4 px-2 py-0 whitespace-nowrap text-mute lg:table-cell lg:py-2"
+								>{bytes(q.size)}</td
+							>
+							<td
+								class="order-5 px-2 py-0 text-right lg:table-cell lg:py-2 lg:text-left {q.strikes >
+								0
+									? 'text-warn'
+									: 'text-faint'}"
+								><span class="mr-1 text-xs text-faint lg:hidden">strikes</span>{q.strikes}</td
+							>
 						</tr>
 					{/each}
 				</tbody>

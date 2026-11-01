@@ -39,7 +39,7 @@
 					{#if job.lastError}<div class="text-xs text-bad">{job.lastError}</div>{/if}
 				</div>
 				<button
-					class="rounded-md border border-line bg-panel2 px-3 py-1 text-xs hover:border-accent disabled:opacity-50"
+					class="rounded-md border border-line bg-panel2 px-3 py-1 text-xs hover:border-accent disabled:opacity-50 pointer-coarse:px-4 pointer-coarse:py-2 pointer-coarse:text-sm"
 					disabled={job.running}
 					onclick={() => onrun(job.name)}>Run</button
 				>

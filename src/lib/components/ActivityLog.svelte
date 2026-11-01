@@ -14,10 +14,10 @@
 	{:else}
 		<ul class="font-mono text-xs">
 			{#each entries as e (e.id)}
-				<li class="flex gap-3 py-[3px] {tone[e.level]}">
+				<li class="flex flex-wrap gap-x-3 py-1 sm:flex-nowrap sm:py-[3px] {tone[e.level]}">
 					<span class="shrink-0 text-faint">{clock(e.ts)}</span>
 					<span class="w-16 shrink-0 text-faint">{e.job}{e.app ? `/${e.app[0]}` : ''}</span>
-					<span class="break-words">
+					<span class="min-w-0 basis-full break-words sm:basis-auto">
 						{#if e.dryRun}<span class="mr-1 rounded bg-[#16335f] px-1 text-[#9cc4ff]">dry-run</span
 							>{/if}{e.message}
 					</span>
