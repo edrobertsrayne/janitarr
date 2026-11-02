@@ -31,42 +31,77 @@
 	<title>Janitarr</title>
 </svelte:head>
 
-<div class="min-h-screen">
-	<header class="z-10 border-b border-line bg-panel md:sticky md:top-0">
-		<nav class="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 md:gap-x-4 md:px-6">
+{#snippet icon(href: string)}
+	<svg
+		class="size-6"
+		viewBox="0 0 24 24"
+		fill="none"
+		stroke="currentColor"
+		stroke-width="1.8"
+		stroke-linecap="round"
+		stroke-linejoin="round"
+		aria-hidden="true"
+	>
+		{#if href === '/'}
+			<rect x="3" y="3" width="7" height="9" rx="1.5" />
+			<rect x="14" y="3" width="7" height="5" rx="1.5" />
+			<rect x="14" y="12" width="7" height="9" rx="1.5" />
+			<rect x="3" y="16" width="7" height="5" rx="1.5" />
+		{:else if href === '/activity'}
+			<path d="M3 12h4l3-8 4 16 3-8h4" />
+		{:else}
+			<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12" />
+			<circle cx="16" cy="6" r="2" />
+			<circle cx="10" cy="12" r="2" />
+			<circle cx="18" cy="18" r="2" />
+		{/if}
+	</svg>
+{/snippet}
+
+<div class="min-h-screen pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
+	<header
+		class="sticky top-0 z-10 border-b border-line bg-panel/95 pt-[env(safe-area-inset-top)] backdrop-blur"
+	>
+		<div class="flex items-center gap-3 px-4 py-2.5 md:gap-4 md:px-6 md:py-3">
 			<a href={resolve('/')} class="text-lg font-bold" aria-label="Janitarr dashboard"
 				>jani<span class="text-accent">tarr</span></a
 			>
-			{#each links as link (link.href)}
-				<a
-					href={resolve(link.href)}
-					class="rounded-full border border-line px-3 py-0.5 text-sm pointer-coarse:px-3.5 pointer-coarse:py-1.5 {page
-						.url.pathname === link.href
-						? 'bg-panel2 text-ink'
-						: 'text-mute hover:text-ink'}">{link.label}</a
-				>
-			{/each}
-			<div class="hidden flex-1 md:block"></div>
+			<nav class="hidden items-center gap-4 md:flex" aria-label="Main">
+				{#each links as link (link.href)}
+					<a
+						href={resolve(link.href)}
+						aria-current={page.url.pathname === link.href ? 'page' : undefined}
+						class="rounded-full border border-line px-3 py-0.5 text-sm {page.url.pathname ===
+						link.href
+							? 'bg-panel2 text-ink'
+							: 'text-mute hover:text-ink'}">{link.label}</a
+					>
+				{/each}
+			</nav>
+			<div class="flex-1"></div>
 			{#if status.data}
-				<div class="flex w-full flex-wrap items-center justify-end gap-2 md:w-auto">
+				<div class="flex items-center gap-2">
 					<span
-						class="rounded-full border border-line px-3 py-0.5 text-sm text-mute pointer-coarse:py-1.5"
+						class="flex items-center rounded-full border border-line px-2.5 py-1 text-sm text-mute md:px-3 md:py-0.5"
+						title="{online}/{configured.length} instances online"
 					>
 						<span
 							class="mr-1.5 inline-block size-2 rounded-full {configured.length > 0 &&
 							online === configured.length
 								? 'bg-ok'
 								: 'bg-bad'}"
-						></span>{online}/{configured.length} instance{configured.length === 1 ? '' : 's'} online
+						></span>{online}/{configured.length}<span class="ml-1 hidden sm:inline"
+							>instance{configured.length === 1 ? '' : 's'} online</span
+						>
 					</span>
 					{#if next}
 						<span
-							class="hidden rounded-full border border-line px-3 py-0.5 text-sm text-mute md:inline pointer-coarse:py-1.5"
+							class="hidden rounded-full border border-line px-3 py-0.5 text-sm text-mute md:inline"
 							>Next run: {next.name} {relative(next.nextRun, status.data.now)}</span
 						>
 					{/if}
 					<button
-						class="rounded-full border px-3 py-0.5 text-sm disabled:cursor-not-allowed disabled:opacity-60 pointer-coarse:py-1.5 {status
+						class="rounded-full border px-2.5 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-60 md:px-3 md:py-0.5 {status
 							.data.dryRun
 							? 'border-[#2b5aa0] bg-[#16335f] text-[#9cc4ff]'
 							: 'border-line text-mute hover:text-ink'}"
@@ -77,7 +112,7 @@
 					>
 				</div>
 			{/if}
-		</nav>
+		</div>
 	</header>
 	<main class="mx-auto max-w-[1400px] px-4 py-4 md:px-6 md:py-5">
 		{@render children()}
@@ -85,4 +120,22 @@
 	<footer class="px-4 py-4 text-center text-xs text-mute md:px-6">
 		{__GIT_SHA__} · built {__BUILD_DATE__.slice(0, 10)}
 	</footer>
+	<nav
+		class="fixed inset-x-0 bottom-0 z-10 flex border-t border-line bg-panel/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+		aria-label="Main"
+	>
+		{#each links as link (link.href)}
+			{@const active = page.url.pathname === link.href}
+			<a
+				href={resolve(link.href)}
+				aria-current={active ? 'page' : undefined}
+				class="flex h-16 flex-1 flex-col items-center justify-center gap-1 text-xs font-medium {active
+					? 'text-accent'
+					: 'text-mute active:text-ink'}"
+			>
+				{@render icon(link.href)}
+				{link.label}
+			</a>
+		{/each}
+	</nav>
 </div>
