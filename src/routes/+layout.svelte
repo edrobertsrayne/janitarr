@@ -48,7 +48,7 @@
 			{/each}
 			<div class="hidden flex-1 md:block"></div>
 			{#if status.data}
-				<div class="flex w-full flex-wrap items-center gap-2 md:w-auto">
+				<div class="flex w-full flex-wrap items-center justify-end gap-2 md:w-auto">
 					<span
 						class="rounded-full border border-line px-3 py-0.5 text-sm text-mute pointer-coarse:py-1.5"
 					>
